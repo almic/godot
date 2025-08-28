@@ -66,6 +66,10 @@ Ref<Material> Sky::get_material() const {
 	return sky_material;
 }
 
+RID Sky::get_radiance_rd() const {
+	return RS::get_singleton()->sky_get_radiance_texture_rd(sky);
+}
+
 RID Sky::get_rid() const {
 	return sky;
 }
@@ -79,6 +83,8 @@ void Sky::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_material", "material"), &Sky::set_material);
 	ClassDB::bind_method(D_METHOD("get_material"), &Sky::get_material);
+
+	ClassDB::bind_method(D_METHOD("get_radiance_rd"), &Sky::get_radiance_rd);
 
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "sky_material", PROPERTY_HINT_RESOURCE_TYPE, "PanoramaSkyMaterial,ProceduralSkyMaterial,PhysicalSkyMaterial,ShaderMaterial"), "set_material", "get_material");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "process_mode", PROPERTY_HINT_ENUM, "Automatic,High-Quality,High-Quality Incremental,Real-Time"), "set_process_mode", "get_process_mode");

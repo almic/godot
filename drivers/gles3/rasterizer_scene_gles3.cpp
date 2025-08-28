@@ -546,6 +546,13 @@ float RasterizerSceneGLES3::sky_get_baked_exposure(RID p_sky) const {
 	return sky->baked_exposure;
 }
 
+RID RasterizerSceneGLES3::sky_get_radiance_texture_rd(RID p_sky) {
+	Sky *sky = sky_owner.get_or_null(p_sky);
+	ERR_FAIL_NULL_V(sky, RID());
+
+	return RID::from_uint64(sky->radiance);
+}
+
 void RasterizerSceneGLES3::_invalidate_sky(Sky *p_sky) {
 	if (!p_sky->dirty) {
 		p_sky->dirty = true;

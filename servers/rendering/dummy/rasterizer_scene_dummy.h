@@ -115,6 +115,7 @@ public:
 	void sky_set_mode(RID p_sky, RS::SkyMode p_samples) override {}
 	void sky_set_material(RID p_sky, RID p_material) override {}
 	Ref<Image> sky_bake_panorama(RID p_sky, float p_energy, bool p_bake_irradiance, const Size2i &p_size) override { return Ref<Image>(); }
+	RID sky_get_radiance_texture_rd(RID p_sky) override { return RID(); }
 
 	/* ENVIRONMENT API */
 

@@ -1211,6 +1211,7 @@ public:
 	PASS2(sky_set_mode, RID, RS::SkyMode)
 	PASS2(sky_set_material, RID, RID)
 	PASS4R(Ref<Image>, sky_bake_panorama, RID, float, bool, const Size2i &)
+	PASS1R(RID, sky_get_radiance_texture_rd, RID)
 
 	// Compositor effect
 

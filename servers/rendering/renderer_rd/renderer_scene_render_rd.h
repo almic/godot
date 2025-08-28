@@ -186,6 +186,7 @@ public:
 	virtual void sky_set_mode(RID p_sky, RS::SkyMode p_mode) override;
 	virtual void sky_set_material(RID p_sky, RID p_material) override;
 	virtual Ref<Image> sky_bake_panorama(RID p_sky, float p_energy, bool p_bake_irradiance, const Size2i &p_size) override;
+	virtual RID sky_get_radiance_texture_rd(RID p_sky) override;
 
 	/* ENVIRONMENT API */
 

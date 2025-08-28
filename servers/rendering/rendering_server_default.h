@@ -784,6 +784,7 @@ public:
 	FUNC2(sky_set_mode, RID, SkyMode)
 	FUNC2(sky_set_material, RID, RID)
 	FUNC4R(Ref<Image>, sky_bake_panorama, RID, float, bool, const Size2i &)
+	FUNC1R(RID, sky_get_radiance_texture_rd, RID)
 
 	/* ENVIRONMENT */
 

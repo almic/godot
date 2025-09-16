@@ -90,6 +90,9 @@ public:
 	virtual Transform3D get_cam_transform() const override;
 	virtual Projection get_cam_projection() const override;
 
+	virtual float get_time() const override;
+	virtual float get_time_step() const override;
+
 	virtual uint32_t get_view_count() const override;
 	virtual Vector3 get_view_eye_offset(uint32_t p_view) const override;
 	virtual Projection get_view_projection(uint32_t p_view) const override;

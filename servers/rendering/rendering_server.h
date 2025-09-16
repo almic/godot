@@ -1419,6 +1419,16 @@ public:
 	virtual void camera_attributes_set_exposure(RID p_camera_attributes, float p_multiplier, float p_exposure_normalization) = 0;
 	virtual void camera_attributes_set_auto_exposure(RID p_camera_attributes, bool p_enable, float p_min_sensitivity, float p_max_sensitivity, float p_speed, float p_scale) = 0;
 
+	virtual float camera_attributes_get_exposure_normalization_factor(RID p_camera_attributes) = 0;
+
+	virtual bool camera_attributes_uses_auto_exposure(RID p_camera_attributes) = 0;
+
+	virtual float camera_attributes_get_auto_exposure_min_sensitivity(RID p_camera_attributes) = 0;
+	virtual float camera_attributes_get_auto_exposure_max_sensitivity(RID p_camera_attributes) = 0;
+	virtual float camera_attributes_get_auto_exposure_adjust_speed(RID p_camera_attributes) = 0;
+	virtual float camera_attributes_get_auto_exposure_scale(RID p_camera_attributes) = 0;
+
+
 	/* SCENARIO API */
 
 	virtual RID scenario_create() = 0;

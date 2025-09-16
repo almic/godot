@@ -878,6 +878,15 @@ public:
 	FUNC3(camera_attributes_set_exposure, RID, float, float)
 	FUNC6(camera_attributes_set_auto_exposure, RID, bool, float, float, float, float)
 
+	FUNC1R(float, camera_attributes_get_exposure_normalization_factor, RID)
+
+	FUNC1R(bool, camera_attributes_uses_auto_exposure, RID)
+
+	FUNC1R(float, camera_attributes_get_auto_exposure_min_sensitivity, RID)
+	FUNC1R(float, camera_attributes_get_auto_exposure_max_sensitivity, RID)
+	FUNC1R(float, camera_attributes_get_auto_exposure_adjust_speed, RID)
+	FUNC1R(float, camera_attributes_get_auto_exposure_scale, RID)
+
 	/* SCENARIO API */
 
 #undef server_name

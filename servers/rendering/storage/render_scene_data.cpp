@@ -34,6 +34,9 @@ void RenderSceneData::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_cam_transform"), &RenderSceneData::get_cam_transform);
 	ClassDB::bind_method(D_METHOD("get_cam_projection"), &RenderSceneData::get_cam_projection);
 
+	ClassDB::bind_method(D_METHOD("get_time"), &RenderSceneData::get_time);
+	ClassDB::bind_method(D_METHOD("get_time_step"), &RenderSceneData::get_time_step);
+
 	ClassDB::bind_method(D_METHOD("get_view_count"), &RenderSceneData::get_view_count);
 	ClassDB::bind_method(D_METHOD("get_view_eye_offset", "view"), &RenderSceneData::get_view_eye_offset);
 	ClassDB::bind_method(D_METHOD("get_view_projection", "view"), &RenderSceneData::get_view_projection);
@@ -44,6 +47,8 @@ void RenderSceneData::_bind_methods() {
 void RenderSceneDataExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_get_cam_transform);
 	GDVIRTUAL_BIND(_get_cam_projection);
+	GDVIRTUAL_BIND(_get_time);
+	GDVIRTUAL_BIND(_get_time_step);
 	GDVIRTUAL_BIND(_get_view_count);
 	GDVIRTUAL_BIND(_get_view_eye_offset, "view");
 	GDVIRTUAL_BIND(_get_view_projection, "view");
@@ -60,6 +65,18 @@ Transform3D RenderSceneDataExtension::get_cam_transform() const {
 Projection RenderSceneDataExtension::get_cam_projection() const {
 	Projection ret;
 	GDVIRTUAL_CALL(_get_cam_projection, ret);
+	return ret;
+}
+
+float RenderSceneDataExtension::get_time() const {
+	float ret;
+	GDVIRTUAL_CALL(_get_time, ret);
+	return ret;
+}
+
+float RenderSceneDataExtension::get_time_step() const {
+	float ret;
+	GDVIRTUAL_CALL(_get_time_step, ret);
 	return ret;
 }
 

@@ -3221,6 +3221,15 @@ void RenderingServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("camera_attributes_set_exposure", "camera_attributes", "multiplier", "normalization"), &RenderingServer::camera_attributes_set_exposure);
 	ClassDB::bind_method(D_METHOD("camera_attributes_set_auto_exposure", "camera_attributes", "enable", "min_sensitivity", "max_sensitivity", "speed", "scale"), &RenderingServer::camera_attributes_set_auto_exposure);
 
+	ClassDB::bind_method(D_METHOD("camera_attributes_get_exposure_normalization_factor", "p_camera_attributes"), &RenderingServer::camera_attributes_get_exposure_normalization_factor);
+
+	ClassDB::bind_method(D_METHOD("camera_attributes_uses_auto_exposure", "p_camera_attributes"), &RenderingServer::camera_attributes_uses_auto_exposure);
+
+	ClassDB::bind_method(D_METHOD("camera_attributes_get_auto_exposure_min_sensitivity", "p_camera_attributes"), &RenderingServer::camera_attributes_get_auto_exposure_min_sensitivity);
+	ClassDB::bind_method(D_METHOD("camera_attributes_get_auto_exposure_max_sensitivity", "p_camera_attributes"), &RenderingServer::camera_attributes_get_auto_exposure_max_sensitivity);
+	ClassDB::bind_method(D_METHOD("camera_attributes_get_auto_exposure_adjust_speed", "p_camera_attributes"), &RenderingServer::camera_attributes_get_auto_exposure_adjust_speed);
+	ClassDB::bind_method(D_METHOD("camera_attributes_get_auto_exposure_scale", "p_camera_attributes"), &RenderingServer::camera_attributes_get_auto_exposure_scale);
+
 	BIND_ENUM_CONSTANT(DOF_BOKEH_BOX);
 	BIND_ENUM_CONSTANT(DOF_BOKEH_HEXAGON);
 	BIND_ENUM_CONSTANT(DOF_BOKEH_CIRCLE);

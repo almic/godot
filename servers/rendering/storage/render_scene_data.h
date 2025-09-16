@@ -45,6 +45,9 @@ public:
 	virtual Transform3D get_cam_transform() const = 0;
 	virtual Projection get_cam_projection() const = 0;
 
+	virtual float get_time() const = 0;
+	virtual float get_time_step() const = 0;
+
 	virtual uint32_t get_view_count() const = 0;
 	virtual Vector3 get_view_eye_offset(uint32_t p_view) const = 0;
 	virtual Projection get_view_projection(uint32_t p_view) const = 0;
@@ -62,6 +65,9 @@ public:
 	virtual Transform3D get_cam_transform() const override;
 	virtual Projection get_cam_projection() const override;
 
+	virtual float get_time() const override;
+	virtual float get_time_step() const override;
+
 	virtual uint32_t get_view_count() const override;
 	virtual Vector3 get_view_eye_offset(uint32_t p_view) const override;
 	virtual Projection get_view_projection(uint32_t p_view) const override;
@@ -70,6 +76,9 @@ public:
 
 	GDVIRTUAL0RC(Transform3D, _get_cam_transform)
 	GDVIRTUAL0RC(Projection, _get_cam_projection)
+
+	GDVIRTUAL0RC(float, _get_time)
+	GDVIRTUAL0RC(float, _get_time_step)
 
 	GDVIRTUAL0RC(uint32_t, _get_view_count)
 	GDVIRTUAL1RC(Vector3, _get_view_eye_offset, uint32_t)

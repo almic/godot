@@ -45,6 +45,14 @@ Projection RenderSceneDataRD::get_cam_projection() const {
 	return correction * cam_projection;
 }
 
+float RenderSceneDataRD::get_time() const {
+	return time;
+}
+
+float RenderSceneDataRD::get_time_step() const {
+	return time_step;
+}
+
 uint32_t RenderSceneDataRD::get_view_count() const {
 	return view_count;
 }

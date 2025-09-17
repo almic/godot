@@ -114,10 +114,12 @@ public:
 typedef PhysicsDirectSpaceState3D::RayResult PhysicsServer3DExtensionRayResult;
 typedef PhysicsDirectSpaceState3D::ShapeResult PhysicsServer3DExtensionShapeResult;
 typedef PhysicsDirectSpaceState3D::ShapeRestInfo PhysicsServer3DExtensionShapeRestInfo;
+typedef PhysicsDirectSpaceState3D::ShapeCastResult PhysicsServer3DExtensionShapeCastResult;
 
 GDVIRTUAL_NATIVE_PTR(PhysicsServer3DExtensionRayResult)
 GDVIRTUAL_NATIVE_PTR(PhysicsServer3DExtensionShapeResult)
 GDVIRTUAL_NATIVE_PTR(PhysicsServer3DExtensionShapeRestInfo)
+GDVIRTUAL_NATIVE_PTR(PhysicsServer3DExtensionShapeCastResult)
 
 class PhysicsDirectSpaceState3DExtension : public PhysicsDirectSpaceState3D {
 	GDCLASS(PhysicsDirectSpaceState3DExtension, PhysicsDirectSpaceState3D);
@@ -132,6 +134,7 @@ protected:
 	GDVIRTUAL6R_REQUIRED(int, _intersect_point, const Vector3 &, uint32_t, bool, bool, GDExtensionPtr<PhysicsServer3DExtensionShapeResult>, int)
 	GDVIRTUAL9R_REQUIRED(int, _intersect_shape, RID, const Transform3D &, const Vector3 &, real_t, uint32_t, bool, bool, GDExtensionPtr<PhysicsServer3DExtensionShapeResult>, int)
 	GDVIRTUAL10R_REQUIRED(bool, _cast_motion, RID, const Transform3D &, const Vector3 &, real_t, uint32_t, bool, bool, GDExtensionPtr<real_t>, GDExtensionPtr<real_t>, GDExtensionPtr<PhysicsServer3DExtensionShapeRestInfo>)
+	GDVIRTUAL8R_REQUIRED(bool, _cast_shape, RID, const Transform3D &, const Vector3 &, real_t, uint32_t, bool, bool, GDExtensionPtr<PhysicsServer3DExtensionShapeCastResult>)
 	GDVIRTUAL10R_REQUIRED(bool, _collide_shape, RID, const Transform3D &, const Vector3 &, real_t, uint32_t, bool, bool, GDExtensionPtr<Vector3>, int, GDExtensionPtr<int>)
 	GDVIRTUAL8R_REQUIRED(bool, _rest_info, RID, const Transform3D &, const Vector3 &, real_t, uint32_t, bool, bool, GDExtensionPtr<PhysicsServer3DExtensionShapeRestInfo>)
 	GDVIRTUAL2RC_REQUIRED(Vector3, _get_closest_point_to_object_volume, RID, const Vector3 &)
@@ -162,6 +165,13 @@ public:
 		exclude = &p_parameters.exclude;
 		bool ret = false;
 		GDVIRTUAL_CALL(_cast_motion, p_parameters.shape_rid, p_parameters.transform, p_parameters.motion, p_parameters.margin, p_parameters.collision_mask, p_parameters.collide_with_bodies, p_parameters.collide_with_areas, &p_closest_safe, &p_closest_unsafe, r_info, ret);
+		exclude = nullptr;
+		return ret;
+	}
+	virtual bool cast_shape(const ShapeParameters &p_parameters, ShapeCastResult &r_result) override {
+		exclude = &p_parameters.exclude;
+		bool ret = false;
+		GDVIRTUAL_CALL(_cast_shape, p_parameters.shape_rid, p_parameters.transform, p_parameters.motion, p_parameters.margin, p_parameters.collision_mask, p_parameters.collide_with_bodies, p_parameters.collide_with_areas, &r_result, ret);
 		exclude = nullptr;
 		return ret;
 	}

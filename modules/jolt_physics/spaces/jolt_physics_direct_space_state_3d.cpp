@@ -662,6 +662,65 @@ bool JoltPhysicsDirectSpaceState3D::cast_motion(const ShapeParameters &p_paramet
 	return true;
 }
 
+bool JoltPhysicsDirectSpaceState3D::cast_shape(const ShapeParameters &p_parameters, ShapeCastResult &r_result) {
+	ERR_FAIL_COND_V_MSG(space->is_stepping(), false, "cast_shape must not be called while the physics space is being stepped.");
+
+	space->try_optimize();
+
+	JoltShape3D *shape = JoltPhysicsServer3D::get_singleton()->get_shape(p_parameters.shape_rid);
+	ERR_FAIL_NULL_V(shape, false);
+
+	const JPH::ShapeRefC jolt_shape = shape->try_build();
+	ERR_FAIL_NULL_V(jolt_shape, false);
+
+	Transform3D transform = p_parameters.transform;
+	Vector3 scale;
+	JoltMath::decompose(transform, scale);
+	JOLT_ENSURE_SCALE_VALID(jolt_shape, scale, "cast_shape was passed an invalid transform.");
+
+	const JPH::RMat44 jolt_shape_transform = to_jolt_r(transform);
+	const JPH::Vec3 jolt_shape_scale = to_jolt(scale);
+	const JPH::Vec3 jolt_shape_motion = to_jolt(p_parameters.motion);
+
+	JPH::RShapeCast shape_cast(jolt_shape, jolt_shape_scale, jolt_shape_transform, jolt_shape_motion);
+
+	JPH::ShapeCastSettings settings;
+	settings.mUseShrunkenShapeAndConvexRadius = true;
+	settings.mReturnDeepestPoint = true;
+
+	const JoltQueryFilter3D query_filter(*this, p_parameters.collision_mask, p_parameters.collide_with_bodies, p_parameters.collide_with_areas, p_parameters.exclude);
+
+	JoltQueryCollectorClosest<JPH::CastShapeCollector> collector;
+
+	space->get_narrow_phase_query().CastShape(shape_cast, settings, shape_cast.mCenterOfMassStart.GetTranslation(), collector, query_filter, query_filter, query_filter);
+
+	if (!collector.had_hit()) {
+		return false;
+	}
+
+	const JPH::ShapeCastResult &hit = collector.get_hit();
+
+	const JPH::BodyID &body_id = hit.mBodyID2;
+	const JPH::SubShapeID &sub_shape_id = hit.mSubShapeID2;
+	const JoltReadableBody3D body = space->read_body(body_id);
+	const JoltObject3D *object = body.as_object();
+	ERR_FAIL_NULL_V(object, false);
+
+	r_result.collider = object->get_instance();
+	r_result.shape = 0;
+	r_result.position = to_godot(shape_cast.mCenterOfMassStart.GetTranslation() + hit.mContactPointOn2);
+	r_result.normal = to_godot(-hit.mPenetrationAxis.Normalized());
+	r_result.safe_fraction = hit.mFraction;
+
+	if (const JoltShapedObject3D *shaped_object = object->as_shaped()) {
+		const int shape_index = shaped_object->find_shape_index(sub_shape_id);
+		ERR_FAIL_COND_V(shape_index == -1, false);
+		r_result.shape = shape_index;
+	}
+
+	return true;
+}
+
 bool JoltPhysicsDirectSpaceState3D::collide_shape(const ShapeParameters &p_parameters, Vector3 *r_results, int p_result_max, int &r_result_count) {
 	r_result_count = 0;
 

@@ -125,6 +125,7 @@ private:
 	TypedArray<Dictionary> _intersect_point(const Ref<PhysicsPointQueryParameters3D> &p_point_query, int p_max_results = 32);
 	TypedArray<Dictionary> _intersect_shape(const Ref<PhysicsShapeQueryParameters3D> &p_shape_query, int p_max_results = 32);
 	Vector<real_t> _cast_motion(const Ref<PhysicsShapeQueryParameters3D> &p_shape_query);
+	Dictionary _cast_shape(const Ref<PhysicsShapeQueryParameters3D> &p_shape_query);
 	TypedArray<Vector3> _collide_shape(const Ref<PhysicsShapeQueryParameters3D> &p_shape_query, int p_max_results = 32);
 	Dictionary _get_rest_info(const Ref<PhysicsShapeQueryParameters3D> &p_shape_query);
 
@@ -198,8 +199,17 @@ public:
 		Vector3 linear_velocity; // Velocity at contact point.
 	};
 
+	struct ShapeCastResult {
+		Object *collider = nullptr;
+		int shape = 0;
+		Vector3 position;
+		Vector3 normal;
+		real_t safe_fraction;
+	};
+
 	virtual int intersect_shape(const ShapeParameters &p_parameters, ShapeResult *r_results, int p_result_max) = 0;
 	virtual bool cast_motion(const ShapeParameters &p_parameters, real_t &p_closest_safe, real_t &p_closest_unsafe, ShapeRestInfo *r_info = nullptr) = 0;
+	virtual bool cast_shape(const ShapeParameters &p_parameters, ShapeCastResult &r_result) = 0;
 	virtual bool collide_shape(const ShapeParameters &p_parameters, Vector3 *r_results, int p_result_max, int &r_result_count) = 0;
 	virtual bool rest_info(const ShapeParameters &p_parameters, ShapeRestInfo *r_info) = 0;
 

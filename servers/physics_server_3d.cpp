@@ -436,6 +436,26 @@ Vector<real_t> PhysicsDirectSpaceState3D::_cast_motion(const Ref<PhysicsShapeQue
 	return ret;
 }
 
+Dictionary PhysicsDirectSpaceState3D::_cast_shape(const Ref<PhysicsShapeQueryParameters3D> &p_shape_query) {
+	ERR_FAIL_COND_V(p_shape_query.is_null(), Dictionary());
+
+	ShapeCastResult scr;
+
+	bool res = cast_shape(p_shape_query->get_parameters(), scr);
+	Dictionary r;
+	if (!res) {
+		return r;
+	}
+
+	r["collider"] = scr.collider;
+	r["shape"] = scr.shape;
+	r["position"] = scr.position;
+	r["normal"] = scr.normal;
+	r["safe_fraction"] = scr.safe_fraction;
+
+	return r;
+}
+
 TypedArray<Vector3> PhysicsDirectSpaceState3D::_collide_shape(const Ref<PhysicsShapeQueryParameters3D> &p_shape_query, int p_max_results) {
 	ERR_FAIL_COND_V(p_shape_query.is_null(), TypedArray<Vector3>());
 
@@ -483,6 +503,7 @@ void PhysicsDirectSpaceState3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("intersect_ray", "parameters"), &PhysicsDirectSpaceState3D::_intersect_ray);
 	ClassDB::bind_method(D_METHOD("intersect_shape", "parameters", "max_results"), &PhysicsDirectSpaceState3D::_intersect_shape, DEFVAL(32));
 	ClassDB::bind_method(D_METHOD("cast_motion", "parameters"), &PhysicsDirectSpaceState3D::_cast_motion);
+	ClassDB::bind_method(D_METHOD("cast_shape", "parameters"), &PhysicsDirectSpaceState3D::_cast_shape);
 	ClassDB::bind_method(D_METHOD("collide_shape", "parameters", "max_results"), &PhysicsDirectSpaceState3D::_collide_shape, DEFVAL(32));
 	ClassDB::bind_method(D_METHOD("get_rest_info", "parameters"), &PhysicsDirectSpaceState3D::_get_rest_info);
 }

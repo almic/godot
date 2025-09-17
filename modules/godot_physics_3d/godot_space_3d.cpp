@@ -381,6 +381,11 @@ bool GodotPhysicsDirectSpaceState3D::cast_motion(const ShapeParameters &p_parame
 	return true;
 }
 
+bool GodotPhysicsDirectSpaceState3D::cast_shape(const ShapeParameters &p_parameters, ShapeCastResult &r_result) {
+	// NOTE: I do not plan to use this EVER in Godot Physics, ONLY Jolt. Sorry not sorry.
+	return false;
+}
+
 bool GodotPhysicsDirectSpaceState3D::collide_shape(const ShapeParameters &p_parameters, Vector3 *r_results, int p_result_max, int &r_result_count) {
 	if (p_result_max <= 0) {
 		return false;

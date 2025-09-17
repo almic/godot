@@ -49,6 +49,7 @@ public:
 	virtual bool intersect_ray(const RayParameters &p_parameters, RayResult &r_result) override;
 	virtual int intersect_shape(const ShapeParameters &p_parameters, ShapeResult *r_results, int p_result_max) override;
 	virtual bool cast_motion(const ShapeParameters &p_parameters, real_t &p_closest_safe, real_t &p_closest_unsafe, ShapeRestInfo *r_info = nullptr) override;
+	virtual bool cast_shape(const ShapeParameters &p_parameters, ShapeCastResult &r_result) override;
 	virtual bool collide_shape(const ShapeParameters &p_parameters, Vector3 *r_results, int p_result_max, int &r_result_count) override;
 	virtual bool rest_info(const ShapeParameters &p_parameters, ShapeRestInfo *r_info) override;
 	virtual Vector3 get_closest_point_to_object_volume(RID p_object, const Vector3 p_point) const override;

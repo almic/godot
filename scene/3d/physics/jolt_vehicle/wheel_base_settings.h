@@ -7,14 +7,11 @@
 #include "Jolt/Physics/Constraints/SpringSettings.h"
 
 
-// class WheelSettings;
-
 class WheelBaseSettings : public Resource {
 	GDCLASS(WheelBaseSettings, Resource);
 
+protected:
 	JPH::WheelSettings settings;
-
-	// friend class WheelSettings;
 
 public:
 	enum SpringMode

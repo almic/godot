@@ -5,6 +5,21 @@ Import("env")
 
 env.scene_sources = []
 
+# Include jolt directory
+jolt_dir = "#thirdparty/jolt_physics/"
+env.Prepend(CPPPATH=[jolt_dir])
+
+# Jolt defines
+if env.dev_build:
+    env.Append(CPPDEFINES=["JPH_ENABLE_ASSERTS"])
+
+if env.editor_build:
+    env.Append(CPPDEFINES=["JPH_DEBUG_RENDERER"])
+
+if env["precision"] == "double":
+    env.Append(CPPDEFINES=["JPH_DOUBLE_PRECISION"])
+
+
 # Godot source files
 env.add_source_files(env.scene_sources, "*.cpp")
 

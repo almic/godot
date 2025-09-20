@@ -36,10 +36,12 @@
 #include "core/math/quaternion.h"
 #include "core/math/transform_3d.h"
 #include "core/string/ustring.h"
+#include "scene/resources/curve.h"
 
 #include "Jolt/Jolt.h"
 
 #include "Jolt/Core/Color.h"
+#include "Jolt/Core/LinearCurve.h"
 #include "Jolt/Geometry/AABox.h"
 #include "Jolt/Geometry/Plane.h"
 #include "Jolt/Math/Mat44.h"
@@ -89,6 +91,23 @@ _FORCE_INLINE_ AABB to_godot(const JPH::AABox &p_aabb) {
 
 _FORCE_INLINE_ Plane to_godot(const JPH::Plane &p_plane) {
 	return Plane(to_godot(p_plane.GetNormal()), (real_t)p_plane.GetConstant());
+}
+
+_FORCE_INLINE_ Curve to_godot(const JPH::LinearCurve &p_curve) {
+	Curve result;
+	result.set_point_count(p_curve.mPoints.size());
+
+	int i = 0;
+	for (JPH::LinearCurve::Point point : p_curve.mPoints)
+	{
+		result.set_point_offset(i, point.mX);
+		result.set_point_value(i, point.mY);
+		result.set_point_left_mode(i, Curve::TANGENT_LINEAR);
+		result.set_point_right_mode(i, Curve::TANGENT_LINEAR);
+		++i;
+	}
+
+	return result;
 }
 
 _FORCE_INLINE_ JPH::Vec3 to_jolt(const Vector3 &p_vec) {
@@ -142,3 +161,19 @@ _FORCE_INLINE_ JPH::RMat44 to_jolt_r(const Transform3D &p_transform) {
 			JPH::Vec4(b[0][2], b[1][2], b[2][2], 0.0f),
 			JPH::RVec3(o.x, o.y, o.z));
 }
+
+_FORCE_INLINE_ JPH::LinearCurve to_jolt(const Curve& p_curve) {
+	JPH::LinearCurve result;
+	int count = p_curve.get_point_count;
+	result.Reserve(count);
+
+	Curve::Point point;
+	for (int i = 0; i < count; ++i)
+	{
+		point = p_curve.get_point(i);
+		result.AddPoint((float) point.position.x, (float) point.position.y);
+	}
+
+	return result;
+}
+

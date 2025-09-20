@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+from misc.utility.scons_hints import *
+
+Import("env")
+
+env.add_source_files(env.scene_sources, "*.cpp")
+
+# In case I need this again
+"""
+env_special = env.Clone()
+
+thirdparty_dir = "#thirdparty/jolt_physics/"
+
+env_special.Prepend(CPPPATH=[thirdparty_dir])
+
+if env.dev_build:
+    env_special.Append(CPPDEFINES=["JPH_ENABLE_ASSERTS"])
+
+if env.editor_build:
+    env_special.Append(CPPDEFINES=["JPH_DEBUG_RENDERER"])
+
+if env["precision"] == "double":
+    env_special.Append(CPPDEFINES=["JPH_DOUBLE_PRECISION"])
+
+env_special.add_source_files(env.scene_sources, "*.cpp")
+"""
+

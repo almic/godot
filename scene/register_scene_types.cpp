@@ -340,6 +340,7 @@
 #include "scene/3d/physics/joints/joint_3d.h"
 #include "scene/3d/physics/joints/pin_joint_3d.h"
 #include "scene/3d/physics/joints/slider_joint_3d.h"
+#include "scene/3d/physics/jolt_vehicle/wheel_base_settings.h"
 #include "scene/3d/physics/kinematic_collision_3d.h"
 #include "scene/3d/physics/physical_bone_3d.h"
 #include "scene/3d/physics/physical_bone_simulator_3d.h"
@@ -709,6 +710,8 @@ void register_scene_types() {
 	GDREGISTER_CLASS(KinematicCollision3D);
 	GDREGISTER_CLASS(CharacterBody3D);
 	GDREGISTER_CLASS(SpringArm3D);
+
+	GDREGISTER_CLASS(WheelBaseSettings);
 
 	GDREGISTER_CLASS(PhysicalBoneSimulator3D);
 	GDREGISTER_CLASS(PhysicalBone3D);

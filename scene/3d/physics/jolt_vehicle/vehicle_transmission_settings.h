@@ -24,68 +24,6 @@ public:
 		TRANSMISSION_MODE_MANUAL,
 	};
 
-	class GearRatioList : Resource
-	{
-		GDCLASS(GearRatioList);
-
-		friend class VehicleTransmissionSettings;
-
-		PackedFloat32Array list;
-	public:
-		void clear()
-		{
-			list.clear();
-			emit_changed();
-		}
-		float get(size_t index) const { return list.get(index); }
-		void set(size_t index, float value) {
-			list.set(index, value);
-			emit_changed();
-		}
-		int append(float value)
-		{
-			list.append(value);
-			emit_changed();
-			return list.size();
-		}
-		int size() const { return list.size(); }
-
-		PackedFloat32Array get_list_copy() const
-		{
-			return list.duplicate();
-		}
-		void set_list(const PackedFloat32Array& p_list)
-		{
-			list = p_list;
-			emit_changed();
-		}
-
-	protected:
-		static void _bind_methods();
-
-		static void to_godot(const JPH::Array<float>& array, PackedFloat32Array& out)
-		{
-			out.resize(array.size());
-			int i = 0;
-			for (float v : array)
-			{
-				out[i] = v;
-				++i;
-			}
-		}
-
-		static void to_jolt(const PackedFloat32Array& array, JPH::Array<float>& out)
-		{
-			out.resize(array.size());
-			int i = 0;
-			for (float v : array)
-			{
-				out[i] = v;
-				++i;
-			}
-		}
-	};
-
 	TransmissionMode get_transmission_mode() const { return (TransmissionMode) settings.mMode; }
 	void set_transmission_mode(TransmissionMode p_mode)
 	{

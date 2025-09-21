@@ -92,3 +92,35 @@ void WheelBaseSettings::_validate_property(PropertyInfo &p_property) const
 	}
 }
 
+void WheelSettings::_bind_methods()
+{
+	ClassDB::bind_method(D_METHOD("get_inertia"), &WheelSettings::get_inertia);
+	ClassDB::bind_method(D_METHOD("set_inertia", "inertia"), &WheelSettings::set_inertia);
+
+	ClassDB::bind_method(D_METHOD("get_angular_damping"), &WheelSettings::get_angular_damping);
+	ClassDB::bind_method(D_METHOD("set_angular_damping", "angular_damping"), &WheelSettings::set_angular_damping);
+
+	ClassDB::bind_method(D_METHOD("get_max_steer_angle"), &WheelSettings::get_max_steer_angle);
+	ClassDB::bind_method(D_METHOD("set_max_steer_angle", "max_steer_angle"), &WheelSettings::set_max_steer_angle);
+
+	ClassDB::bind_method(D_METHOD("get_max_brake_torque"), &WheelSettings::get_max_brake_torque);
+	ClassDB::bind_method(D_METHOD("set_max_brake_torque", "max_brake_torque"), &WheelSettings::set_max_brake_torque);
+
+	ClassDB::bind_method(D_METHOD("get_max_hand_brake_torque"), &WheelSettings::get_max_hand_brake_torque);
+	ClassDB::bind_method(D_METHOD("set_max_hand_brake_torque", "max_hand_brake_torque"), &WheelSettings::set_max_hand_brake_torque);
+
+	ClassDB::bind_method(D_METHOD("get_lateral_friction"), &WheelSettings::get_lateral_friction);
+	ClassDB::bind_method(D_METHOD("set_lateral_friction", "lateral_friction"), &WheelSettings::set_lateral_friction);
+
+	ClassDB::bind_method(D_METHOD("get_longitudinal_friction"), &WheelSettings::get_longitudinal_friction);
+	ClassDB::bind_method(D_METHOD("set_longitudinal_friction", "longitudinal_friction"), &WheelSettings::set_longitudinal_friction);
+
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "max_steer_angle", PROPERTY_HINT_RANGE, "0,90,0.01,or_greater,radians_as_degrees"), "set_max_steer_angle", "get_max_steer_angle");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "max_brake_torque", PROPERTY_HINT_RANGE, "0,3000,0.1,or_greater,suffix:Nm"), "set_max_brake_torque", "get_max_brake_torque");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "max_hand_brake_torque", PROPERTY_HINT_RANGE, "0,5000,0.1,or_greater,suffix:Nm"), "set_max_hand_brake_torque", "get_max_hand_brake_torque");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "inertia", PROPERTY_HINT_RANGE, U"0,5,0.001,or_greater,exp,suffix:kg\u22C5m\u00B2"), "set_inertia", "get_inertia");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "angular_damping", PROPERTY_HINT_RANGE, "0,1,0.001,or_greater"), "set_angular_damping", "get_angular_damping");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "lateral_friction", PROPERTY_HINT_RESOURCE_TYPE, "Curve", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_EDITOR_INSTANTIATE_OBJECT), "set_lateral_friction", "get_lateral_friction");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "longitudinal_friction", PROPERTY_HINT_RESOURCE_TYPE, "Curve", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_EDITOR_INSTANTIATE_OBJECT), "set_longitudinal_friction", "get_longitudinal_friction");
+}
+

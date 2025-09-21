@@ -3,8 +3,12 @@
 #include "core/io/resource.h"
 #include "scene/resources/curve.h"
 
+#include "modules/jolt_physics/misc/jolt_type_conversions.h"
 #include "Jolt/Jolt.h"
 #include "Jolt/Physics/Vehicle/VehicleEngine.h"
+
+
+class WheeledVehicleControllerSettings;
 
 class VehicleEngineSettings : public Resource {
 	GDCLASS(VehicleEngineSettings, Resource);
@@ -12,12 +16,8 @@ class VehicleEngineSettings : public Resource {
 protected:
 	JPH::VehicleEngineSettings settings;
 
+	friend class WheeledVehicleControllerSettings;
 public:
-
-	VehicleEngineSettings()
-	{
-		_read_torque_curve();
-	}
 
 	real_t get_max_torque() const { return (real_t) settings.mMaxTorque; }
 	void set_max_torque(real_t p_max_torque) { settings.mMaxTorque = (float) settings.mMaxTorque; }
@@ -46,7 +46,7 @@ public:
 
 		torque_curve = p_torque_curve;
 
-		if (torque_curve.is_valid()) {
+		if (torque_curve.is_valid() && (!first_torque_curve_set || p_torque_curve->get_point_count() > 0)) {
 			torque_curve->connect_changed(callable_mp(this, &VehicleEngineSettings::_apply_torque_curve));
 			_apply_torque_curve();
 		}
@@ -55,24 +55,21 @@ public:
 			// Reset to default
 			JPH::VehicleEngineSettings defaults;
 			settings.mNormalizedTorque = defaults.mNormalizedTorque;
-			_read_torque_curve();
+
+			torque_curve = memnew(Curve);
+			to_godot(settings.mNormalizedTorque, *torque_curve.ptr());
+			torque_curve->connect_changed(callable_mp(this, &VehicleEngineSettings::_apply_torque_curve));
 		}
+
+		first_torque_curve_set = false;
 	}
 
 protected:
+	bool first_torque_curve_set = true;
 	Ref<Curve> torque_curve;
 
-	void _apply_torque_curve() const {
-		settings.mNormalizedTorque = to_jolt(*torque_curve);
-	}
-
-	void _read_torque_curve() {
-		if (torque_curve.is_valid()) {
-			torque_curve->disconnect_changed(callable_mp(this, &VehicleEngineSettings::_apply_torque_curve));
-		}
-
-		torque_curve = Ref<Curve>(&to_godot(settings.mNormalizedTorque));
-		torque_curve->connect_changed(callable_mp(this, &VehicleEngineSettings::_apply_torque_curve));
+	void _apply_torque_curve() {
+		settings.mNormalizedTorque = to_jolt(*torque_curve.ptr());
 	}
 
 	static void _bind_methods();

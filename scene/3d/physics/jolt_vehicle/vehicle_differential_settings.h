@@ -8,6 +8,7 @@
 #include "Jolt/Jolt.h"
 #include "Jolt/Physics/Vehicle/VehicleDifferential.h"
 
+class WheeledVehicleControllerSettings;
 
 class VehicleDifferentialSettings : public Resource {
 	GDCLASS(VehicleDifferentialSettings, Resource);
@@ -15,6 +16,7 @@ class VehicleDifferentialSettings : public Resource {
 protected:
 	JPH::VehicleDifferentialSettings settings;
 
+	friend class WheeledVehicleControllerSettings;
 public:
 
 	int get_left_wheel_index() const { return settings.mLeftWheel; }
@@ -24,7 +26,7 @@ public:
 	void set_right_wheel_index(int p_index) { settings.mRightWheel = p_index; }
 
 	real_t get_differential_ratio() const { return (real_t) settings.mDifferentialRatio; }
-	void set_differential_ratio(real_t p_differential_ratio) { settings.mDifferetialRatio = (float) p_differential_ratio; }
+	void set_differential_ratio(real_t p_differential_ratio) { settings.mDifferentialRatio = (float) p_differential_ratio; }
 
 	real_t get_split() const { return (real_t) settings.mLeftRightSplit; }
 	void set_split(real_t p_left_right_split) { settings.mLeftRightSplit = (float) p_left_right_split; }
@@ -59,7 +61,7 @@ public:
 	{
 		if (std::isinf(p_slip_ratio) || p_slip_ratio == std::numeric_limits<real_t>::max())
 		{
-			set_open_differential();
+			set_open_differential(true);
 		}
 		else
 		{

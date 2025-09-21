@@ -93,21 +93,13 @@ _FORCE_INLINE_ Plane to_godot(const JPH::Plane &p_plane) {
 	return Plane(to_godot(p_plane.GetNormal()), (real_t)p_plane.GetConstant());
 }
 
-_FORCE_INLINE_ Curve to_godot(const JPH::LinearCurve &p_curve) {
-	Curve result;
-	result.set_point_count(p_curve.mPoints.size());
+_FORCE_INLINE_ void to_godot(const JPH::LinearCurve &p_curve, Curve& out_curve) {
+	out_curve.clear_points();
 
-	int i = 0;
 	for (JPH::LinearCurve::Point point : p_curve.mPoints)
 	{
-		result.set_point_offset(i, point.mX);
-		result.set_point_value(i, point.mY);
-		result.set_point_left_mode(i, Curve::TANGENT_LINEAR);
-		result.set_point_right_mode(i, Curve::TANGENT_LINEAR);
-		++i;
+		out_curve.add_point(Vector2(point.mX, point.mY), 0, 0, Curve::TANGENT_LINEAR, Curve::TANGENT_LINEAR);
 	}
-
-	return result;
 }
 
 _FORCE_INLINE_ JPH::Vec3 to_jolt(const Vector3 &p_vec) {
@@ -164,7 +156,7 @@ _FORCE_INLINE_ JPH::RMat44 to_jolt_r(const Transform3D &p_transform) {
 
 _FORCE_INLINE_ JPH::LinearCurve to_jolt(const Curve& p_curve) {
 	JPH::LinearCurve result;
-	int count = p_curve.get_point_count;
+	int count = p_curve.get_point_count();
 	result.Reserve(count);
 
 	Curve::Point point;

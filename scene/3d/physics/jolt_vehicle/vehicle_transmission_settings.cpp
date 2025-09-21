@@ -30,8 +30,8 @@ void VehicleTransmissionSettings::_bind_methods()
 	ClassDB::bind_method(D_METHOD("set_clutch_strength", "clutch_strength"), &VehicleTransmissionSettings::set_clutch_strength);
 
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "transmission_mode", PROPERTY_HINT_ENUM, "Automatic,Manual"), "set_transmission_mode", "get_transmission_mode");
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "gear_ratios", PROPERTY_HINT_RESOURCE_TYPE, "GearRatioList", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_EDITOR_INSTANTIATE_OBJECT), "set_gear_ratios", "get_gear_ratios");
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "reverse_gear_ratios", PROPERTY_HINT_RESOURCE_TYPE, "GearRatioList", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_EDITOR_INSTANTIATE_OBJECT), "set_reverse_gear_ratios", "get_reverse_gear_ratios");
+	ADD_PROPERTY(PropertyInfo(Variant::PACKED_FLOAT32_ARRAY, "gear_ratios"), "set_gear_ratios", "get_gear_ratios");
+	ADD_PROPERTY(PropertyInfo(Variant::PACKED_FLOAT32_ARRAY, "reverse_gear_ratios"), "set_reverse_gear_ratios", "get_reverse_gear_ratios");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "clutch_strength", PROPERTY_HINT_RANGE, U"0,30,0.001,or_greater,suffix:kg\u22C5m\u00B2/s"), "set_clutch_strength", "get_clutch_strength");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "up_rpm", PROPERTY_HINT_RANGE, "0,5000,0.1,or_greater,suffix:RPM"), "set_shift_up_rpm", "get_shift_up_rpm");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "down_rpm", PROPERTY_HINT_RANGE, "0,3000,0.1,or_greater,suffix:RPM"), "set_shift_down_rpm", "get_shift_down_rpm");
@@ -58,19 +58,5 @@ void VehicleTransmissionSettings::_validate_property(PropertyInfo &p_property) c
 			p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 		}
 	}
-}
-
-void VehicleTransmissionSettings::GearRatioList::_bind_methods()
-{
-	ClassDB::bind_method(D_METHOD("get_list_copy"), &VehicleTransmissionSettings::GearRatioList::get_list_copy);
-	ClassDB::bind_method(D_METHOD("set_list"), &VehicleTransmissionSettings::GearRatioList::set_list);
-
-	ClassDB::bind_method(D_METHOD("append", "ratio"), &VehicleTransmissionSettings::GearRatioList::append);
-	ClassDB::bind_method(D_METHOD("clear"), &VehicleTransmissionSettings::GearRatioList::clear);
-	ClassDB::bind_method(D_METHOD("get", "index"), &VehicleTransmissionSettings::GearRatioList::get);
-	ClassDB::bind_method(D_METHOD("set", "index", "ratio"), &VehicleTransmissionSettings::GearRatioList::set);
-	ClassDB::bind_method(D_METHOD("size"), &VehicleTransmissionSettings::GearRatioList::size);
-
-	ADD_PROPERTY(PropertyInfo(Variant::PACKED_FLOAT32_ARRAY, "_list", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR), "set_list", "get_list_copy");
 }
 

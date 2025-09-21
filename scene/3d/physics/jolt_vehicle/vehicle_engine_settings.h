@@ -34,10 +34,7 @@ public:
 	real_t get_angular_damping() const { return (real_t) settings.mAngularDamping; }
 	void set_angular_damping(real_t p_angular_damping) { settings.mAngularDamping = (float) p_angular_damping; }
 
-	Ref<Curve> get_normalized_torque_curve() const
-	{
-		return torque_curve;
-	}
+	Ref<Curve> get_normalized_torque_curve() const { return torque_curve; }
 	void set_normalized_torque_curve(const Ref<Curve>& p_torque_curve)
 	{
 		if (torque_curve.is_valid()) {
@@ -65,13 +62,13 @@ public:
 	}
 
 protected:
+	static void _bind_methods();
+
 	bool first_torque_curve_set = true;
 	Ref<Curve> torque_curve;
 
 	void _apply_torque_curve() {
 		settings.mNormalizedTorque = to_jolt(*torque_curve.ptr());
 	}
-
-	static void _bind_methods();
 };
 

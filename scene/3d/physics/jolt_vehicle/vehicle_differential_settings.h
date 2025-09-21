@@ -31,8 +31,8 @@ public:
 	real_t get_split() const { return (real_t) settings.mLeftRightSplit; }
 	void set_split(real_t p_left_right_split) { settings.mLeftRightSplit = (float) p_left_right_split; }
 
-	bool is_open_differential() const { return settings.mLimitedSlipRatio == std::numeric_limits<float>::max(); }
-	void set_open_differential(bool p_is_open)
+	bool is_open() const { return settings.mLimitedSlipRatio == std::numeric_limits<float>::max(); }
+	void set_open(bool p_is_open)
 	{
 		if (p_is_open)
 		{
@@ -48,7 +48,7 @@ public:
 
 	real_t get_slip_ratio() const
 	{
-		if (is_open_differential())
+		if (is_open())
 		{
 			return slip_ratio;
 		}
@@ -61,7 +61,7 @@ public:
 	{
 		if (std::isinf(p_slip_ratio) || p_slip_ratio == std::numeric_limits<real_t>::max())
 		{
-			set_open_differential(true);
+			set_open(true);
 		}
 		else
 		{

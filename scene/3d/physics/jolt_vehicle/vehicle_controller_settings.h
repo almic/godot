@@ -11,11 +11,16 @@
 #include "Jolt/Physics/Vehicle/WheeledVehicleController.h"
 
 
+class JoltVehicleSettings;
+
 class VehicleControllerSettings : public Resource
 {
 	GDCLASS(VehicleControllerSettings, Resource);
+
 protected:
 	virtual JPH::VehicleControllerSettings get_settings() const = 0;
+
+	friend class JoltVehicleSettings;
 };
 
 class WheeledVehicleControllerSettings : public VehicleControllerSettings
@@ -47,9 +52,36 @@ public:
 		_apply_engine();
 	}
 
-	void set_differentials(const Array<Ref<VehicleDifferentialSettings>> &p_differentials)
+	Ref<VehicleTransmissionSettings> get_transmission_settings() const { return transmission; }
+	void set_transmission_settings(const Ref<VehicleTransmissionSettings> &p_transmission_settings)
 	{
-		for (const Ref<VehicleDifferentialSettings>& d : differentials)
+		if (transmission.is_valid()) {
+			transmission->disconnect_changed(callable_mp(this, &WheeledVehicleControllerSettings::_apply_transmission));
+		}
+
+		transmission = p_transmission_settings;
+
+		if (!transmission.is_valid()) {
+			// Reset to default
+			transmission = memnew(VehicleTransmissionSettings);
+		}
+
+		transmission->connect_changed(callable_mp(this, &WheeledVehicleControllerSettings::_apply_transmission));
+		_apply_transmission();
+	}
+
+	TypedArray<VehicleDifferentialSettings> get_differentials() const
+	{
+		TypedArray<VehicleDifferentialSettings> result;
+		for (const auto& d : differentials)
+		{
+			result.push_back(d);
+		}
+		return result;
+	}
+	void set_differentials(const TypedArray<VehicleDifferentialSettings> &p_differentials)
+	{
+		for (const auto& d : differentials)
 		{
 			if (d.is_valid())
 			{
@@ -57,28 +89,72 @@ public:
 			}
 		}
 
-		differentials = p_differentials;
+		differentials.clear();
 
-		for (const Ref<VehicleDifferentialSettings>& d : differentials)
+		for (auto& d : p_differentials)
 		{
 			if (d.is_valid())
 			{
 				d->connect_changed(callable_mp(this, &WheeledVehicleControllerSettings::_apply_differentials));
 			}
+
+			Ref<VehicleDifferentialSettings> differential = d;
+			differentials.push_back(differential);
 		}
 
 		_apply_differentials();
 	}
 
-	VehicleTransmissionSettings	mTransmission;								///< The properties of the transmission (aka gear box)
-	float						mDifferentialLimitedSlipRatio = 1.4f;		///< Ratio max / min average wheel speed of each differential (measured at the clutch). When the ratio is exceeded all torque gets distributed to the differential with the minimal average velocity. This allows implementing a limited slip differential between differentials. Set to FLT_MAX for an open differential. Value should be > 1.
+	bool is_open_differential() const { return settings.mDifferentialLimitedSlipRatio == std::numeric_limits<float>::max(); }
+	void set_open_differential(bool p_is_open)
+	{
+		if (p_is_open)
+		{
+			settings.mDifferentialLimitedSlipRatio = std::numeric_limits<float>::max();
+		}
+		else
+		{
+			settings.mDifferentialLimitedSlipRatio = (float) differential_slip_ratio;
+		}
+
+		notify_property_list_changed();
+	}
+
+	real_t get_differential_slip_ratio() const
+	{
+		if (is_open_differential())
+		{
+			return differential_slip_ratio;
+		}
+		else
+		{
+			return (real_t) settings.mDifferentialLimitedSlipRatio;
+		}
+	}
+	void set_differential_slip_ratio(real_t p_differential_slip_ratio)
+	{
+		if (std::isinf(p_differential_slip_ratio) || p_differential_slip_ratio == std::numeric_limits<real_t>::max())
+		{
+			set_open_differential(true);
+		}
+		else
+		{
+			differential_slip_ratio = p_differential_slip_ratio;
+			settings.mDifferentialLimitedSlipRatio = (float) p_differential_slip_ratio;
+			notify_property_list_changed();
+		}
+	}
 
 protected:
 	static void _bind_methods();
 
+	void _validate_property(PropertyInfo &p_property) const;
+
 	Ref<VehicleEngineSettings> engine;
 	Ref<VehicleTransmissionSettings> transmission;
-	Array<Ref<VehicleDifferentialSettings>> differentials;
+	LocalVector<Ref<VehicleDifferentialSettings>> differentials;
+
+	real_t differential_slip_ratio;
 
 	void _apply_engine()
 	{
@@ -95,7 +171,7 @@ protected:
 		JPH::Array<JPH::VehicleDifferentialSettings>& array = settings.mDifferentials;
 		array.resize(differentials.size());
 		int i = 0;
-		for (const Ref<VehicleDifferentialSettings>& d : differentials)
+		for (const auto& d : differentials)
 		{
 			array[i] = d->settings;
 		}

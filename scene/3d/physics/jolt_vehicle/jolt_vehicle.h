@@ -29,15 +29,15 @@ protected:
 public:
 
 	Vector3 get_up() const { return to_godot(settings.mUp); }
-	void set_up(const Vector3 &p_up) { settings.mUp = to_jolt(p_up); }
+	void set_up(const Vector3 &p_up) { settings.mUp = to_jolt(p_up.normalized()); }
 
 	Vector3 get_forward() const { return to_godot(settings.mForward); }
-	void set_forward(const Vector3 &p_forward) { settings.mForward = to_jolt(p_forward); }
+	void set_forward(const Vector3 &p_forward) { settings.mForward = to_jolt(p_forward.normalized()); }
 
-	bool can_pitch_roll() const { return settings.mMaxPitchRollAngle == JPH_PI; }
-	void set_can_pitch_roll(bool p_can_pitch_roll)
+	bool is_pitch_roll_limited() const { return settings.mMaxPitchRollAngle < JPH_PI; }
+	void set_pitch_roll_limited(bool p_is_limited)
 	{
-		if (p_can_pitch_roll)
+		if (p_is_limited)
 		{
 			settings.mMaxPitchRollAngle = (float) max_pitch_roll_angle;
 		}
@@ -51,20 +51,20 @@ public:
 
 	real_t get_max_pitch_roll() const
 	{
-		if (can_pitch_roll())
+		if (is_pitch_roll_limited())
 		{
-			return max_pitch_roll_angle;
+			return (real_t) settings.mMaxPitchRollAngle;
 		}
 		else
 		{
-			return (real_t) settings.mMaxPitchRollAngle;
+			return max_pitch_roll_angle;
 		}
 	}
 	void set_max_pitch_roll(real_t p_max_pitch_roll)
 	{
 		if (p_max_pitch_roll >= M_PI)
 		{
-			can_pitch_roll(false);
+			set_pitch_roll_limited(false);
 		}
 		else
 		{
@@ -131,6 +131,7 @@ public:
 
 protected:
 	static void _bind_methods();
+	void _validate_property(PropertyInfo &p_property) const;
 
 	real_t max_pitch_roll_angle;
 	LocalVector<Ref<WheelBaseSettings>> wheels;

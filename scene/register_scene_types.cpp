@@ -340,11 +340,18 @@
 #include "scene/3d/physics/joints/joint_3d.h"
 #include "scene/3d/physics/joints/pin_joint_3d.h"
 #include "scene/3d/physics/joints/slider_joint_3d.h"
+
+// Jolt vehicle classes
+#include "scene/3d/physics/jolt_vehicle/anti_roll_bar_settings.h"
+#include "scene/3d/physics/jolt_vehicle/jolt_vehicle.h"
+#include "scene/3d/physics/jolt_vehicle/vehicle_controller.h"
 #include "scene/3d/physics/jolt_vehicle/vehicle_controller_settings.h"
 #include "scene/3d/physics/jolt_vehicle/vehicle_differential_settings.h"
 #include "scene/3d/physics/jolt_vehicle/vehicle_engine_settings.h"
 #include "scene/3d/physics/jolt_vehicle/vehicle_transmission_settings.h"
-#include "scene/3d/physics/jolt_vehicle/wheel_base_settings.h"
+#include "scene/3d/physics/jolt_vehicle/wheel_settings.h"
+// end Jolt vehicle classes
+
 #include "scene/3d/physics/kinematic_collision_3d.h"
 #include "scene/3d/physics/physical_bone_3d.h"
 #include "scene/3d/physics/physical_bone_simulator_3d.h"
@@ -715,12 +722,27 @@ void register_scene_types() {
 	GDREGISTER_CLASS(CharacterBody3D);
 	GDREGISTER_CLASS(SpringArm3D);
 
-	GDREGISTER_CLASS(WheelBaseSettings);
-	GDREGISTER_CLASS(VehicleDifferentialSettings);
-	GDREGISTER_CLASS(VehicleEngineSettings);
-	GDREGISTER_CLASS(VehicleTransmissionSettings);
+	// Jolt Vehicle classes
+	GDREGISTER_CLASS(AntiRollBarSettings);
+
+	GDREGISTER_CLASS(JoltVehicle);
+	GDREGISTER_CLASS(JoltVehicleSettings);
+
+	GDREGISTER_CLASS(VehicleController);
+	GDREGISTER_CLASS(WheeledVehicleController);
+
 	GDREGISTER_CLASS(VehicleControllerSettings);
 	GDREGISTER_CLASS(WheeledVehicleControllerSettings);
+
+	GDREGISTER_CLASS(VehicleDifferentialSettings);
+
+	GDREGISTER_CLASS(VehicleEngineSettings);
+
+	GDREGISTER_CLASS(VehicleTransmissionSettings);
+
+	GDREGISTER_CLASS(WheelBaseSettings);
+	GDREGISTER_CLASS(WheelSettings);
+	// end Jolt Vehicle classes
 
 	GDREGISTER_CLASS(PhysicalBoneSimulator3D);
 	GDREGISTER_CLASS(PhysicalBone3D);

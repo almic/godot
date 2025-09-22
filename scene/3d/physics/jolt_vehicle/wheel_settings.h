@@ -14,8 +14,8 @@ class WheelBaseSettings : public Resource {
 	GDCLASS(WheelBaseSettings, Resource);
 
 protected:
-	virtual JPH::WheelSettings& get_settings() = 0;
-	virtual const JPH::WheelSettings& get_settings() const = 0;
+	virtual JPH::WheelSettings* get_settings() { return nullptr; }
+	virtual const JPH::WheelSettings* get_settings() const { return nullptr; }
 
 	friend class JoltVehicleSettings;
 
@@ -26,75 +26,75 @@ public:
 		SPRING_MODE_STIFFNESS,
 	};
 
-	Vector3 get_position() const { return to_godot(get_settings().mPosition); }
-	void set_position(const Vector3 &p_position) { get_settings().mPosition = to_jolt(p_position); }
+	Vector3 get_position() const { return to_godot(get_settings()->mPosition); }
+	void set_position(const Vector3 &p_position) { get_settings()->mPosition = to_jolt(p_position); }
 
-	Vector3 get_suspension_force_point() const { return to_godot(get_settings().mSuspensionForcePoint); }
-	void set_suspension_force_point(const Vector3 &p_force_point) { get_settings().mSuspensionForcePoint = to_jolt(p_force_point); }
+	Vector3 get_suspension_force_point() const { return to_godot(get_settings()->mSuspensionForcePoint); }
+	void set_suspension_force_point(const Vector3 &p_force_point) { get_settings()->mSuspensionForcePoint = to_jolt(p_force_point); }
 
-	Vector3 get_suspension_direction() const { return to_godot(get_settings().mSuspensionDirection); }
-	void set_suspension_direction(const Vector3 &p_direction) { get_settings().mSuspensionDirection = to_jolt(p_direction.normalized()); }
+	Vector3 get_suspension_direction() const { return to_godot(get_settings()->mSuspensionDirection); }
+	void set_suspension_direction(const Vector3 &p_direction) { get_settings()->mSuspensionDirection = to_jolt(p_direction.normalized()); }
 
-	Vector3 get_steering_axis() const { return to_godot(get_settings().mSteeringAxis); }
-	void set_steering_axis(const Vector3 &p_axis) { get_settings().mSteeringAxis = to_jolt(p_axis.normalized()); }
+	Vector3 get_steering_axis() const { return to_godot(get_settings()->mSteeringAxis); }
+	void set_steering_axis(const Vector3 &p_axis) { get_settings()->mSteeringAxis = to_jolt(p_axis.normalized()); }
 
-	Vector3 get_up() const { return to_godot(get_settings().mWheelUp); }
-	void set_up(const Vector3 &p_up) { get_settings().mWheelUp = to_jolt(p_up.normalized()); }
+	Vector3 get_up() const { return to_godot(get_settings()->mWheelUp); }
+	void set_up(const Vector3 &p_up) { get_settings()->mWheelUp = to_jolt(p_up.normalized()); }
 
-	Vector3 get_forward() const { return to_godot(get_settings().mWheelForward); }
-	void set_forward(const Vector3 &p_forward) { get_settings().mWheelForward = to_jolt(p_forward.normalized()); }
+	Vector3 get_forward() const { return to_godot(get_settings()->mWheelForward); }
+	void set_forward(const Vector3 &p_forward) { get_settings()->mWheelForward = to_jolt(p_forward.normalized()); }
 
-	real_t get_suspension_max_length() const { return (real_t) get_settings().mSuspensionMaxLength; }
-	void set_suspension_max_length(real_t p_max_length) { get_settings().mSuspensionMaxLength = (float) p_max_length; }
+	real_t get_suspension_max_length() const { return (real_t) get_settings()->mSuspensionMaxLength; }
+	void set_suspension_max_length(real_t p_max_length) { get_settings()->mSuspensionMaxLength = (float) p_max_length; }
 
-	real_t get_suspension_min_length() const { return (real_t) get_settings().mSuspensionMinLength; }
-	void set_suspension_min_length(real_t p_min_length) { get_settings().mSuspensionMinLength = (float) p_min_length; }
+	real_t get_suspension_min_length() const { return (real_t) get_settings()->mSuspensionMinLength; }
+	void set_suspension_min_length(real_t p_min_length) { get_settings()->mSuspensionMinLength = (float) p_min_length; }
 
-	real_t get_suspension_preload_length() const { return (real_t) get_settings().mSuspensionPreloadLength; }
-	void set_suspension_preload_length(real_t p_preload_length) { get_settings().mSuspensionPreloadLength = (real_t) p_preload_length; }
+	real_t get_suspension_preload_length() const { return (real_t) get_settings()->mSuspensionPreloadLength; }
+	void set_suspension_preload_length(real_t p_preload_length) { get_settings()->mSuspensionPreloadLength = (real_t) p_preload_length; }
 
-	SpringMode get_spring_mode() const { return (SpringMode) get_settings().mSuspensionSpring.mMode; }
+	SpringMode get_spring_mode() const { return (SpringMode) get_settings()->mSuspensionSpring.mMode; }
 	void set_spring_mode(SpringMode p_mode)
 	{
-		get_settings().mSuspensionSpring.mMode = (JPH::ESpringMode) p_mode;
+		get_settings()->mSuspensionSpring.mMode = (JPH::ESpringMode) p_mode;
 		notify_property_list_changed();
 	}
 
 	real_t get_spring_frequency() const
 	{
 		ERR_FAIL_COND_V_MSG(get_spring_mode() != SpringMode::SPRING_MODE_FREQUENCY, 0, "SpringMode is not based on frequency, use get_spring_stiffness() instead!");
-		return (real_t) get_settings().mSuspensionSpring.mFrequency;
+		return (real_t) get_settings()->mSuspensionSpring.mFrequency;
 	}
 	void set_spring_frequency(real_t p_frequency)
 	{
 		ERR_FAIL_COND_MSG(get_spring_mode() != SpringMode::SPRING_MODE_FREQUENCY, "SpringMode is not based on frequency, change the mode to frequency, or use set_spring_stiffness() instead!");
-		get_settings().mSuspensionSpring.mFrequency = (float) p_frequency;
+		get_settings()->mSuspensionSpring.mFrequency = (float) p_frequency;
 	}
 
 	real_t get_spring_stiffness() const
 	{
 		ERR_FAIL_COND_V_MSG(get_spring_mode() != SpringMode::SPRING_MODE_STIFFNESS, 0, "SpringMode is not based on stiffness, use get_spring_frequency() instead!");
-		return get_settings().mSuspensionSpring.mStiffness * 0.001;
+		return get_settings()->mSuspensionSpring.mStiffness * 0.001;
 	}
 	void set_spring_stiffness(real_t p_stiffness)
 	{
 		ERR_FAIL_COND_MSG(get_spring_mode() != SpringMode::SPRING_MODE_STIFFNESS, "SpringMode is not based on stiffness, change the mode to stiffness, or use set_spring_frequency() instead!");
-		get_settings().mSuspensionSpring.mStiffness = (float) (p_stiffness * 1000.0);
+		get_settings()->mSuspensionSpring.mStiffness = (float) (p_stiffness * 1000.0);
 	}
 
-	real_t get_spring_damping() const { return get_settings().mSuspensionSpring.mDamping; }
-	void set_spring_damping(real_t p_damping) { get_settings().mSuspensionSpring.mDamping = (float) p_damping; }
+	real_t get_spring_damping() const { return get_settings()->mSuspensionSpring.mDamping; }
+	void set_spring_damping(real_t p_damping) { get_settings()->mSuspensionSpring.mDamping = (float) p_damping; }
 
-	real_t get_radius() const { return (real_t) get_settings().mRadius; }
-	void set_radius(real_t p_radius) { get_settings().mRadius = (float) p_radius; }
+	real_t get_radius() const { return (real_t) get_settings()->mRadius; }
+	void set_radius(real_t p_radius) { get_settings()->mRadius = (float) p_radius; }
 
-	real_t get_width() const { return (real_t) get_settings().mWidth; }
-	void set_width(real_t p_width) { get_settings().mWidth = (float) p_width; }
+	real_t get_width() const { return (real_t) get_settings()->mWidth; }
+	void set_width(real_t p_width) { get_settings()->mWidth = (float) p_width; }
 
-	bool get_enable_suspension_force_point() const { return get_settings().mEnableSuspensionForcePoint; }
+	bool get_enable_suspension_force_point() const { return get_settings()->mEnableSuspensionForcePoint; }
 	void set_enable_suspension_force_point(bool p_enable)
 	{
-		get_settings().mEnableSuspensionForcePoint = p_enable;
+		get_settings()->mEnableSuspensionForcePoint = p_enable;
 		notify_property_list_changed();
 	}
 
@@ -108,11 +108,12 @@ VARIANT_ENUM_CAST(WheelBaseSettings::SpringMode);
 
 class WheelSettings : public WheelBaseSettings
 {
+	GDCLASS(WheelSettings, WheelBaseSettings);
 protected:
 	JPH::WheelSettingsWV settings;
 
-	virtual JPH::WheelSettings& get_settings() override { return settings; }
-	virtual const JPH::WheelSettings& get_settings() const override { return settings; }
+	virtual JPH::WheelSettings* get_settings() override { return &settings; }
+	virtual const JPH::WheelSettings* get_settings() const override { return &settings; }
 
 public:
 
@@ -120,7 +121,7 @@ public:
 	void set_inertia(real_t p_inertia) { settings.mInertia = (float) p_inertia; }
 
 	real_t get_angular_damping() const { return (real_t) settings.mAngularDamping; }
-	void set_angular_damping(real_t p_angular_damping) { settings.mAngularDaming = (float) p_angular_damping; }
+	void set_angular_damping(real_t p_angular_damping) { settings.mAngularDamping = (float) p_angular_damping; }
 
 	real_t get_max_steer_angle() const { return (real_t) settings.mMaxSteerAngle; }
 	void set_max_steer_angle(real_t p_max_steer_angle) { settings.mMaxSteerAngle = (float) p_max_steer_angle; }

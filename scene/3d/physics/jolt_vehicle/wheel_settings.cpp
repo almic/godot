@@ -1,4 +1,4 @@
-#include "wheel_base_settings.h"
+#include "wheel_settings.h"
 
 void WheelBaseSettings::_bind_methods() {
 

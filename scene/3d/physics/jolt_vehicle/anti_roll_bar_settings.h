@@ -3,14 +3,19 @@
 #include "core/io/resource.h"
 
 #include "Jolt/Jolt.h"
-#include "Jolt/Physics/Vehicle/AntiRollBar.h"
+#include "Jolt/Physics/Vehicle/VehicleAntiRollBar.h"
+
+
+class JoltVehicleSettings;
 
 class AntiRollBarSettings : public Resource
 {
 	GDCLASS(AntiRollBarSettings, Resource);
 
 protected:
-	JPH::AntiRollBarSettings settings;
+	JPH::VehicleAntiRollBar settings;
+
+	friend class JoltVehicleSettings;
 
 public:
 
@@ -25,4 +30,5 @@ public:
 
 protected:
 	static void _bind_methods();
-}
+};
+

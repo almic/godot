@@ -8,9 +8,11 @@
 #include "Jolt/Jolt.h"
 #include "Jolt/Physics/Vehicle/VehicleDifferential.h"
 
+
 class WheeledVehicleControllerSettings;
 
-class VehicleDifferentialSettings : public Resource {
+class VehicleDifferentialSettings : public Resource
+{
 	GDCLASS(VehicleDifferentialSettings, Resource);
 
 protected:

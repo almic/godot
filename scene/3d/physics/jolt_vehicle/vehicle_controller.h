@@ -1,16 +1,18 @@
 #pragma once
 
+#include "core/object/ref_counted.h"
+
 #include "Jolt/Jolt.h"
 #include "Jolt/Physics/Vehicle/WheeledVehicleController.h"
 
 
 class JoltVehicle;
 
-class VehicleController : public Object
+class VehicleController : public RefCounted
 {
 	GDCLASS(VehicleController, Object);
 public:
-	virtual void set_controller(JPH::VehicleController* controller) = 0;
+	virtual void set_controller(JPH::VehicleController* controller) {}
 };
 
 class WheeledVehicleController : public VehicleController

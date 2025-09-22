@@ -728,10 +728,10 @@ void register_scene_types() {
 	GDREGISTER_CLASS(JoltVehicle);
 	GDREGISTER_CLASS(JoltVehicleSettings);
 
-	GDREGISTER_CLASS(VehicleController);
+	GDREGISTER_ABSTRACT_CLASS(VehicleController);
 	GDREGISTER_CLASS(WheeledVehicleController);
 
-	GDREGISTER_CLASS(VehicleControllerSettings);
+	GDREGISTER_ABSTRACT_CLASS(VehicleControllerSettings);
 	GDREGISTER_CLASS(WheeledVehicleControllerSettings);
 
 	GDREGISTER_CLASS(VehicleDifferentialSettings);
@@ -740,7 +740,7 @@ void register_scene_types() {
 
 	GDREGISTER_CLASS(VehicleTransmissionSettings);
 
-	GDREGISTER_CLASS(WheelBaseSettings);
+	GDREGISTER_ABSTRACT_CLASS(WheelBaseSettings);
 	GDREGISTER_CLASS(WheelSettings);
 	// end Jolt Vehicle classes
 

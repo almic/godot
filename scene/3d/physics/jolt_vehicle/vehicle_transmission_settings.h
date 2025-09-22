@@ -68,10 +68,10 @@ public:
 	float get_switch_latency() const { return settings.mSwitchLatency; }
 	void set_switch_latency(float p_switch_latency) { settings.mSwitchLatency = p_switch_latency; }
 
-	float get_shift_up_rpm() const { return settings.mSwitchUpRPM; }
+	float get_shift_up_rpm() const { return settings.mShiftUpRPM; }
 	void set_shift_up_rpm(float p_shift_up_rpm) { settings.mShiftUpRPM = p_shift_up_rpm; }
 
-	float get_shift_down_rpm() const { return settings.mSwitchDownRPM; }
+	float get_shift_down_rpm() const { return settings.mShiftDownRPM; }
 	void set_shift_down_rpm(float p_shift_down_rpm) { settings.mShiftDownRPM = p_shift_down_rpm; }
 
 	float get_clutch_strength() const { return settings.mClutchStrength; }

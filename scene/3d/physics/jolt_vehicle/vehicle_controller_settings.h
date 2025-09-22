@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/io/resource.h"
+#include "core/variant/typed_array.h"
 
 #include "vehicle_differential_settings.h"
 #include "vehicle_engine_settings.h"
@@ -18,7 +19,7 @@ class VehicleControllerSettings : public Resource
 	GDCLASS(VehicleControllerSettings, Resource);
 
 protected:
-	virtual JPH::VehicleControllerSettings get_settings() const = 0;
+	virtual JPH::VehicleControllerSettings* get_settings() { return nullptr; }
 
 	friend class JoltVehicleSettings;
 };
@@ -30,7 +31,7 @@ class WheeledVehicleControllerSettings : public VehicleControllerSettings
 protected:
 	JPH::WheeledVehicleControllerSettings settings;
 
-	virtual JPH::VehicleControllerSettings get_settings() const override { return settings; }
+	virtual JPH::VehicleControllerSettings* get_settings() override { return &settings; }
 
 public:
 
@@ -83,22 +84,24 @@ public:
 	{
 		for (const auto& d : differentials)
 		{
-			if (d.is_valid())
+			Ref<VehicleDifferentialSettings> d_ref = d;
+			if (d_ref.is_valid())
 			{
-				d->disconnect_changed(callable_mp(this, &WheeledVehicleControllerSettings::_apply_differentials));
+				d_ref->disconnect_changed(callable_mp(this, &WheeledVehicleControllerSettings::_apply_differentials));
 			}
 		}
 
 		differentials.clear();
 
-		for (auto& d : p_differentials)
+		for (const auto& d : p_differentials)
 		{
-			if (d.is_valid())
+			Ref<VehicleDifferentialSettings> differential = d;
+
+			if (differential.is_valid())
 			{
-				d->connect_changed(callable_mp(this, &WheeledVehicleControllerSettings::_apply_differentials));
+				differential->connect_changed(callable_mp(this, &WheeledVehicleControllerSettings::_apply_differentials));
 			}
 
-			Ref<VehicleDifferentialSettings> differential = d;
 			differentials.push_back(differential);
 		}
 

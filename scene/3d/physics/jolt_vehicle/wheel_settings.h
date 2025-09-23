@@ -117,6 +117,13 @@ protected:
 
 public:
 
+	WheelSettings()
+	{
+		// When VehicleConstraint takes this, it uses a Ref which will prematurely delete
+		// our settings, so we add a reference here to ensure it won't release it for us
+		settings.AddRef();
+	}
+
 	real_t get_inertia() const { return (real_t) settings.mInertia; }
 	void set_inertia(real_t p_inertia) { settings.mInertia = (float) p_inertia; }
 

@@ -67,9 +67,13 @@ public:
 		}
 		else
 		{
+			bool do_notify = is_open();
 			slip_ratio = p_slip_ratio;
 			settings.mLimitedSlipRatio = (float) p_slip_ratio;
-			notify_property_list_changed();
+			if (do_notify)
+			{
+				notify_property_list_changed();
+			}
 		}
 	}
 

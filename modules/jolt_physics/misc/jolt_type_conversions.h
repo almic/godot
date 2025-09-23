@@ -98,6 +98,25 @@ _FORCE_INLINE_ void to_godot(const JPH::LinearCurve &p_curve, Curve& out_curve) 
 
 	for (JPH::LinearCurve::Point point : p_curve.mPoints)
 	{
+		// Curves limit their range and domain, so expand the range/ domain if needed
+		if (out_curve.get_min_value() > point.mY)
+		{
+			out_curve.set_min_value(point.mY);
+		}
+		if (out_curve.get_max_value() < point.mY)
+		{
+			out_curve.set_max_value(point.mY);
+		}
+
+		if (out_curve.get_min_domain() > point.mX)
+		{
+			out_curve.set_min_domain(point.mX);
+		}
+		if (out_curve.get_max_domain() < point.mX)
+		{
+			out_curve.set_max_domain(point.mX);
+		}
+
 		out_curve.add_point(Vector2(point.mX, point.mY), 0, 0, Curve::TANGENT_LINEAR, Curve::TANGENT_LINEAR);
 	}
 }

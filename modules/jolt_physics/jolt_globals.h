@@ -30,5 +30,14 @@
 
 #pragma once
 
+#include "Jolt/Jolt.h"
+#include "Jolt/Physics/Vehicle/VehicleCollisionTester.h"
+
 void jolt_initialize();
 void jolt_deinitialize();
+
+// AHAOHHAEHOHTAHTOHE
+JPH::VehicleCollisionTesterRay* vehicle_collision_tester_ray(const JPH::ObjectLayer& layer) __attribute__((used));
+JPH::VehicleCollisionTesterCastSphere* vehicle_collision_tester_sphere(const JPH::ObjectLayer& layer, float radius) __attribute__((used));
+JPH::VehicleCollisionTesterCastCylinder* vehicle_collision_tester_cylinder(const JPH::ObjectLayer& layer) __attribute__((used));
+

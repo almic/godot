@@ -5,6 +5,7 @@
 
 #include "scene/3d/physics/rigid_body_3d.h"
 
+#include "modules/jolt_physics/jolt_globals.h"
 #include "modules/jolt_physics/jolt_physics_server_3d.h"
 #include "modules/jolt_physics/objects/jolt_body_3d.h"
 #include "modules/jolt_physics/spaces/jolt_physics_direct_space_state_3d.h"
@@ -12,7 +13,6 @@
 #include "modules/jolt_physics/spaces/jolt_broad_phase_layer.h"
 
 #include "Jolt/Physics/PhysicsSystem.h"
-#include "Jolt/Physics/Vehicle/VehicleCollisionTester.h"
 
 
 class JoltVehicle : public RigidBody3D
@@ -98,7 +98,7 @@ protected:
 		JPH::PhysicsSystem &physics_system = jolt_space.get_physics_system();
 
 		JoltBody3D *jolt_body = jolt_vehicle.get_jolt_body();
-		JoltWritableBody3D body = jolt_space.write_body(*((JoltObject3D*) jolt_body));
+		JPH::Body *body = jolt_body->get_jolt_body();
 
 		jolt_vehicle.physics_system = &physics_system;
 		jolt_vehicle.vehicle = new JPH::VehicleConstraint(*body, jolt_vehicle.settings->settings);
@@ -148,18 +148,18 @@ protected:
 		{
 			case WHEEL_COLLISION_RAYCAST:
 				{
-					jolt_vehicle.tester = new JPH::VehicleCollisionTesterRay(layer);
+					jolt_vehicle.tester = vehicle_collision_tester_ray(layer);
 					break;
 				}
 			case WHEEL_COLLISION_SPHERE:
 				{
-					// jolt_vehicle.tester = new JPH::VehicleCollisionTesterCastSphere(layer, (float) jolt_vehicle.sphere_test_radius);
-					// break;
+					jolt_vehicle.tester = vehicle_collision_tester_sphere(layer, (float) jolt_vehicle.sphere_test_radius);
+					break;
 				}
 			case WHEEL_COLLISION_CYLINDER:
 				{
-					// jolt_vehicle.tester = new JPH::VehicleCollisionTesterCastCylinder(layer);
-					// break;
+					jolt_vehicle.tester = vehicle_collision_tester_cylinder(layer);
+					break;
 				}
 			default:
 				{

@@ -28,7 +28,7 @@ void JoltVehicleSettings::_bind_methods()
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "pitch_roll_limited"), "set_pitch_roll_limited", "is_pitch_roll_limited");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "max_pitch_roll", PROPERTY_HINT_RANGE, "0,89,0.1,radians_as_degrees"), "set_max_pitch_roll", "get_max_pitch_roll");
 	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "wheels", PROPERTY_HINT_ARRAY_TYPE, MAKE_RESOURCE_TYPE_HINT("WheelBaseSettings")), "set_wheel_settings", "get_wheel_settings");
-	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "anti_roll_bars", PROPERTY_HINT_ARRAY_TYPE, MAKE_RESOURCE_TYPE_HINT("AnitRollBarSettings")), "set_anti_roll_bar_settings", "get_anti_roll_bar_settings");
+	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "anti_roll_bars", PROPERTY_HINT_ARRAY_TYPE, MAKE_RESOURCE_TYPE_HINT("AntiRollBarSettings")), "set_anti_roll_bar_settings", "get_anti_roll_bar_settings");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "controller", PROPERTY_HINT_RESOURCE_TYPE, "VehicleControllerSettings", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_EDITOR_INSTANTIATE_OBJECT), "set_controller_settings", "get_controller_settings");
 }
 

@@ -66,9 +66,13 @@ public:
 		}
 		else
 		{
+			bool do_notify = !is_pitch_roll_limited();
 			max_pitch_roll_angle = p_max_pitch_roll;
 			settings.mMaxPitchRollAngle = (float) p_max_pitch_roll;
-			notify_property_list_changed();
+			if (do_notify)
+			{
+				notify_property_list_changed();
+			}
 		}
 	}
 
@@ -92,7 +96,10 @@ public:
 		{
 			Ref<WheelBaseSettings> wheel = w;
 			wheels.push_back(wheel);
-			settings.mWheels.push_back(wheel->get_settings());
+			if (wheel.is_valid())
+			{
+				settings.mWheels.push_back(wheel->get_settings());
+			}
 		}
 	}
 
@@ -116,7 +123,10 @@ public:
 		{
 			Ref<AntiRollBarSettings> anti_roll_bar = a;
 			anti_roll_bars.push_back(anti_roll_bar);
-			settings.mAntiRollBars.push_back(anti_roll_bar->settings);
+			if (anti_roll_bar.is_valid())
+			{
+				settings.mAntiRollBars.push_back(anti_roll_bar->settings);
+			}
 		}
 	}
 
@@ -124,7 +134,10 @@ public:
 	void set_controller_settings(const Ref<VehicleControllerSettings> &p_controller)
 	{
 		controller = p_controller;
-		settings.mController = controller->get_settings();
+		if (controller.is_valid())
+		{
+			settings.mController = controller->get_settings();
+		}
 	}
 
 protected:

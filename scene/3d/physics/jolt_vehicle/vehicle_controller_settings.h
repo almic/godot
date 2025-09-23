@@ -35,6 +35,13 @@ protected:
 
 public:
 
+	WheeledVehicleControllerSettings()
+	{
+		// When VehicleConstraint takes this, it uses a Ref which will prematurely delete
+		// our settings, so we add a reference here to ensure it won't release it for us
+		settings.AddRef();
+	}
+
 	Ref<VehicleEngineSettings> get_engine_settings() const { return engine; }
 	void set_engine_settings(const Ref<VehicleEngineSettings> &p_engine_settings)
 	{
@@ -84,10 +91,9 @@ public:
 	{
 		for (const auto& d : differentials)
 		{
-			Ref<VehicleDifferentialSettings> d_ref = d;
-			if (d_ref.is_valid())
+			if (d.is_valid())
 			{
-				d_ref->disconnect_changed(callable_mp(this, &WheeledVehicleControllerSettings::_apply_differentials));
+				d->disconnect_changed(callable_mp(this, &WheeledVehicleControllerSettings::_apply_differentials));
 			}
 		}
 
@@ -176,7 +182,10 @@ protected:
 		int i = 0;
 		for (const auto& d : differentials)
 		{
-			array[i] = d->settings;
+			if (d.is_valid())
+			{
+				array[i] = d->settings;
+			}
 		}
 	}
 

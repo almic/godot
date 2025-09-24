@@ -1,6 +1,6 @@
 #!/bin/sh
 
-scons production=true
+scons production=false debug_symbols=true
 
 retVal=$?
 if [ $retVal -ne 0 ]; then

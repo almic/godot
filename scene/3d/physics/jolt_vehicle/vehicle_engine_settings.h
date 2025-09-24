@@ -20,7 +20,7 @@ protected:
 public:
 
 	real_t get_max_torque() const { return (real_t) settings.mMaxTorque; }
-	void set_max_torque(real_t p_max_torque) { settings.mMaxTorque = (float) settings.mMaxTorque; }
+	void set_max_torque(real_t p_max_torque) { settings.mMaxTorque = (float) p_max_torque; }
 
 	real_t get_min_rpm() const { return (real_t) settings.mMinRPM; }
 	void set_min_rpm(real_t p_min_rpm) { settings.mMinRPM = (float) p_min_rpm; }

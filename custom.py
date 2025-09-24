@@ -1,7 +1,7 @@
 # Generated using https://godot-build-options-generator.github.io
 
 extra_suffix = "zombie_game"
-production = "yes"
+production = "no"
 precision = "double"
 use_llvm = "yes"
 module_camera_enabled = "no"

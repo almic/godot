@@ -179,12 +179,18 @@ protected:
 	{
 		JPH::Array<JPH::VehicleDifferentialSettings>& array = settings.mDifferentials;
 		array.resize(differentials.size());
+
 		int i = 0;
 		for (const auto& d : differentials)
 		{
 			if (d.is_valid())
 			{
-				array[i] = d->settings;
+				array[i++] = d->settings;
+			}
+			else
+			{
+				ERR_PRINT("VehicleControllerSettings has an invalid setting!");
+				array.resize(array.size() - 1);
 			}
 		}
 	}

@@ -32,12 +32,14 @@ public:
 	Vector3 get_forward() const { return to_godot(settings.mForward); }
 	void set_forward(const Vector3 &p_forward) { settings.mForward = to_jolt(p_forward.normalized()); }
 
-	bool is_pitch_roll_limited() const { return settings.mMaxPitchRollAngle < JPH::JPH_PI; }
+	bool is_pitch_roll_limited() const { return limit_pitch_roll; }
 	void set_pitch_roll_limited(bool p_is_limited)
 	{
-		if (p_is_limited)
+		limit_pitch_roll = p_is_limited;
+
+		if (limit_pitch_roll)
 		{
-			settings.mMaxPitchRollAngle = (float) max_pitch_roll_angle;
+			settings.mMaxPitchRollAngle = (float) max_pitch_roll;
 		}
 		else
 		{
@@ -47,32 +49,14 @@ public:
 		notify_property_list_changed();
 	}
 
-	real_t get_max_pitch_roll() const
-	{
-		if (is_pitch_roll_limited())
-		{
-			return (real_t) settings.mMaxPitchRollAngle;
-		}
-		else
-		{
-			return max_pitch_roll_angle;
-		}
-	}
+	real_t get_max_pitch_roll() const { return max_pitch_roll; }
 	void set_max_pitch_roll(real_t p_max_pitch_roll)
 	{
-		if (p_max_pitch_roll >= M_PI)
+		max_pitch_roll = CLAMP(p_max_pitch_roll, 0.0, JPH::JPH_PI);
+
+		if (is_pitch_roll_limited())
 		{
-			set_pitch_roll_limited(false);
-		}
-		else
-		{
-			bool do_notify = !is_pitch_roll_limited();
-			max_pitch_roll_angle = p_max_pitch_roll;
-			settings.mMaxPitchRollAngle = (float) p_max_pitch_roll;
-			if (do_notify)
-			{
-				notify_property_list_changed();
-			}
+			settings.mMaxPitchRollAngle = max_pitch_roll;
 		}
 	}
 
@@ -144,7 +128,8 @@ protected:
 	static void _bind_methods();
 	void _validate_property(PropertyInfo &p_property) const;
 
-	real_t max_pitch_roll_angle;
+	bool limit_pitch_roll = false;
+	real_t max_pitch_roll = 0.0;
 	LocalVector<Ref<WheelBaseSettings>> wheels;
 	LocalVector<Ref<AntiRollBarSettings>> anti_roll_bars;
 	Ref<VehicleControllerSettings> controller;

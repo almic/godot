@@ -56,30 +56,55 @@ public:
 	SpringMode get_spring_mode() const { return (SpringMode) get_settings()->mSuspensionSpring.mMode; }
 	void set_spring_mode(SpringMode p_mode)
 	{
+		frequency = get_spring_frequency();
+		stiffness = get_spring_stiffness();
+
 		get_settings()->mSuspensionSpring.mMode = (JPH::ESpringMode) p_mode;
+
+		set_spring_frequency(frequency);
+		set_spring_stiffness(stiffness);
+
 		notify_property_list_changed();
 	}
 
 	real_t get_spring_frequency() const
 	{
-		ERR_FAIL_COND_V_MSG(get_spring_mode() != SpringMode::SPRING_MODE_FREQUENCY, 0, "SpringMode is not based on frequency, use get_spring_stiffness() instead!");
-		return (real_t) get_settings()->mSuspensionSpring.mFrequency;
+		if (get_spring_mode() == SpringMode::SPRING_MODE_FREQUENCY)
+		{
+			return (real_t) get_settings()->mSuspensionSpring.mFrequency;
+		}
+		else
+		{
+			return frequency;
+		}
 	}
 	void set_spring_frequency(real_t p_frequency)
 	{
-		ERR_FAIL_COND_MSG(get_spring_mode() != SpringMode::SPRING_MODE_FREQUENCY, "SpringMode is not based on frequency, change the mode to frequency, or use set_spring_stiffness() instead!");
-		get_settings()->mSuspensionSpring.mFrequency = (float) p_frequency;
+		frequency = p_frequency;
+		if (get_spring_mode() == SpringMode::SPRING_MODE_FREQUENCY)
+		{
+			get_settings()->mSuspensionSpring.mFrequency = (float) frequency;
+		}
 	}
 
 	real_t get_spring_stiffness() const
 	{
-		ERR_FAIL_COND_V_MSG(get_spring_mode() != SpringMode::SPRING_MODE_STIFFNESS, 0, "SpringMode is not based on stiffness, use get_spring_frequency() instead!");
-		return get_settings()->mSuspensionSpring.mStiffness * 0.001;
+		if (get_spring_mode() == SpringMode::SPRING_MODE_STIFFNESS)
+		{
+			return (real_t) get_settings()->mSuspensionSpring.mStiffness * 0.001;
+		}
+		else
+		{
+			return stiffness;
+		}
 	}
 	void set_spring_stiffness(real_t p_stiffness)
 	{
-		ERR_FAIL_COND_MSG(get_spring_mode() != SpringMode::SPRING_MODE_STIFFNESS, "SpringMode is not based on stiffness, change the mode to stiffness, or use set_spring_frequency() instead!");
-		get_settings()->mSuspensionSpring.mStiffness = (float) (p_stiffness * 1000.0);
+		stiffness = p_stiffness;
+		if (get_spring_mode() == SpringMode::SPRING_MODE_STIFFNESS)
+		{
+			get_settings()->mSuspensionSpring.mStiffness = (float) (stiffness * 1000.0);
+		}
 	}
 
 	real_t get_spring_damping() const { return get_settings()->mSuspensionSpring.mDamping; }
@@ -102,6 +127,9 @@ protected:
 	static void _bind_methods();
 
 	void _validate_property(PropertyInfo &p_property) const;
+
+	real_t stiffness;
+	real_t frequency;
 };
 
 VARIANT_ENUM_CAST(WheelBaseSettings::SpringMode);

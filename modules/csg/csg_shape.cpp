@@ -2288,8 +2288,9 @@ CSGBrush *CSGPolygon3D::_build_brush() {
 					break;
 				case PATH_ROTATION_PATH:
 				case PATH_ROTATION_PATH_FOLLOW:
+					Transform3D current_sample_xform = curve->sample_baked_with_rotation(0, false, true);
+					current_point = current_sample_xform.get_origin();
 					if (!path_rotation_accurate) {
-						current_point = curve->sample_baked(0);
 						Vector3 next_point = curve->sample_baked(extrusion_step);
 						direction = next_point - current_point;
 
@@ -2298,13 +2299,11 @@ CSGBrush *CSGPolygon3D::_build_brush() {
 							direction = next_point - last_point;
 						}
 					} else {
-						Transform3D current_sample_xform = curve->sample_baked_with_rotation(0);
-						current_point = current_sample_xform.get_origin();
 						direction = current_sample_xform.get_basis().xform(Vector3(0, 0, -1));
 					}
 
 					if (path_rotation == PATH_ROTATION_PATH_FOLLOW) {
-						current_up = curve->sample_baked_up_vector(0, true);
+						current_up = current_sample_xform.get_basis().xform(Vector3(0, 1, 0));
 					}
 					break;
 			}
@@ -2366,7 +2365,7 @@ CSGBrush *CSGPolygon3D::_build_brush() {
 					}
 
 					Vector3 previous_point = curve->sample_baked(previous_offset);
-					Transform3D current_sample_xform = curve->sample_baked_with_rotation(current_offset);
+					Transform3D current_sample_xform = curve->sample_baked_with_rotation(current_offset, false, true);
 					Vector3 current_point = current_sample_xform.get_origin();
 					Vector3 current_up = Vector3(0, 1, 0);
 					Vector3 current_extrusion_dir = (current_point - previous_point).normalized();
@@ -2401,7 +2400,7 @@ CSGBrush *CSGPolygon3D::_build_brush() {
 							}
 
 							if (path_rotation == PATH_ROTATION_PATH_FOLLOW) {
-								current_up = curve->sample_baked_up_vector(current_offset, true);
+								current_up = current_sample_xform.get_basis().xform(Vector3(0, 1, 0));
 							}
 							break;
 					}

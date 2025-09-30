@@ -128,8 +128,8 @@ protected:
 
 	void _validate_property(PropertyInfo &p_property) const;
 
-	real_t stiffness;
-	real_t frequency;
+	real_t stiffness = 0.0;
+	real_t frequency = 0.0;
 };
 
 VARIANT_ENUM_CAST(WheelBaseSettings::SpringMode);

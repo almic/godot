@@ -1588,7 +1588,7 @@ String String::num_real(double p_num, bool p_trailing) {
 		}
 	}
 
-	int decimals = 14;
+	int decimals = std::numeric_limits<double>::digits10 - 1;
 	// We want to align the digits to the above sane default, so we only need
 	// to subtract log10 for numbers with a positive power of ten magnitude.
 	const double abs_num = Math::abs(p_num);
@@ -1611,7 +1611,7 @@ String String::num_real(float p_num, bool p_trailing) {
 			return num_int64((int64_t)p_num);
 		}
 	}
-	int decimals = 6;
+	int decimals = std::numeric_limits<float>::digits10 - 1;
 	// We want to align the digits to the above sane default, so we only need
 	// to subtract log10 for numbers with a positive power of ten magnitude.
 	const float abs_num = Math::abs(p_num);

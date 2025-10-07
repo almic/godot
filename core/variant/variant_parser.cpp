@@ -1983,13 +1983,18 @@ Error VariantParser::parse(Stream *p_stream, Variant &r_ret, String &r_err_str, 
 // that match their 32-bit float representation to avoid serializing garbage
 // digits when the underlying float is 32-bit.
 static String rtos_fix(double p_value, bool p_compat) {
-	if (p_value == 0.0) {
+	double abs_val = std::abs(p_value);
+	if (abs_val < 1.0e-10) {
 		return "0"; // Avoid negative zero (-0) being written, which may annoy git, svn, etc. for changes when they don't exist.
 	} else if (p_compat) {
 		// Write old inf_neg for compatibility.
 		if (std::isinf(p_value) && p_value < 0.0) {
 			return "inf_neg";
 		}
+	}
+	// Avoid excessive 9s and 0s for non-extreme values
+	if (abs_val > 1.0e-4 && abs_val < std::pow(10, std::numeric_limits<double>::digits10)) {
+		return String::num_real(p_value, false);
 	}
 	// Hack to avoid garbage digits when the underlying float is 32-bit.
 	if ((double)(float)p_value == p_value) {
@@ -2101,7 +2106,12 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 					if (i != 0 || j != 0) {
 						s += ", ";
 					}
-					s += rtos_fix(m3.rows[i][j], p_compat);
+					real_t v = m3.rows[i][j];
+					if (std::abs(v) < 1.0e-6)
+					{
+						v = 0;
+					}
+					s += rtos_fix(v, p_compat);
 				}
 			}
 
@@ -2116,11 +2126,22 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 					if (i != 0 || j != 0) {
 						s += ", ";
 					}
-					s += rtos_fix(m3.rows[i][j], p_compat);
+					real_t v = m3.rows[i][j];
+					if (std::abs(v) < 1.0e-6)
+					{
+						v = 0;
+					}
+					s += rtos_fix(v, p_compat);
 				}
 			}
 
-			s = s + ", " + rtos_fix(t.origin.x, p_compat) + ", " + rtos_fix(t.origin.y, p_compat) + ", " + rtos_fix(t.origin.z, p_compat);
+			// Editor regularly adds small additional deltas that cannot be seen when dragging
+			// nodes around, mostly seen with double precision. Round transform origins to 7
+			// places to avoid these small incorrect values.
+			s = s + ", "
+				+ rtos_fix(Math::snapped(t.origin.x, 1e-7), p_compat) + ", "
+				+ rtos_fix(Math::snapped(t.origin.y, 1e-7), p_compat) + ", "
+				+ rtos_fix(Math::snapped(t.origin.z, 1e-7), p_compat);
 
 			p_store_string_func(p_store_string_ud, s + ")");
 		} break;

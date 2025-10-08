@@ -93,6 +93,17 @@
 				Returns a new [PackedByteArray] with the data compressed. Set the compression mode using one of [enum FileAccess.CompressionMode]'s constants.
 			</description>
 		</method>
+		<method name="copy_range">
+			<return type="void" />
+			<param index="0" name="to_index" type="int" />
+			<param index="1" name="from_array" type="PackedByteArray" />
+			<param index="2" name="from_index" type="int" />
+			<param index="3" name="count" type="int" />
+			<description>
+				Copies a range from a given [PackedByteArray] into this array. This array must be large enough to copy the data, so you may need to [method resize] first.
+				[b]NOTE:[/b] [param from_array] can be this array, but you must take care to avoid overlapping indexes. See [method move_range] if you are copying from the same array and your destination and source may overlap.
+			</description>
+		</method>
 		<method name="count" qualifiers="const">
 			<return type="int" />
 			<param index="0" name="value" type="int" />
@@ -429,6 +440,16 @@
 			<return type="bool" />
 			<description>
 				Returns [code]true[/code] if the array is empty.
+			</description>
+		</method>
+		<method name="move_range">
+			<return type="void" />
+			<param index="0" name="to_index" type="int" />
+			<param index="1" name="from_index" type="int" />
+			<param index="2" name="count" type="int" />
+			<description>
+				Moves a range of bytes within this array. The start and end of each range can overlap, but you must ensure the ranges do not exceed the size of this array.
+				[b]NOTE:[/b] This only operates within the same array. See [method copy_range] if you need to copy data from a different [PackedByteArray].
 			</description>
 		</method>
 		<method name="push_back">

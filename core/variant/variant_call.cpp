@@ -854,6 +854,55 @@ struct _VariantCall {
 		return s;
 	}
 
+	static void func_PackedByteArray_copy_range(PackedByteArray *p_instance, int64_t p_dest_index, const PackedByteArray& p_src, int64_t p_src_index, int64_t p_count) {
+		ERR_FAIL_COND_MSG(p_dest_index < 0, "to_index must be zero or greater");
+		ERR_FAIL_COND_MSG(p_src_index < 0, "from_index must be zero or greater");
+		ERR_FAIL_COND_MSG(p_count < 0, "count must be zero or greater");
+
+		uint64_t size = p_instance->size();
+		uint64_t src_size = p_src.size();
+		ERR_FAIL_COND_MSG(int64_t(size) < p_dest_index + p_count, "Cannot copy bytes: to_index + count > size");
+		ERR_FAIL_COND_MSG(int64_t(src_size) < p_src_index + p_count, "Cannot copy bytes: from_index + count > size of source");
+
+		if (p_count == 0) {
+			return;
+		}
+
+		const uint8_t *src_ptr = p_src.ptr();
+		// Maintain side effects of copying data. Do not make a copy for writing.
+		uint8_t *dest_ptr = const_cast<uint8_t*>(p_instance->ptr());
+
+		if (dest_ptr == src_ptr && p_dest_index == p_src_index) {
+			return;
+		}
+
+
+		// It may be desired when using copy_range with overlap that future bytes are written to
+		// and read during the copy. memcpy appears to go in reverse, sometimes
+		// memcpy(dest_ptr + p_dest_index, src_ptr + p_src_index, p_count);
+		for (int64_t i = 0; i < p_count; ++i) {
+			dest_ptr[i + p_dest_index] = src_ptr[i + p_src_index];
+		}
+	}
+
+	static void func_PackedByteArray_move_range(PackedByteArray *p_instance, int64_t p_dest_index, int64_t p_src_index, int64_t p_count) {
+		ERR_FAIL_COND_MSG(p_dest_index < 0, "to_index must be zero or greater");
+		ERR_FAIL_COND_MSG(p_src_index < 0, "from_index must be zero or greater");
+		ERR_FAIL_COND_MSG(p_count < 0, "count must be zero or greater");
+
+		uint64_t size = p_instance->size();
+		ERR_FAIL_COND_MSG(int64_t(size) < p_dest_index + p_count, "Cannot move bytes: from_index + count > size");
+		ERR_FAIL_COND_MSG(int64_t(size) < p_src_index + p_count, "Cannot move bytes: to_index + count > size");
+
+		if (p_count == 0 || p_dest_index == p_src_index) {
+			return;
+		}
+
+		// Maintain side effects of copying data. Do not make a copy for writing.
+		uint8_t *p = const_cast<uint8_t*>(p_instance->ptr());
+		memmove(p + p_dest_index, p + p_src_index, p_count);
+	}
+
 	static int64_t func_PackedByteArray_decode_u8(PackedByteArray *p_instance, int64_t p_offset) {
 		uint64_t size = p_instance->size();
 		ERR_FAIL_COND_V(p_offset < 0 || p_offset > int64_t(size) - 1, 0);
@@ -2784,6 +2833,8 @@ static void _register_variant_builtin_methods_array() {
 	bind_function(PackedByteArray, compress, _VariantCall::func_PackedByteArray_compress, sarray("compression_mode"), varray(0));
 	bind_function(PackedByteArray, decompress, _VariantCall::func_PackedByteArray_decompress, sarray("buffer_size", "compression_mode"), varray(0));
 	bind_function(PackedByteArray, decompress_dynamic, _VariantCall::func_PackedByteArray_decompress_dynamic, sarray("max_output_size", "compression_mode"), varray(0));
+	bind_function(PackedByteArray, copy_range, _VariantCall::func_PackedByteArray_copy_range, sarray("to_index", "from_array", "from_index", "count"), varray());
+	bind_function(PackedByteArray, move_range, _VariantCall::func_PackedByteArray_move_range, sarray("to_index", "from_index", "count"), varray());
 
 	bind_function(PackedByteArray, decode_u8, _VariantCall::func_PackedByteArray_decode_u8, sarray("byte_offset"), varray());
 	bind_function(PackedByteArray, decode_s8, _VariantCall::func_PackedByteArray_decode_s8, sarray("byte_offset"), varray());

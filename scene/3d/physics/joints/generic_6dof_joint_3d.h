@@ -123,6 +123,9 @@ public:
 	void set_linear_limit(const Vector3 &p_lower, const Vector3 &p_upper);
 	PackedVector3Array get_linear_limit() const;
 
+	float get_applied_force() const;
+	float get_applied_torque() const;
+
 	Generic6DOFJoint3D();
 };
 

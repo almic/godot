@@ -61,6 +61,9 @@ void Generic6DOFJoint3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_linear_limit", "lower_limit", "upper_limit"), &Generic6DOFJoint3D::set_linear_limit);
 	ClassDB::bind_method(D_METHOD("get_linear_limit"), &Generic6DOFJoint3D::get_linear_limit);
 
+	ClassDB::bind_method(D_METHOD("get_applied_force"), &Generic6DOFJoint3D::get_applied_force);
+	ClassDB::bind_method(D_METHOD("get_applied_torque"), &Generic6DOFJoint3D::get_applied_torque);
+
 	ADD_GROUP("Linear Limit", "linear_limit_");
 
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "linear_limit_x/enabled"), "set_flag_x", "get_flag_x", FLAG_ENABLE_LINEAR_LIMIT);
@@ -441,6 +444,14 @@ PackedVector3Array Generic6DOFJoint3D::get_linear_limit() const {
 					params_y[PARAM_LINEAR_UPPER_LIMIT],
 					params_z[PARAM_LINEAR_UPPER_LIMIT]));
 	return result;
+}
+
+float Generic6DOFJoint3D::get_applied_force() const {
+	return PhysicsServer3D::get_singleton()->generic_6dof_joint_get_applied_force(get_rid());
+}
+
+float Generic6DOFJoint3D::get_applied_torque() const {
+	return PhysicsServer3D::get_singleton()->generic_6dof_joint_get_applied_torque(get_rid());
 }
 
 void Generic6DOFJoint3D::_configure_joint(RID p_joint, PhysicsBody3D *body_a, PhysicsBody3D *body_b) {

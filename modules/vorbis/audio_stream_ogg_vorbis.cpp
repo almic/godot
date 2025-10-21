@@ -410,6 +410,14 @@ AudioStreamPlaybackOggVorbis::~AudioStreamPlaybackOggVorbis() {
 }
 
 Ref<AudioStreamPlayback> AudioStreamOggVorbis::instantiate_playback() {
+	for (const Ref<AudioStreamPlaybackOggVorbis>& playback : playback_cache)
+	{
+		if (playback->get_reference_count() == 1)
+		{
+			return playback;
+		}
+	}
+
 	Ref<AudioStreamPlaybackOggVorbis> ovs;
 
 	ERR_FAIL_COND_V(packet_sequence.is_null(), nullptr);
@@ -421,6 +429,7 @@ Ref<AudioStreamPlayback> AudioStreamOggVorbis::instantiate_playback() {
 	ovs->active = false;
 	ovs->loops = 0;
 	if (ovs->_alloc_vorbis()) {
+		playback_cache.push_back(ovs);
 		return ovs;
 	}
 	// Failed to allocate data structures.

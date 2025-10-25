@@ -2833,8 +2833,8 @@ static void _register_variant_builtin_methods_array() {
 	bind_function(PackedByteArray, compress, _VariantCall::func_PackedByteArray_compress, sarray("compression_mode"), varray(0));
 	bind_function(PackedByteArray, decompress, _VariantCall::func_PackedByteArray_decompress, sarray("buffer_size", "compression_mode"), varray(0));
 	bind_function(PackedByteArray, decompress_dynamic, _VariantCall::func_PackedByteArray_decompress_dynamic, sarray("max_output_size", "compression_mode"), varray(0));
-	bind_function(PackedByteArray, copy_range, _VariantCall::func_PackedByteArray_copy_range, sarray("to_index", "from_array", "from_index", "count"), varray());
-	bind_function(PackedByteArray, move_range, _VariantCall::func_PackedByteArray_move_range, sarray("to_index", "from_index", "count"), varray());
+	bind_functionnc(PackedByteArray, copy_range, _VariantCall::func_PackedByteArray_copy_range, sarray("to_index", "from_array", "from_index", "count"), varray());
+	bind_functionnc(PackedByteArray, move_range, _VariantCall::func_PackedByteArray_move_range, sarray("to_index", "from_index", "count"), varray());
 
 	bind_function(PackedByteArray, decode_u8, _VariantCall::func_PackedByteArray_decode_u8, sarray("byte_offset"), varray());
 	bind_function(PackedByteArray, decode_s8, _VariantCall::func_PackedByteArray_decode_s8, sarray("byte_offset"), varray());

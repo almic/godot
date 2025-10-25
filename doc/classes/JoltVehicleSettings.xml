@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="JoltVehicleSettings" inherits="Resource" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="anti_roll_bars" type="AntiRollBarSettings[]" setter="set_anti_roll_bar_settings" getter="get_anti_roll_bar_settings" default="[]">
+		</member>
+		<member name="controller" type="VehicleControllerSettings" setter="set_controller_settings" getter="get_controller_settings">
+		</member>
+		<member name="forward" type="Vector3" setter="set_forward" getter="get_forward" default="Vector3(0, 0, 1)">
+		</member>
+		<member name="max_pitch_roll" type="float" setter="set_max_pitch_roll" getter="get_max_pitch_roll" default="0.0">
+		</member>
+		<member name="pitch_roll_limited" type="bool" setter="set_pitch_roll_limited" getter="is_pitch_roll_limited" default="false">
+		</member>
+		<member name="up" type="Vector3" setter="set_up" getter="get_up" default="Vector3(0, 1, 0)">
+		</member>
+		<member name="wheels" type="WheelBaseSettings[]" setter="set_wheel_settings" getter="get_wheel_settings" default="[]">
+		</member>
+	</members>
+</class>

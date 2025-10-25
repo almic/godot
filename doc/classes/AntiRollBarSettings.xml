@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="AntiRollBarSettings" inherits="Resource" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="left_wheel" type="int" setter="set_left_wheel_index" getter="get_left_wheel_index" default="0">
+		</member>
+		<member name="right_wheel" type="int" setter="set_right_wheel_index" getter="get_right_wheel_index" default="1">
+		</member>
+		<member name="stiffness" type="float" setter="set_stiffness" getter="get_stiffness" default="1.0">
+		</member>
+	</members>
+</class>

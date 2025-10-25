@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="JoltVehicle" inherits="RigidBody3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_controller" qualifiers="const">
+			<return type="VehicleController" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="settings" type="JoltVehicleSettings" setter="set_settings" getter="get_settings">
+		</member>
+		<member name="wheel_collision_mode" type="int" setter="set_wheel_collision_mode" getter="get_wheel_collision_mode" enum="JoltVehicle.WheelCollisionMode" default="2">
+		</member>
+		<member name="wheel_nodes" type="Node3D[]" setter="set_wheel_nodes" getter="get_wheel_nodes">
+		</member>
+		<member name="wheel_paths" type="NodePath[]" setter="set_wheel_node_paths" getter="get_wheel_node_paths" default="[]">
+		</member>
+		<member name="wheel_sphere_test_radius" type="float" setter="set_wheel_sphere_test_radius" getter="get_wheel_sphere_test_radius" default="0.5">
+		</member>
+	</members>
+	<constants>
+		<constant name="WHEEL_COLLISION_RAYCAST" value="0" enum="WheelCollisionMode">
+		</constant>
+		<constant name="WHEEL_COLLISION_SPHERE" value="1" enum="WheelCollisionMode">
+		</constant>
+		<constant name="WHEEL_COLLISION_CYLINDER" value="2" enum="WheelCollisionMode">
+		</constant>
+	</constants>
+</class>

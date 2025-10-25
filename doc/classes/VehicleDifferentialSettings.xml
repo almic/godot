@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="VehicleDifferentialSettings" inherits="Resource" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="differential_ratio" type="float" setter="set_differential_ratio" getter="get_differential_ratio" default="3.42">
+		</member>
+		<member name="left_wheel_index" type="int" setter="set_left_wheel_index" getter="get_left_wheel_index" default="-1">
+		</member>
+		<member name="open" type="bool" setter="set_open" getter="is_open" default="false">
+		</member>
+		<member name="right_wheel_index" type="int" setter="set_right_wheel_index" getter="get_right_wheel_index" default="-1">
+		</member>
+		<member name="slip_ratio" type="float" setter="set_slip_ratio" getter="get_slip_ratio" default="1.4">
+		</member>
+		<member name="split" type="float" setter="set_split" getter="get_split" default="0.5">
+		</member>
+		<member name="torque_ratio" type="float" setter="set_torque_ratio" getter="get_torque_ratio" default="1.0">
+		</member>
+	</members>
+</class>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="VehicleEngineSettings" inherits="Resource" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="angular_damping" type="float" setter="set_angular_damping" getter="get_angular_damping" default="0.2">
+		</member>
+		<member name="inertia" type="float" setter="set_inertia" getter="get_inertia" default="0.5">
+		</member>
+		<member name="max_rpm" type="float" setter="set_max_rpm" getter="get_max_rpm" default="6000.0">
+		</member>
+		<member name="max_torque" type="float" setter="set_max_torque" getter="get_max_torque" default="500.0">
+		</member>
+		<member name="min_rpm" type="float" setter="set_min_rpm" getter="get_min_rpm" default="1000.0">
+		</member>
+		<member name="torque_curve" type="Curve" setter="set_torque_curve" getter="get_torque_curve">
+		</member>
+	</members>
+</class>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="WheeledVehicleControllerSettings" inherits="VehicleControllerSettings" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="differential_slip_ratio" type="float" setter="set_differential_slip_ratio" getter="get_differential_slip_ratio" default="1.4">
+		</member>
+		<member name="differentials" type="VehicleDifferentialSettings[]" setter="set_differentials" getter="get_differentials" default="[]">
+		</member>
+		<member name="engine" type="VehicleEngineSettings" setter="set_engine_settings" getter="get_engine_settings">
+		</member>
+		<member name="open_differential" type="bool" setter="set_open_differential" getter="is_open_differential" default="false">
+		</member>
+		<member name="transmission" type="VehicleTransmissionSettings" setter="set_transmission_settings" getter="get_transmission_settings">
+		</member>
+	</members>
+</class>

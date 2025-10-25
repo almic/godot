@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="VehicleTransmissionSettings" inherits="Resource" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="clutch_release_time" type="float" setter="set_clutch_release_time" getter="get_clutch_release_time" default="0.3">
+		</member>
+		<member name="clutch_strength" type="float" setter="set_clutch_strength" getter="get_clutch_strength" default="10.0">
+		</member>
+		<member name="down_rpm" type="float" setter="set_shift_down_rpm" getter="get_shift_down_rpm" default="2000.0">
+		</member>
+		<member name="gear_ratios" type="PackedFloat32Array" setter="set_gear_ratios" getter="get_gear_ratios" default="PackedFloat32Array()">
+		</member>
+		<member name="reverse_gear_ratios" type="PackedFloat32Array" setter="set_reverse_gear_ratios" getter="get_reverse_gear_ratios" default="PackedFloat32Array()">
+		</member>
+		<member name="switch_latency" type="float" setter="set_switch_latency" getter="get_switch_latency" default="0.5">
+		</member>
+		<member name="switch_time" type="float" setter="set_switch_time" getter="get_switch_time" default="0.5">
+		</member>
+		<member name="transmission_mode" type="int" setter="set_transmission_mode" getter="get_transmission_mode" enum="VehicleTransmissionSettings.TransmissionMode" default="0">
+		</member>
+		<member name="up_rpm" type="float" setter="set_shift_up_rpm" getter="get_shift_up_rpm" default="4000.0">
+		</member>
+	</members>
+	<constants>
+		<constant name="TRANSMISSION_MODE_AUTO" value="0" enum="TransmissionMode">
+		</constant>
+		<constant name="TRANSMISSION_MODE_MANUAL" value="1" enum="TransmissionMode">
+		</constant>
+	</constants>
+</class>

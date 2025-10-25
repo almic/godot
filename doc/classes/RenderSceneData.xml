@@ -24,6 +24,16 @@
 				[b]Note:[/b] If more than one view is rendered, this will return a centered transform.
 			</description>
 		</method>
+		<method name="get_time" qualifiers="const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="get_time_step" qualifiers="const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
 		<method name="get_uniform_buffer" qualifiers="const">
 			<return type="RID" />
 			<description>

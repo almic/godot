@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="WheelSettings" inherits="WheelBaseSettings" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="angular_damping" type="float" setter="set_angular_damping" getter="get_angular_damping" default="0.2">
+		</member>
+		<member name="inertia" type="float" setter="set_inertia" getter="get_inertia" default="0.9">
+		</member>
+		<member name="lateral_friction" type="Curve" setter="set_lateral_friction" getter="get_lateral_friction">
+		</member>
+		<member name="longitudinal_friction" type="Curve" setter="set_longitudinal_friction" getter="get_longitudinal_friction">
+		</member>
+		<member name="max_brake_torque" type="float" setter="set_max_brake_torque" getter="get_max_brake_torque" default="1500.0">
+		</member>
+		<member name="max_hand_brake_torque" type="float" setter="set_max_hand_brake_torque" getter="get_max_hand_brake_torque" default="4000.0">
+		</member>
+		<member name="max_steer_angle" type="float" setter="set_max_steer_angle" getter="get_max_steer_angle" default="1.2217305">
+		</member>
+	</members>
+</class>

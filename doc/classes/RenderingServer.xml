@@ -42,6 +42,36 @@
 				[b]Note:[/b] The equivalent resource is [CameraAttributes].
 			</description>
 		</method>
+		<method name="camera_attributes_get_auto_exposure_adjust_speed">
+			<return type="float" />
+			<param index="0" name="p_camera_attributes" type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="camera_attributes_get_auto_exposure_max_sensitivity">
+			<return type="float" />
+			<param index="0" name="p_camera_attributes" type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="camera_attributes_get_auto_exposure_min_sensitivity">
+			<return type="float" />
+			<param index="0" name="p_camera_attributes" type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="camera_attributes_get_auto_exposure_scale">
+			<return type="float" />
+			<param index="0" name="p_camera_attributes" type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="camera_attributes_get_exposure_normalization_factor">
+			<return type="float" />
+			<param index="0" name="p_camera_attributes" type="RID" />
+			<description>
+			</description>
+		</method>
 		<method name="camera_attributes_set_auto_exposure">
 			<return type="void" />
 			<param index="0" name="camera_attributes" type="RID" />
@@ -100,6 +130,12 @@
 				func get_exposure(aperture: float, shutter_speed: float, sensitivity: float):
 					return log((aperture * aperture) / shutter_speed * (100.0 / sensitivity)) / log(2)
 				[/codeblock]
+			</description>
+		</method>
+		<method name="camera_attributes_uses_auto_exposure">
+			<return type="bool" />
+			<param index="0" name="p_camera_attributes" type="RID" />
+			<description>
 			</description>
 		</method>
 		<method name="camera_create">

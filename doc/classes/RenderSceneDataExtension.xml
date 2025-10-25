@@ -21,6 +21,16 @@
 				Implement this in GDExtension to return the camera [Transform3D].
 			</description>
 		</method>
+		<method name="_get_time" qualifiers="virtual const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="_get_time_step" qualifiers="virtual const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
 		<method name="_get_uniform_buffer" qualifiers="virtual const">
 			<return type="RID" />
 			<description>

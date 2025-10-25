@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="WheelBaseSettings" inherits="Resource" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="forward" type="Vector3" setter="set_forward" getter="get_forward" default="Vector3(0, 0, 1)">
+		</member>
+		<member name="position" type="Vector3" setter="set_position" getter="get_position" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="radius" type="float" setter="set_radius" getter="get_radius" default="0.3">
+		</member>
+		<member name="spring_damping" type="float" setter="set_spring_damping" getter="get_spring_damping" default="0.5">
+		</member>
+		<member name="spring_frequency" type="float" setter="set_spring_frequency" getter="get_spring_frequency" default="1.5">
+		</member>
+		<member name="spring_mode" type="int" setter="set_spring_mode" getter="get_spring_mode" enum="WheelBaseSettings.SpringMode" default="0">
+		</member>
+		<member name="spring_stiffness" type="float" setter="set_spring_stiffness" getter="get_spring_stiffness" default="0.0">
+		</member>
+		<member name="steering_axis" type="Vector3" setter="set_steering_axis" getter="get_steering_axis" default="Vector3(0, 1, 0)">
+		</member>
+		<member name="suspension_direction" type="Vector3" setter="set_suspension_direction" getter="get_suspension_direction" default="Vector3(0, -1, 0)">
+		</member>
+		<member name="suspension_enable_force_point" type="bool" setter="set_enable_suspension_force_point" getter="get_enable_suspension_force_point" default="false">
+		</member>
+		<member name="suspension_force_point" type="Vector3" setter="set_suspension_force_point" getter="get_suspension_force_point" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="suspension_max_length" type="float" setter="set_suspension_max_length" getter="get_suspension_max_length" default="0.5">
+		</member>
+		<member name="suspension_min_length" type="float" setter="set_suspension_min_length" getter="get_suspension_min_length" default="0.3">
+		</member>
+		<member name="suspension_preload_length" type="float" setter="set_suspension_preload_length" getter="get_suspension_preload_length" default="0.0">
+		</member>
+		<member name="up" type="Vector3" setter="set_up" getter="get_up" default="Vector3(0, 1, 0)">
+		</member>
+		<member name="width" type="float" setter="set_width" getter="get_width" default="0.1">
+		</member>
+	</members>
+	<constants>
+		<constant name="SPRING_MODE_FREQUENCY" value="0" enum="SpringMode">
+		</constant>
+		<constant name="SPRING_MODE_STIFFNESS" value="1" enum="SpringMode">
+		</constant>
+	</constants>
+</class>

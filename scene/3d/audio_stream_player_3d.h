@@ -107,6 +107,7 @@ private:
 	float emission_angle_cos = Math::cos(emission_angle);
 	float emission_angle_filter_attenuation_db = -12.0;
 	float attenuation_filter_cutoff_hz = 5000.0;
+	float attenuation_filter_db = -24.0;
 
 	float linear_attenuation = 0;
 
@@ -190,6 +191,9 @@ public:
 
 	void set_attenuation_filter_cutoff_hz(float p_hz);
 	float get_attenuation_filter_cutoff_hz() const;
+
+	void set_attenuation_filter_db(float p_db);
+	float get_attenuation_filter_db() const;
 
 	void set_attenuation_model(AttenuationModel p_model);
 	AttenuationModel get_attenuation_model() const;

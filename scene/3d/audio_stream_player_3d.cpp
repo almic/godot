@@ -171,7 +171,7 @@ void AudioStreamPlayer3D::_calc_reverb_vol(Area3D *area, Vector3 listener_area_p
 
 	if (uniformity > 0.0) {
 		float distance = listener_area_pos.length();
-		float attenuation = MIN(_get_gain_db(distance), max_db);
+		float attenuation = Math::db_to_linear(MIN(_get_gain_db(distance), max_db));
 
 		// Determine the fraction of sound that would come from each speaker if they were all driven uniformly.
 		float center_val[3] = { 0.5f, 0.25f, 0.16666f };
@@ -229,6 +229,11 @@ void AudioStreamPlayer3D::_calc_reverb_vol(Area3D *area, Vector3 listener_area_p
 }
 #endif // PHYSICS_3D_DISABLED
 
+float _logarithmic_decay(float p_volume, float p_distance, float p_unit_size) {
+	const float falloff = 20.0f * Math::log10(2.0f);
+	return p_volume - Math::log2((p_distance / p_unit_size) + Math::INVPI) * falloff;
+}
+
 float AudioStreamPlayer3D::_get_gain_db(float p_distance) const {
 	p_distance = MAX(p_distance, 0.00001);
 
@@ -243,18 +248,17 @@ float AudioStreamPlayer3D::_get_gain_db(float p_distance) const {
 			vol += Math::linear_to_db(att);
 		} break;
 		case ATTENUATION_LOGARITHMIC: {
-			const float falloff = 20.0f * Math::log10(2.0f);
+			vol = _logarithmic_decay(volume_log_db, p_distance, unit_size);
 
-			vol = volume_log_db;
-			float att = Math::log2((p_distance / unit_size) + INV_PI) * falloff;
-			vol -= att;
-
-			if (vol < 0.01) {
-				vol = -164.0f;
-			} else if (vol < 120.0f) {
-				vol = 40.0f * Math::log10(vol / 120.0f);
+			// This gives a decent mapping of the positive decibel scale used in the real world to
+			// the negative decibel scale used in software. It includes an eye-balled inverse
+			// function to limit the maximum output to +3dB.
+			if (vol < 0.0001) {
+				vol = -118.0f;
+			} else if (vol < 80.0f) {
+				vol = 20.0f * Math::log10(vol / 80.0f);
 			} else {
-				vol = 3.0f - (60.0f / (vol - 100.0f));
+				vol = 3.0f - (90.0f / (vol - 50.0f));
 			}
 
 			vol += internal->volume_db;
@@ -459,19 +463,26 @@ Vector<AudioFrame> AudioStreamPlayer3D::_update_panning() {
 					Math::linear_to_db(CLAMP(1.0 - (dist / max_distance), 0.0, 1.0)));
 		}
 
+		// Filtered attenuation uses a custom formula, sounds good to me
+		float att_db = _logarithmic_decay(volume_log_db, dist, unit_size);
+		att_db = MAX(dist - att_db + 11.0, 0.0) / (10.0 * Math::log2(dist + 1));
+		att_db *= att_db;
+		att_db = (1.0 - MIN(1.0, Math::db_to_linear(-att_db))) * attenuation_filter_db;
+
 		if (emission_angle_enabled) {
 			Vector3 listenertopos = global_pos - listener_node->get_global_transform().origin;
 			float cos_theta = listenertopos.normalized().dot(get_global_transform().basis.get_column(2).normalized()); //it's z negative
 			if (cos_theta < emission_angle_cos) {
+				att_db += emission_angle_filter_attenuation_db;
 				gain_db += emission_angle_filter_attenuation_db;
 			}
 		}
 
 		gain_db = MIN(gain_db, max_db);
 
-		float gain_linear = Math::db_to_linear(gain_db);
+		float att_linear = Math::db_to_linear(att_db);
 		for (Ref<AudioStreamPlayback> &playback : internal->stream_playbacks) {
-			AudioServer::get_singleton()->set_playback_highshelf_params(playback, gain_linear, attenuation_filter_cutoff_hz);
+			AudioServer::get_singleton()->set_playback_highshelf_params(playback, att_linear, attenuation_filter_cutoff_hz);
 		}
 
 		if (AudioServer::get_singleton()->get_speaker_mode() == AudioServer::SPEAKER_MODE_STEREO) {
@@ -486,6 +497,7 @@ Vector<AudioFrame> AudioStreamPlayer3D::_update_panning() {
 			_calc_output_vol(local_pos.normalized(), tightness, output_volume_vector);
 		}
 
+		float gain_linear = Math::db_to_linear(gain_db);
 		for (unsigned int k = 0; k < 4; k++) {
 			output_volume_vector.write[k] = gain_linear * output_volume_vector[k];
 		}
@@ -731,6 +743,14 @@ float AudioStreamPlayer3D::get_attenuation_filter_cutoff_hz() const {
 	return attenuation_filter_cutoff_hz;
 }
 
+void AudioStreamPlayer3D::set_attenuation_filter_db(float p_db) {
+	attenuation_filter_db = p_db;
+}
+
+float AudioStreamPlayer3D::get_attenuation_filter_db() const {
+	return attenuation_filter_db;
+}
+
 void AudioStreamPlayer3D::set_attenuation_model(AttenuationModel p_model) {
 	ERR_FAIL_INDEX((int)p_model, 4);
 	attenuation_model = p_model;
@@ -868,8 +888,11 @@ void AudioStreamPlayer3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_emission_angle_filter_attenuation_db", "db"), &AudioStreamPlayer3D::set_emission_angle_filter_attenuation_db);
 	ClassDB::bind_method(D_METHOD("get_emission_angle_filter_attenuation_db"), &AudioStreamPlayer3D::get_emission_angle_filter_attenuation_db);
 
-	ClassDB::bind_method(D_METHOD("set_attenuation_filter_cutoff_hz", "degrees"), &AudioStreamPlayer3D::set_attenuation_filter_cutoff_hz);
+	ClassDB::bind_method(D_METHOD("set_attenuation_filter_cutoff_hz", "hz"), &AudioStreamPlayer3D::set_attenuation_filter_cutoff_hz);
 	ClassDB::bind_method(D_METHOD("get_attenuation_filter_cutoff_hz"), &AudioStreamPlayer3D::get_attenuation_filter_cutoff_hz);
+
+	ClassDB::bind_method(D_METHOD("set_attenuation_filter_db", "db"), &AudioStreamPlayer3D::set_attenuation_filter_db);
+	ClassDB::bind_method(D_METHOD("get_attenuation_filter_db"), &AudioStreamPlayer3D::get_attenuation_filter_db);
 
 	ClassDB::bind_method(D_METHOD("set_attenuation_model", "model"), &AudioStreamPlayer3D::set_attenuation_model);
 	ClassDB::bind_method(D_METHOD("get_attenuation_model"), &AudioStreamPlayer3D::get_attenuation_model);
@@ -915,6 +938,7 @@ void AudioStreamPlayer3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "emission_angle_filter_attenuation_db", PROPERTY_HINT_RANGE, "-80,0,0.1,suffix:dB"), "set_emission_angle_filter_attenuation_db", "get_emission_angle_filter_attenuation_db");
 	ADD_GROUP("Attenuation Filter", "attenuation_filter_");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "attenuation_filter_cutoff_hz", PROPERTY_HINT_RANGE, "1,20500,1,suffix:Hz"), "set_attenuation_filter_cutoff_hz", "get_attenuation_filter_cutoff_hz");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "attenuation_filter_db", PROPERTY_HINT_RANGE, "-80,0,0.1,suffix:dB"), "set_attenuation_filter_db", "get_attenuation_filter_db");
 	ADD_GROUP("Doppler", "doppler_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "doppler_tracking", PROPERTY_HINT_ENUM, "Disabled,Idle,Physics"), "set_doppler_tracking", "get_doppler_tracking");
 

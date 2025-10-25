@@ -42,6 +42,7 @@ inline constexpr double SQRT13 = 0.57735026918962576450914878050196;
 inline constexpr double LN2 = 0.6931471805599453094172321215;
 inline constexpr double TAU = 6.2831853071795864769252867666;
 inline constexpr double PI = 3.1415926535897932384626433833;
+inline constexpr double INVPI = 1.0 / PI;
 inline constexpr double E = 2.7182818284590452353602874714;
 inline constexpr double INF = std::numeric_limits<double>::infinity();
 inline constexpr double NaN = std::numeric_limits<double>::quiet_NaN();

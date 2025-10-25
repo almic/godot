@@ -72,8 +72,9 @@ private:
 	Ref<AudioStreamPlayback> setplayback;
 
 	AttenuationModel attenuation_model = ATTENUATION_INVERSE_DISTANCE;
-	float unit_size = 10.0;
+	float unit_size = 1.0;
 	float max_db = 3.0;
+	float volume_log_db = 60.0;
 	// Internally used to take doppler tracking into account.
 	float actual_pitch_scale = 1.0;
 
@@ -102,10 +103,10 @@ private:
 	AudioServer::PlaybackType playback_type = AudioServer::PlaybackType::PLAYBACK_TYPE_DEFAULT;
 
 	bool emission_angle_enabled = false;
-	float emission_angle = 45.0;
+	float emission_angle = Math::deg_to_rad(45.0);
+	float emission_angle_cos = Math::cos(emission_angle);
 	float emission_angle_filter_attenuation_db = -12.0;
 	float attenuation_filter_cutoff_hz = 5000.0;
-	float attenuation_filter_db = -24.0;
 
 	float linear_attenuation = 0;
 
@@ -116,7 +117,7 @@ private:
 
 	DopplerTracking doppler_tracking = DOPPLER_TRACKING_DISABLED;
 
-	float _get_attenuation_db(float p_distance) const;
+	float _get_gain_db(float p_distance) const;
 
 	float panning_strength = 1.0f;
 	float cached_global_panning_strength = 0.5f;
@@ -144,6 +145,9 @@ public:
 
 	void set_volume_linear(float p_volume);
 	float get_volume_linear() const;
+
+	void set_volume_log_db(float p_db);
+	float get_volume_log_db() const;
 
 	void set_unit_size(float p_volume);
 	float get_unit_size() const;
@@ -186,9 +190,6 @@ public:
 
 	void set_attenuation_filter_cutoff_hz(float p_hz);
 	float get_attenuation_filter_cutoff_hz() const;
-
-	void set_attenuation_filter_db(float p_db);
-	float get_attenuation_filter_db() const;
 
 	void set_attenuation_model(AttenuationModel p_model);
 	AttenuationModel get_attenuation_model() const;

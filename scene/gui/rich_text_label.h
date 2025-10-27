@@ -818,6 +818,8 @@ private:
 	} theme_cache;
 
 public:
+	static String escape_bbcode(const String &p_text);
+
 	virtual RID get_focused_accessibility_element() const override;
 	PackedStringArray get_accessibility_configuration_warnings() const override;
 
@@ -970,7 +972,7 @@ public:
 	void menu_option(int p_option);
 
 	void parse_bbcode(const String &p_bbcode);
-	void append_text(const String &p_bbcode);
+	void append_text(const String &p_bbcode, bool p_drop_tags = false);
 
 	void set_use_bbcode(bool p_enable);
 	bool is_using_bbcode() const;

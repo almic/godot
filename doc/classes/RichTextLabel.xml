@@ -66,8 +66,10 @@
 		<method name="append_text">
 			<return type="void" />
 			<param index="0" name="bbcode" type="String" />
+			<param index="1" name="drop_tags" type="bool" default="false" />
 			<description>
 				Parses [param bbcode] and adds tags to the tag stack as needed.
+				When [param drop_tags] is [code]true[/code], known tags will be dropped and produce no output. This includes tags like [code]"[lb]"[/code] which normally output a single [code]'['[/code] character, and [code]"[char=...]"[/code]. Content within tags will be added as if the surrounding tags were not there. For example, [code]"[img]{url}[/img]"[/code] would add [code]{url}[/code] as text.
 				[b]Note:[/b] Using this method, you can't close a tag that was opened in a previous [method append_text] call. This is done to improve performance, especially when updating large RichTextLabels since rebuilding the whole BBCode every time would be slower. If you absolutely need to close a tag in a future method call, append the [member text] instead of using [method append_text].
 			</description>
 		</method>
@@ -82,6 +84,13 @@
 			<return type="void" />
 			<description>
 				Clears the current selection.
+			</description>
+		</method>
+		<method name="escape_bbcode" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="text" type="String" />
+			<description>
+				Escapes text that contains bb tags by simply replacing any [code]'['[/code] characters with the [code]"[lb]"[/code] tag, which when parsed transforms back to the [code]'['[/code] character. This effectively disables any tags and causes them to be interpreted as plain text. This method is the equivalent of replacing [code]'&lt;'[/code] with [code]"&amp;lt;"[/code] to escape HTML text.
 			</description>
 		</method>
 		<method name="get_character_line">

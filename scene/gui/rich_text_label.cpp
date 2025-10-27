@@ -36,6 +36,7 @@
 #include "core/math/math_defs.h"
 #include "core/os/keyboard.h"
 #include "core/os/os.h"
+#include "core/string/string_builder.h"
 #include "core/string/translation_server.h"
 #include "scene/gui/label.h"
 #include "scene/gui/rich_text_effect.h"
@@ -5230,6 +5231,32 @@ void RichTextLabel::parse_bbcode(const String &p_bbcode) {
 	append_text(p_bbcode);
 }
 
+String RichTextLabel::escape_bbcode(const String &p_text) {
+	StringBuilder result;
+
+	int len = p_text.length();
+	int pos = 0;
+
+	while (pos < len) {
+		int next_bracket = p_text.find_char('[', pos);
+
+		if (next_bracket < 0) {
+			result.append(p_text.substr(pos, len - pos));
+			break;
+		}
+
+		int chars = next_bracket - pos;
+		if (chars > 0) {
+			result.append(p_text.substr(pos, chars));
+		}
+		result.append("[lb]");
+
+		pos += chars + 1;
+	}
+
+	return result.as_string();
+}
+
 String RichTextLabel::_get_tag_value(const String &p_tag) {
 	return p_tag.substr(p_tag.find_char('=') + 1);
 }
@@ -5298,13 +5325,16 @@ Vector<String> RichTextLabel::_split_unquoted(const String &p_src, char32_t p_sp
 	return ret;
 }
 
-void RichTextLabel::append_text(const String &p_bbcode) {
+void RichTextLabel::append_text(const String &p_bbcode, bool p_drop_tags) {
 	_stop_thread();
 	MutexLock data_lock(data_mutex);
 
 	parsing_bbcode.store(true);
 
 	int pos = 0;
+
+	// better to write
+	bool push_tags = !p_drop_tags;
 
 	bool in_bold = false;
 	bool in_italics = false;
@@ -5376,25 +5406,36 @@ void RichTextLabel::append_text(const String &p_bbcode) {
 			bbcode_name = bbcode_name.substr(0, main_value_pos);
 		}
 
-		if (tag.begins_with("/") && tag_stack.size()) {
-			bool tag_ok = tag_stack.size() && tag_stack.front()->get() == tag.substr(1);
+		if (tag.begins_with("/")) {
+			bool has_stack = !tag_stack.is_empty();
+			bool tag_ok = has_stack && tag_stack.front()->get() == tag.substr(1);
 
-			if (tag_stack.front()->get() == "b") {
-				in_bold = false;
-			}
-			if (tag_stack.front()->get() == "i") {
-				in_italics = false;
-			}
-			if ((tag_stack.front()->get() == "indent") || (tag_stack.front()->get() == "ol") || (tag_stack.front()->get() == "ul")) {
-				current_frame->indent_level--;
+			if (has_stack) {
+				if (tag_stack.front()->get() == "b") {
+					in_bold = false;
+				}
+				if (tag_stack.front()->get() == "i") {
+					in_italics = false;
+				}
+				if ((tag_stack.front()->get() == "indent") || (tag_stack.front()->get() == "ol") || (tag_stack.front()->get() == "ul")) {
+					current_frame->indent_level--;
+				}
 			}
 
 			if (!tag_ok) {
-				txt += "[" + tag;
+				if (push_tags) {
+					txt += "[" + tag;
+				}
+
 				add_text(txt);
 				after_list_open_tag = false;
 				after_list_close_tag = false;
 				pos = brk_end;
+
+				if (p_drop_tags) {
+					pos += 1;
+				}
+
 				continue;
 			}
 
@@ -5430,7 +5471,7 @@ void RichTextLabel::append_text(const String &p_bbcode) {
 			continue;
 		}
 
-		if (tag == "ol" || tag.begins_with("ol ") || tag == "ul" || tag.begins_with("ul ")) {
+		if (push_tags && (tag == "ol" || tag.begins_with("ol ") || tag == "ul" || tag.begins_with("ul "))) {
 			if (txt.is_empty() && after_list_open_tag) {
 				txt = "\n"; // Make each list have at least one item at the beginning.
 			}
@@ -5444,1071 +5485,1212 @@ void RichTextLabel::append_text(const String &p_bbcode) {
 		after_list_close_tag = false;
 
 		if (tag == "b") {
-			//use bold font
-			in_bold = true;
-			if (in_italics) {
-				_push_def_font(RTL_BOLD_ITALICS_FONT);
-			} else {
-				_push_def_font(RTL_BOLD_FONT);
+			if (push_tags) {
+				//use bold font
+				in_bold = true;
+				if (in_italics) {
+					_push_def_font(RTL_BOLD_ITALICS_FONT);
+				} else {
+					_push_def_font(RTL_BOLD_FONT);
+				}
+				tag_stack.push_front(tag);
 			}
 			pos = brk_end + 1;
-			tag_stack.push_front(tag);
 		} else if (tag == "i") {
-			//use italics font
-			in_italics = true;
-			if (in_bold) {
-				_push_def_font(RTL_BOLD_ITALICS_FONT);
-			} else {
-				_push_def_font(RTL_ITALICS_FONT);
+			if (push_tags) {
+				//use italics font
+				in_italics = true;
+				if (in_bold) {
+					_push_def_font(RTL_BOLD_ITALICS_FONT);
+				} else {
+					_push_def_font(RTL_ITALICS_FONT);
+				}
 			}
-			pos = brk_end + 1;
 			tag_stack.push_front(tag);
+			pos = brk_end + 1;
 		} else if (tag == "code") {
-			//use monospace font
-			_push_def_font(RTL_MONO_FONT);
+			if (push_tags) {
+				//use monospace font
+				_push_def_font(RTL_MONO_FONT);
+				tag_stack.push_front(tag);
+			}
 			pos = brk_end + 1;
-			tag_stack.push_front(tag);
 		} else if (tag.begins_with("table=")) {
-			Vector<String> subtag = _split_unquoted(_get_tag_value(tag), U',');
-			_normalize_subtags(subtag);
-
-			int columns = (subtag.is_empty()) ? 1 : subtag[0].to_int();
-			if (columns < 1) {
-				columns = 1;
-			}
-
-			int alignment = INLINE_ALIGNMENT_TOP;
-			if (subtag.size() > 2) {
-				if (subtag[1] == "top" || subtag[1] == "t") {
-					alignment = INLINE_ALIGNMENT_TOP_TO;
-				} else if (subtag[1] == "center" || subtag[1] == "c") {
-					alignment = INLINE_ALIGNMENT_CENTER_TO;
-				} else if (subtag[1] == "baseline" || subtag[1] == "l") {
-					alignment = INLINE_ALIGNMENT_BASELINE_TO;
-				} else if (subtag[1] == "bottom" || subtag[1] == "b") {
-					alignment = INLINE_ALIGNMENT_BOTTOM_TO;
-				}
-				if (subtag[2] == "top" || subtag[2] == "t") {
-					alignment |= INLINE_ALIGNMENT_TO_TOP;
-				} else if (subtag[2] == "center" || subtag[2] == "c") {
-					alignment |= INLINE_ALIGNMENT_TO_CENTER;
-				} else if (subtag[2] == "baseline" || subtag[2] == "l") {
-					alignment |= INLINE_ALIGNMENT_TO_BASELINE;
-				} else if (subtag[2] == "bottom" || subtag[2] == "b") {
-					alignment |= INLINE_ALIGNMENT_TO_BOTTOM;
-				}
-			} else if (subtag.size() > 1) {
-				if (subtag[1] == "top" || subtag[1] == "t") {
-					alignment = INLINE_ALIGNMENT_TOP;
-				} else if (subtag[1] == "center" || subtag[1] == "c") {
-					alignment = INLINE_ALIGNMENT_CENTER;
-				} else if (subtag[1] == "bottom" || subtag[1] == "b") {
-					alignment = INLINE_ALIGNMENT_BOTTOM;
-				}
-			}
-			int row = -1;
-			if (subtag.size() > 3) {
-				row = subtag[3].to_int();
-			}
-
-			OptionMap::Iterator alt_text_option = bbcode_options.find("name");
-			String alt_text;
-			if (alt_text_option) {
-				alt_text = alt_text_option->value;
-			}
-
-			push_table(columns, (InlineAlignment)alignment, row, alt_text);
-			pos = brk_end + 1;
-			tag_stack.push_front("table");
-		} else if (tag == "cell") {
-			push_cell();
-			pos = brk_end + 1;
-			tag_stack.push_front(tag);
-		} else if (tag.begins_with("cell=")) {
-			int ratio = _get_tag_value(tag).to_int();
-			if (ratio < 1) {
-				ratio = 1;
-			}
-
-			set_table_column_expand(get_current_table_column(), true, ratio);
-			push_cell();
-
-			pos = brk_end + 1;
-			tag_stack.push_front("cell");
-		} else if (tag.begins_with("cell ")) {
-			bool shrink = true;
-			OptionMap::Iterator shrink_option = bbcode_options.find("shrink");
-			if (shrink_option) {
-				shrink = (shrink_option->value == "true");
-			}
-
-			OptionMap::Iterator expand_option = bbcode_options.find("expand");
-			if (expand_option) {
-				int ratio = expand_option->value.to_int();
-				if (ratio < 1) {
-					ratio = 1;
-				}
-				set_table_column_expand(get_current_table_column(), true, ratio, shrink);
-			}
-
-			push_cell();
-			const Color fallback_color = Color(0, 0, 0, 0);
-
-			OptionMap::Iterator border_option = bbcode_options.find("border");
-			if (border_option) {
-				Color color = Color::from_string(border_option->value, fallback_color);
-				set_cell_border_color(color);
-			}
-			OptionMap::Iterator bg_option = bbcode_options.find("bg");
-			if (bg_option) {
-				Vector<String> subtag_b = _split_unquoted(bg_option->value, U',');
-				_normalize_subtags(subtag_b);
-
-				if (subtag_b.size() == 2) {
-					Color color1 = Color::from_string(subtag_b[0], fallback_color);
-					Color color2 = Color::from_string(subtag_b[1], fallback_color);
-					set_cell_row_background_color(color1, color2);
-				}
-				if (subtag_b.size() == 1) {
-					Color color1 = Color::from_string(bg_option->value, fallback_color);
-					set_cell_row_background_color(color1, color1);
-				}
-			}
-			OptionMap::Iterator padding_option = bbcode_options.find("padding");
-			if (padding_option) {
-				Vector<String> subtag_b = _split_unquoted(padding_option->value, U',');
-				_normalize_subtags(subtag_b);
-
-				if (subtag_b.size() == 4) {
-					set_cell_padding(Rect2(subtag_b[0].to_float(), subtag_b[1].to_float(), subtag_b[2].to_float(), subtag_b[3].to_float()));
-				}
-			}
-
-			pos = brk_end + 1;
-			tag_stack.push_front("cell");
-		} else if (tag == "u") {
-			push_underline();
-			pos = brk_end + 1;
-			tag_stack.push_front(tag);
-		} else if (tag.begins_with("u ")) {
-			Color color = Color(0, 0, 0, 0);
-			OptionMap::Iterator color_option = bbcode_options.find("color");
-			if (color_option) {
-				color = Color::from_string(color_option->value, color);
-			}
-
-			push_underline(color);
-			pos = brk_end + 1;
-			tag_stack.push_front("u");
-		} else if (tag == "s") {
-			push_strikethrough();
-			pos = brk_end + 1;
-			tag_stack.push_front(tag);
-		} else if (tag.begins_with("s ")) {
-			Color color = Color(0, 0, 0, 0);
-			OptionMap::Iterator color_option = bbcode_options.find("color");
-			if (color_option) {
-				color = Color::from_string(color_option->value, color);
-			}
-
-			push_strikethrough(color);
-			pos = brk_end + 1;
-			tag_stack.push_front("s");
-		} else if (tag.begins_with("char=")) {
-			int32_t char_code = _get_tag_value(tag).hex_to_int();
-			add_text(String::chr(char_code));
-			pos = brk_end + 1;
-		} else if (tag == "lb") {
-			add_text("[");
-			pos = brk_end + 1;
-		} else if (tag == "rb") {
-			add_text("]");
-			pos = brk_end + 1;
-		} else if (tag == "lrm") {
-			add_text(String::chr(0x200E));
-			pos = brk_end + 1;
-		} else if (tag == "rlm") {
-			add_text(String::chr(0x200F));
-			pos = brk_end + 1;
-		} else if (tag == "lre") {
-			add_text(String::chr(0x202A));
-			pos = brk_end + 1;
-		} else if (tag == "rle") {
-			add_text(String::chr(0x202B));
-			pos = brk_end + 1;
-		} else if (tag == "lro") {
-			add_text(String::chr(0x202D));
-			pos = brk_end + 1;
-		} else if (tag == "rlo") {
-			add_text(String::chr(0x202E));
-			pos = brk_end + 1;
-		} else if (tag == "pdf") {
-			add_text(String::chr(0x202C));
-			pos = brk_end + 1;
-		} else if (tag == "alm") {
-			add_text(String::chr(0x061c));
-			pos = brk_end + 1;
-		} else if (tag == "lri") {
-			add_text(String::chr(0x2066));
-			pos = brk_end + 1;
-		} else if (tag == "rli") {
-			add_text(String::chr(0x2027));
-			pos = brk_end + 1;
-		} else if (tag == "fsi") {
-			add_text(String::chr(0x2068));
-			pos = brk_end + 1;
-		} else if (tag == "pdi") {
-			add_text(String::chr(0x2069));
-			pos = brk_end + 1;
-		} else if (tag == "zwj") {
-			add_text(String::chr(0x200D));
-			pos = brk_end + 1;
-		} else if (tag == "zwnj") {
-			add_text(String::chr(0x200C));
-			pos = brk_end + 1;
-		} else if (tag == "wj") {
-			add_text(String::chr(0x2060));
-			pos = brk_end + 1;
-		} else if (tag == "shy") {
-			add_text(String::chr(0x00AD));
-			pos = brk_end + 1;
-		} else if (tag == "center") {
-			push_paragraph(HORIZONTAL_ALIGNMENT_CENTER, text_direction, language, st_parser, default_jst_flags, default_tab_stops);
-			pos = brk_end + 1;
-			tag_stack.push_front(tag);
-		} else if (tag == "fill") {
-			push_paragraph(HORIZONTAL_ALIGNMENT_FILL, text_direction, language, st_parser, default_jst_flags, default_tab_stops);
-			pos = brk_end + 1;
-			tag_stack.push_front(tag);
-		} else if (tag == "left") {
-			push_paragraph(HORIZONTAL_ALIGNMENT_LEFT, text_direction, language, st_parser, default_jst_flags, default_tab_stops);
-			pos = brk_end + 1;
-			tag_stack.push_front(tag);
-		} else if (tag == "right") {
-			push_paragraph(HORIZONTAL_ALIGNMENT_RIGHT, text_direction, language, st_parser, default_jst_flags, default_tab_stops);
-			pos = brk_end + 1;
-			tag_stack.push_front(tag);
-		} else if (tag == "ul") {
-			current_frame->indent_level++;
-			push_list(current_frame->indent_level, LIST_DOTS, false);
-			pos = brk_end + 1;
-			tag_stack.push_front(tag);
-		} else if (tag.begins_with("ul bullet=")) {
-			String bullet = _get_tag_value(tag);
-			current_frame->indent_level++;
-			push_list(current_frame->indent_level, LIST_DOTS, false, bullet);
-			pos = brk_end + 1;
-			tag_stack.push_front("ul");
-		} else if ((tag == "ol") || (tag == "ol type=1")) {
-			current_frame->indent_level++;
-			push_list(current_frame->indent_level, LIST_NUMBERS, false);
-			pos = brk_end + 1;
-			tag_stack.push_front("ol");
-		} else if (tag == "ol type=a") {
-			current_frame->indent_level++;
-			push_list(current_frame->indent_level, LIST_LETTERS, false);
-			pos = brk_end + 1;
-			tag_stack.push_front("ol");
-		} else if (tag == "ol type=A") {
-			current_frame->indent_level++;
-			push_list(current_frame->indent_level, LIST_LETTERS, true);
-			pos = brk_end + 1;
-			tag_stack.push_front("ol");
-		} else if (tag == "ol type=i") {
-			current_frame->indent_level++;
-			push_list(current_frame->indent_level, LIST_ROMAN, false);
-			pos = brk_end + 1;
-			tag_stack.push_front("ol");
-		} else if (tag == "ol type=I") {
-			current_frame->indent_level++;
-			push_list(current_frame->indent_level, LIST_ROMAN, true);
-			pos = brk_end + 1;
-			tag_stack.push_front("ol");
-		} else if (tag == "indent") {
-			current_frame->indent_level++;
-			push_indent(current_frame->indent_level);
-			pos = brk_end + 1;
-			tag_stack.push_front(tag);
-		} else if (tag.begins_with("lang=")) {
-			String lang = _get_tag_value(tag).unquote();
-			push_language(lang);
-			pos = brk_end + 1;
-			tag_stack.push_front("lang");
-		} else if (tag == "br") {
-			add_text("\r");
-			pos = brk_end + 1;
-		} else if (tag == "p") {
-			push_paragraph(HORIZONTAL_ALIGNMENT_LEFT);
-			pos = brk_end + 1;
-			tag_stack.push_front("p");
-		} else if (tag.begins_with("p ")) {
-			HorizontalAlignment alignment = HORIZONTAL_ALIGNMENT_LEFT;
-			Control::TextDirection dir = Control::TEXT_DIRECTION_INHERITED;
-			String lang = language;
-			PackedFloat32Array tab_stops = default_tab_stops;
-			TextServer::StructuredTextParser st_parser_type = TextServer::STRUCTURED_TEXT_DEFAULT;
-			BitField<TextServer::JustificationFlag> jst_flags = default_jst_flags;
-
-			OptionMap::Iterator justification_flags_option = bbcode_options.find("justification_flags");
-			if (!justification_flags_option) {
-				justification_flags_option = bbcode_options.find("jst");
-			}
-			if (justification_flags_option) {
-				Vector<String> subtag_b = _split_unquoted(justification_flags_option->value, U',');
-				jst_flags = 0; // Clear flags.
-				for (const String &E : subtag_b) {
-					if (E == "kashida" || E == "k") {
-						jst_flags.set_flag(TextServer::JUSTIFICATION_KASHIDA);
-					} else if (E == "word" || E == "w") {
-						jst_flags.set_flag(TextServer::JUSTIFICATION_WORD_BOUND);
-					} else if (E == "trim" || E == "tr") {
-						jst_flags.set_flag(TextServer::JUSTIFICATION_TRIM_EDGE_SPACES);
-					} else if (E == "after_last_tab" || E == "lt") {
-						jst_flags.set_flag(TextServer::JUSTIFICATION_AFTER_LAST_TAB);
-					} else if (E == "skip_last" || E == "sl") {
-						jst_flags.set_flag(TextServer::JUSTIFICATION_SKIP_LAST_LINE);
-					} else if (E == "skip_last_with_chars" || E == "sv") {
-						jst_flags.set_flag(TextServer::JUSTIFICATION_SKIP_LAST_LINE_WITH_VISIBLE_CHARS);
-					} else if (E == "do_not_skip_single" || E == "ns") {
-						jst_flags.set_flag(TextServer::JUSTIFICATION_DO_NOT_SKIP_SINGLE_LINE);
-					}
-				}
-			}
-			OptionMap::Iterator tab_stops_option = bbcode_options.find("tab_stops");
-			if (tab_stops_option) {
-				Vector<String> splitters;
-				splitters.push_back(",");
-				splitters.push_back(";");
-				tab_stops = tab_stops_option->value.split_floats_mk(splitters);
-			}
-			OptionMap::Iterator align_option = bbcode_options.find("align");
-			if (align_option) {
-				if (align_option->value == "l" || align_option->value == "left") {
-					alignment = HORIZONTAL_ALIGNMENT_LEFT;
-				} else if (align_option->value == "c" || align_option->value == "center") {
-					alignment = HORIZONTAL_ALIGNMENT_CENTER;
-				} else if (align_option->value == "r" || align_option->value == "right") {
-					alignment = HORIZONTAL_ALIGNMENT_RIGHT;
-				} else if (align_option->value == "f" || align_option->value == "fill") {
-					alignment = HORIZONTAL_ALIGNMENT_FILL;
-				}
-			}
-			OptionMap::Iterator direction_option = bbcode_options.find("direction");
-			if (!direction_option) {
-				direction_option = bbcode_options.find("dir");
-			}
-			if (direction_option) {
-				if (direction_option->value == "a" || direction_option->value == "auto") {
-					dir = Control::TEXT_DIRECTION_AUTO;
-				} else if (direction_option->value == "l" || direction_option->value == "ltr") {
-					dir = Control::TEXT_DIRECTION_LTR;
-				} else if (direction_option->value == "r" || direction_option->value == "rtl") {
-					dir = Control::TEXT_DIRECTION_RTL;
-				}
-			}
-			OptionMap::Iterator language_option = bbcode_options.find("language");
-			if (!language_option) {
-				language_option = bbcode_options.find("lang");
-			}
-			if (language_option) {
-				lang = language_option->value;
-			}
-			OptionMap::Iterator bidi_override_option = bbcode_options.find("bidi_override");
-			if (!bidi_override_option) {
-				bidi_override_option = bbcode_options.find("st");
-			}
-			if (bidi_override_option) {
-				if (bidi_override_option->value == "d" || bidi_override_option->value == "default") {
-					st_parser_type = TextServer::STRUCTURED_TEXT_DEFAULT;
-				} else if (bidi_override_option->value == "u" || bidi_override_option->value == "uri") {
-					st_parser_type = TextServer::STRUCTURED_TEXT_URI;
-				} else if (bidi_override_option->value == "f" || bidi_override_option->value == "file") {
-					st_parser_type = TextServer::STRUCTURED_TEXT_FILE;
-				} else if (bidi_override_option->value == "e" || bidi_override_option->value == "email") {
-					st_parser_type = TextServer::STRUCTURED_TEXT_EMAIL;
-				} else if (bidi_override_option->value == "l" || bidi_override_option->value == "list") {
-					st_parser_type = TextServer::STRUCTURED_TEXT_LIST;
-				} else if (bidi_override_option->value == "n" || bidi_override_option->value == "gdscript") {
-					st_parser_type = TextServer::STRUCTURED_TEXT_GDSCRIPT;
-				} else if (bidi_override_option->value == "c" || bidi_override_option->value == "custom") {
-					st_parser_type = TextServer::STRUCTURED_TEXT_CUSTOM;
-				}
-			}
-
-			push_paragraph(alignment, dir, lang, st_parser_type, jst_flags, tab_stops);
-			pos = brk_end + 1;
-			tag_stack.push_front("p");
-		} else if (tag == "url") {
-			int end = bbcode.find_char('[', brk_end);
-			if (end == -1) {
-				end = bbcode.length();
-			}
-			String url = bbcode.substr(brk_end + 1, end - brk_end - 1).unquote();
-			push_meta(url, META_UNDERLINE_ALWAYS);
-
-			pos = brk_end + 1;
-			tag_stack.push_front(tag);
-
-		} else if (tag.begins_with("url ")) {
-			String url;
-			MetaUnderline underline = META_UNDERLINE_ALWAYS;
-			String tooltip;
-
-			OptionMap::Iterator underline_option = bbcode_options.find("underline");
-			if (underline_option) {
-				if (underline_option->value == "never") {
-					underline = META_UNDERLINE_NEVER;
-				} else if (underline_option->value == "always") {
-					underline = META_UNDERLINE_ALWAYS;
-				} else if (underline_option->value == "hover") {
-					underline = META_UNDERLINE_ON_HOVER;
-				}
-			}
-			OptionMap::Iterator tooltip_option = bbcode_options.find("tooltip");
-			if (tooltip_option) {
-				tooltip = tooltip_option->value;
-			}
-			OptionMap::Iterator href_option = bbcode_options.find("href");
-			if (href_option) {
-				url = href_option->value;
-			}
-
-			push_meta(url, underline, tooltip);
-
-			pos = brk_end + 1;
-			tag_stack.push_front("url");
-		} else if (tag.begins_with("url=")) {
-			String url = _get_tag_value(tag).unquote();
-			push_meta(url, META_UNDERLINE_ALWAYS);
-			pos = brk_end + 1;
-			tag_stack.push_front("url");
-		} else if (tag.begins_with("hint=")) {
-			String description = _get_tag_value(tag).unquote();
-			push_hint(description);
-			pos = brk_end + 1;
-			tag_stack.push_front("hint");
-		} else if (tag.begins_with("dropcap")) {
-			int fs = theme_cache.normal_font_size * 3;
-			Ref<Font> f = theme_cache.normal_font;
-			Color color = theme_cache.default_color;
-			Color outline_color = theme_cache.font_outline_color;
-			int outline_size = theme_cache.outline_size;
-			Rect2 dropcap_margins;
-
-			OptionMap::Iterator font_option = bbcode_options.find("font");
-			if (!font_option) {
-				font_option = bbcode_options.find("f");
-			}
-			if (font_option) {
-				const String &fnt = font_option->value;
-				Ref<Font> font = ResourceLoader::load(fnt, "Font");
-				if (font.is_valid()) {
-					f = font;
-				}
-			}
-			OptionMap::Iterator font_size_option = bbcode_options.find("font_size");
-			if (font_size_option) {
-				fs = font_size_option->value.to_int();
-			}
-			OptionMap::Iterator margins_option = bbcode_options.find("margins");
-			if (margins_option) {
-				Vector<String> subtag_b = _split_unquoted(margins_option->value, U',');
-				_normalize_subtags(subtag_b);
-
-				if (subtag_b.size() == 4) {
-					dropcap_margins.position.x = subtag_b[0].to_float();
-					dropcap_margins.position.y = subtag_b[1].to_float();
-					dropcap_margins.size.x = subtag_b[2].to_float();
-					dropcap_margins.size.y = subtag_b[3].to_float();
-				}
-			}
-			OptionMap::Iterator outline_size_option = bbcode_options.find("outline_size");
-			if (outline_size_option) {
-				outline_size = outline_size_option->value.to_int();
-			}
-			OptionMap::Iterator color_option = bbcode_options.find("color");
-			if (color_option) {
-				color = Color::from_string(color_option->value, color);
-			}
-			OptionMap::Iterator outline_color_option = bbcode_options.find("outline_color");
-			if (outline_color_option) {
-				outline_color = Color::from_string(outline_color_option->value, outline_color);
-			}
-
-			int end = bbcode.find_char('[', brk_end);
-			if (end == -1) {
-				end = bbcode.length();
-			}
-
-			String dc_txt = bbcode.substr(brk_end + 1, end - brk_end - 1);
-
-			push_dropcap(dc_txt, f, fs, dropcap_margins, color, outline_size, outline_color);
-
-			pos = end;
-			tag_stack.push_front(bbcode_name);
-		} else if (tag.begins_with("hr")) {
-			HorizontalAlignment alignment = HORIZONTAL_ALIGNMENT_CENTER;
-			OptionMap::Iterator align_option = bbcode_options.find("align");
-			if (align_option) {
-				if (align_option->value == "l" || align_option->value == "left") {
-					alignment = HORIZONTAL_ALIGNMENT_LEFT;
-				} else if (align_option->value == "c" || align_option->value == "center") {
-					alignment = HORIZONTAL_ALIGNMENT_CENTER;
-				} else if (align_option->value == "r" || align_option->value == "right") {
-					alignment = HORIZONTAL_ALIGNMENT_RIGHT;
-				}
-			}
-
-			Color color = theme_cache.default_color;
-			OptionMap::Iterator color_option = bbcode_options.find("color");
-			if (color_option) {
-				color = Color::from_string(color_option->value, color);
-			}
-			int width = 90;
-			bool width_in_percent = true;
-			OptionMap::Iterator width_option = bbcode_options.find("width");
-			if (width_option) {
-				width = width_option->value.to_int();
-				width_in_percent = (width_option->value.ends_with("%"));
-			}
-
-			int height = 2;
-			bool height_in_percent = false;
-			OptionMap::Iterator height_option = bbcode_options.find("height");
-			if (height_option) {
-				height = height_option->value.to_int();
-				height_in_percent = (height_option->value.ends_with("%"));
-			}
-
-			add_hr(width, height, color, alignment, width_in_percent, height_in_percent);
-
-			pos = brk_end + 1;
-		} else if (tag.begins_with("img")) {
-			int alignment = INLINE_ALIGNMENT_CENTER;
-			if (tag.begins_with("img=")) {
+			if (push_tags) {
 				Vector<String> subtag = _split_unquoted(_get_tag_value(tag), U',');
 				_normalize_subtags(subtag);
 
-				if (subtag.size() > 1) {
-					if (subtag[0] == "top" || subtag[0] == "t") {
+				int columns = (subtag.is_empty()) ? 1 : subtag[0].to_int();
+				if (columns < 1) {
+					columns = 1;
+				}
+
+				int alignment = INLINE_ALIGNMENT_TOP;
+				if (subtag.size() > 2) {
+					if (subtag[1] == "top" || subtag[1] == "t") {
 						alignment = INLINE_ALIGNMENT_TOP_TO;
-					} else if (subtag[0] == "center" || subtag[0] == "c") {
+					} else if (subtag[1] == "center" || subtag[1] == "c") {
 						alignment = INLINE_ALIGNMENT_CENTER_TO;
-					} else if (subtag[0] == "bottom" || subtag[0] == "b") {
+					} else if (subtag[1] == "baseline" || subtag[1] == "l") {
+						alignment = INLINE_ALIGNMENT_BASELINE_TO;
+					} else if (subtag[1] == "bottom" || subtag[1] == "b") {
 						alignment = INLINE_ALIGNMENT_BOTTOM_TO;
 					}
-					if (subtag[1] == "top" || subtag[1] == "t") {
+					if (subtag[2] == "top" || subtag[2] == "t") {
 						alignment |= INLINE_ALIGNMENT_TO_TOP;
-					} else if (subtag[1] == "center" || subtag[1] == "c") {
+					} else if (subtag[2] == "center" || subtag[2] == "c") {
 						alignment |= INLINE_ALIGNMENT_TO_CENTER;
-					} else if (subtag[1] == "baseline" || subtag[1] == "l") {
+					} else if (subtag[2] == "baseline" || subtag[2] == "l") {
 						alignment |= INLINE_ALIGNMENT_TO_BASELINE;
-					} else if (subtag[1] == "bottom" || subtag[1] == "b") {
+					} else if (subtag[2] == "bottom" || subtag[2] == "b") {
 						alignment |= INLINE_ALIGNMENT_TO_BOTTOM;
 					}
-				} else if (!subtag.is_empty()) {
-					if (subtag[0] == "top" || subtag[0] == "t") {
+				} else if (subtag.size() > 1) {
+					if (subtag[1] == "top" || subtag[1] == "t") {
 						alignment = INLINE_ALIGNMENT_TOP;
-					} else if (subtag[0] == "center" || subtag[0] == "c") {
+					} else if (subtag[1] == "center" || subtag[1] == "c") {
 						alignment = INLINE_ALIGNMENT_CENTER;
-					} else if (subtag[0] == "bottom" || subtag[0] == "b") {
+					} else if (subtag[1] == "bottom" || subtag[1] == "b") {
 						alignment = INLINE_ALIGNMENT_BOTTOM;
 					}
 				}
+				int row = -1;
+				if (subtag.size() > 3) {
+					row = subtag[3].to_int();
+				}
+
+				OptionMap::Iterator alt_text_option = bbcode_options.find("name");
+				String alt_text;
+				if (alt_text_option) {
+					alt_text = alt_text_option->value;
+				}
+
+				push_table(columns, (InlineAlignment)alignment, row, alt_text);
+				tag_stack.push_front("table");
 			}
-
-			int end = bbcode.find_char('[', brk_end);
-			if (end == -1) {
-				end = bbcode.length();
+			pos = brk_end + 1;
+		} else if (tag == "cell") {
+			if (push_tags) {
+				push_cell();
+				tag_stack.push_front(tag);
 			}
+			pos = brk_end + 1;
+		} else if (tag.begins_with("cell=")) {
+			if (push_tags) {
+				int ratio = _get_tag_value(tag).to_int();
+				if (ratio < 1) {
+					ratio = 1;
+				}
 
-			String image = bbcode.substr(brk_end + 1, end - brk_end - 1);
-			String alt_text;
+				set_table_column_expand(get_current_table_column(), true, ratio);
+				push_cell();
 
-			Ref<Texture2D> texture = ResourceLoader::load(image, "Texture2D");
-			if (texture.is_valid()) {
-				Rect2 region;
-				OptionMap::Iterator region_option = bbcode_options.find("region");
-				if (region_option) {
-					Vector<String> region_values = _split_unquoted(region_option->value, U',');
-					if (region_values.size() == 4) {
-						region.position.x = region_values[0].to_float();
-						region.position.y = region_values[1].to_float();
-						region.size.x = region_values[2].to_float();
-						region.size.y = region_values[3].to_float();
+				tag_stack.push_front("cell");
+			}
+			pos = brk_end + 1;
+		} else if (tag.begins_with("cell ")) {
+			if (push_tags) {
+				bool shrink = true;
+				OptionMap::Iterator shrink_option = bbcode_options.find("shrink");
+				if (shrink_option) {
+					shrink = (shrink_option->value == "true");
+				}
+
+				OptionMap::Iterator expand_option = bbcode_options.find("expand");
+				if (expand_option) {
+					int ratio = expand_option->value.to_int();
+					if (ratio < 1) {
+						ratio = 1;
+					}
+					set_table_column_expand(get_current_table_column(), true, ratio, shrink);
+				}
+
+				push_cell();
+				const Color fallback_color = Color(0, 0, 0, 0);
+
+				OptionMap::Iterator border_option = bbcode_options.find("border");
+				if (border_option) {
+					Color color = Color::from_string(border_option->value, fallback_color);
+					set_cell_border_color(color);
+				}
+				OptionMap::Iterator bg_option = bbcode_options.find("bg");
+				if (bg_option) {
+					Vector<String> subtag_b = _split_unquoted(bg_option->value, U',');
+					_normalize_subtags(subtag_b);
+
+					if (subtag_b.size() == 2) {
+						Color color1 = Color::from_string(subtag_b[0], fallback_color);
+						Color color2 = Color::from_string(subtag_b[1], fallback_color);
+						set_cell_row_background_color(color1, color2);
+					}
+					if (subtag_b.size() == 1) {
+						Color color1 = Color::from_string(bg_option->value, fallback_color);
+						set_cell_row_background_color(color1, color1);
+					}
+				}
+				OptionMap::Iterator padding_option = bbcode_options.find("padding");
+				if (padding_option) {
+					Vector<String> subtag_b = _split_unquoted(padding_option->value, U',');
+					_normalize_subtags(subtag_b);
+
+					if (subtag_b.size() == 4) {
+						set_cell_padding(Rect2(subtag_b[0].to_float(), subtag_b[1].to_float(), subtag_b[2].to_float(), subtag_b[3].to_float()));
 					}
 				}
 
-				Color color = Color(1.0, 1.0, 1.0);
+				tag_stack.push_front("cell");
+			}
+			pos = brk_end + 1;
+		} else if (tag == "u") {
+			if (push_tags) {
+				push_underline();
+				tag_stack.push_front(tag);
+			}
+			pos = brk_end + 1;
+		} else if (tag.begins_with("u ")) {
+			if (push_tags) {
+				Color color = Color(0, 0, 0, 0);
 				OptionMap::Iterator color_option = bbcode_options.find("color");
 				if (color_option) {
 					color = Color::from_string(color_option->value, color);
 				}
 
-				OptionMap::Iterator alt_text_option = bbcode_options.find("alt");
-				if (alt_text_option) {
-					alt_text = alt_text_option->value;
+				push_underline(color);
+				tag_stack.push_front("u");
+			}
+			pos = brk_end + 1;
+		} else if (tag == "s") {
+			if (push_tags) {
+				push_strikethrough();
+				tag_stack.push_front(tag);
+			}
+			pos = brk_end + 1;
+		} else if (tag.begins_with("s ")) {
+			if (push_tags) {
+				Color color = Color(0, 0, 0, 0);
+				OptionMap::Iterator color_option = bbcode_options.find("color");
+				if (color_option) {
+					color = Color::from_string(color_option->value, color);
 				}
 
-				int width = 0;
-				int height = 0;
-				bool pad = false;
+				push_strikethrough(color);
+				tag_stack.push_front("s");
+			}
+			pos = brk_end + 1;
+		} else if (tag.begins_with("char=")) {
+			if (push_tags) {
+				int32_t char_code = _get_tag_value(tag).hex_to_int();
+				add_text(String::chr(char_code));
+			}
+			pos = brk_end + 1;
+		} else if (tag == "lb") {
+			if (push_tags) {
+				add_text("[");
+			}
+			pos = brk_end + 1;
+		} else if (tag == "rb") {
+			if (push_tags) {
+				add_text("]");
+			}
+			pos = brk_end + 1;
+		} else if (tag == "lrm") {
+			if (push_tags) {
+				add_text(String::chr(0x200E));
+			}
+			pos = brk_end + 1;
+		} else if (tag == "rlm") {
+			if (push_tags) {
+				add_text(String::chr(0x200F));
+			}
+			pos = brk_end + 1;
+		} else if (tag == "lre") {
+			if (push_tags) {
+				add_text(String::chr(0x202A));
+			}
+			pos = brk_end + 1;
+		} else if (tag == "rle") {
+			if (push_tags) {
+				add_text(String::chr(0x202B));
+			}
+			pos = brk_end + 1;
+		} else if (tag == "lro") {
+			if (push_tags) {
+				add_text(String::chr(0x202D));
+			}
+			pos = brk_end + 1;
+		} else if (tag == "rlo") {
+			if (push_tags) {
+				add_text(String::chr(0x202E));
+			}
+			pos = brk_end + 1;
+		} else if (tag == "pdf") {
+			if (push_tags) {
+				add_text(String::chr(0x202C));
+			}
+			pos = brk_end + 1;
+		} else if (tag == "alm") {
+			if (push_tags) {
+				add_text(String::chr(0x061c));
+			}
+			pos = brk_end + 1;
+		} else if (tag == "lri") {
+			if (push_tags) {
+				add_text(String::chr(0x2066));
+			}
+			pos = brk_end + 1;
+		} else if (tag == "rli") {
+			if (push_tags) {
+				add_text(String::chr(0x2027));
+			}
+			pos = brk_end + 1;
+		} else if (tag == "fsi") {
+			if (push_tags) {
+				add_text(String::chr(0x2068));
+			}
+			pos = brk_end + 1;
+		} else if (tag == "pdi") {
+			if (push_tags) {
+				add_text(String::chr(0x2069));
+			}
+			pos = brk_end + 1;
+		} else if (tag == "zwj") {
+			if (push_tags) {
+				add_text(String::chr(0x200D));
+			}
+			pos = brk_end + 1;
+		} else if (tag == "zwnj") {
+			if (push_tags) {
+				add_text(String::chr(0x200C));
+			}
+			pos = brk_end + 1;
+		} else if (tag == "wj") {
+			if (push_tags) {
+				add_text(String::chr(0x2060));
+			}
+			pos = brk_end + 1;
+		} else if (tag == "shy") {
+			if (push_tags) {
+				add_text(String::chr(0x00AD));
+			}
+			pos = brk_end + 1;
+		} else if (tag == "center") {
+			if (push_tags) {
+				push_paragraph(HORIZONTAL_ALIGNMENT_CENTER, text_direction, language, st_parser, default_jst_flags, default_tab_stops);
+				tag_stack.push_front(tag);
+			}
+			pos = brk_end + 1;
+		} else if (tag == "fill") {
+			if (push_tags) {
+				push_paragraph(HORIZONTAL_ALIGNMENT_FILL, text_direction, language, st_parser, default_jst_flags, default_tab_stops);
+				tag_stack.push_front(tag);
+			}
+			pos = brk_end + 1;
+		} else if (tag == "left") {
+			if (push_tags) {
+				push_paragraph(HORIZONTAL_ALIGNMENT_LEFT, text_direction, language, st_parser, default_jst_flags, default_tab_stops);
+				tag_stack.push_front(tag);
+			}
+			pos = brk_end + 1;
+		} else if (tag == "right") {
+			if (push_tags) {
+				push_paragraph(HORIZONTAL_ALIGNMENT_RIGHT, text_direction, language, st_parser, default_jst_flags, default_tab_stops);
+				tag_stack.push_front(tag);
+			}
+			pos = brk_end + 1;
+		} else if (tag == "ul") {
+			if (push_tags) {
+				current_frame->indent_level++;
+				push_list(current_frame->indent_level, LIST_DOTS, false);
+				tag_stack.push_front(tag);
+			}
+			pos = brk_end + 1;
+		} else if (tag.begins_with("ul bullet=")) {
+			if (push_tags) {
+				String bullet = _get_tag_value(tag);
+				current_frame->indent_level++;
+				push_list(current_frame->indent_level, LIST_DOTS, false, bullet);
+				tag_stack.push_front("ul");
+			}
+			pos = brk_end + 1;
+		} else if ((tag == "ol") || (tag == "ol type=1")) {
+			if (push_tags) {
+				current_frame->indent_level++;
+				push_list(current_frame->indent_level, LIST_NUMBERS, false);
+				tag_stack.push_front("ol");
+			}
+			pos = brk_end + 1;
+		} else if (tag == "ol type=a") {
+			if (push_tags) {
+				current_frame->indent_level++;
+				push_list(current_frame->indent_level, LIST_LETTERS, false);
+				tag_stack.push_front("ol");
+			}
+			pos = brk_end + 1;
+		} else if (tag == "ol type=A") {
+			if (push_tags) {
+				current_frame->indent_level++;
+				push_list(current_frame->indent_level, LIST_LETTERS, true);
+				tag_stack.push_front("ol");
+			}
+			pos = brk_end + 1;
+		} else if (tag == "ol type=i") {
+			if (push_tags) {
+				current_frame->indent_level++;
+				push_list(current_frame->indent_level, LIST_ROMAN, false);
+				tag_stack.push_front("ol");
+			}
+			pos = brk_end + 1;
+		} else if (tag == "ol type=I") {
+			if (push_tags) {
+				current_frame->indent_level++;
+				push_list(current_frame->indent_level, LIST_ROMAN, true);
+				tag_stack.push_front("ol");
+			}
+			pos = brk_end + 1;
+		} else if (tag == "indent") {
+			if (push_tags) {
+				current_frame->indent_level++;
+				push_indent(current_frame->indent_level);
+				tag_stack.push_front(tag);
+			}
+			pos = brk_end + 1;
+		} else if (tag.begins_with("lang=")) {
+			if (push_tags) {
+				String lang = _get_tag_value(tag).unquote();
+				push_language(lang);
+				tag_stack.push_front("lang");
+			}
+			pos = brk_end + 1;
+		} else if (tag == "br") {
+			if (push_tags) {
+				add_text("\r");
+			}
+			pos = brk_end + 1;
+		} else if (tag == "p") {
+			if (push_tags) {
+				push_paragraph(HORIZONTAL_ALIGNMENT_LEFT);
+				tag_stack.push_front("p");
+			}
+			pos = brk_end + 1;
+		} else if (tag.begins_with("p ")) {
+			if (push_tags) {
+				HorizontalAlignment alignment = HORIZONTAL_ALIGNMENT_LEFT;
+				Control::TextDirection dir = Control::TEXT_DIRECTION_INHERITED;
+				String lang = language;
+				PackedFloat32Array tab_stops = default_tab_stops;
+				TextServer::StructuredTextParser st_parser_type = TextServer::STRUCTURED_TEXT_DEFAULT;
+				BitField<TextServer::JustificationFlag> jst_flags = default_jst_flags;
+
+				OptionMap::Iterator justification_flags_option = bbcode_options.find("justification_flags");
+				if (!justification_flags_option) {
+					justification_flags_option = bbcode_options.find("jst");
+				}
+				if (justification_flags_option) {
+					Vector<String> subtag_b = _split_unquoted(justification_flags_option->value, U',');
+					jst_flags = 0; // Clear flags.
+					for (const String &E : subtag_b) {
+						if (E == "kashida" || E == "k") {
+							jst_flags.set_flag(TextServer::JUSTIFICATION_KASHIDA);
+						} else if (E == "word" || E == "w") {
+							jst_flags.set_flag(TextServer::JUSTIFICATION_WORD_BOUND);
+						} else if (E == "trim" || E == "tr") {
+							jst_flags.set_flag(TextServer::JUSTIFICATION_TRIM_EDGE_SPACES);
+						} else if (E == "after_last_tab" || E == "lt") {
+							jst_flags.set_flag(TextServer::JUSTIFICATION_AFTER_LAST_TAB);
+						} else if (E == "skip_last" || E == "sl") {
+							jst_flags.set_flag(TextServer::JUSTIFICATION_SKIP_LAST_LINE);
+						} else if (E == "skip_last_with_chars" || E == "sv") {
+							jst_flags.set_flag(TextServer::JUSTIFICATION_SKIP_LAST_LINE_WITH_VISIBLE_CHARS);
+						} else if (E == "do_not_skip_single" || E == "ns") {
+							jst_flags.set_flag(TextServer::JUSTIFICATION_DO_NOT_SKIP_SINGLE_LINE);
+						}
+					}
+				}
+				OptionMap::Iterator tab_stops_option = bbcode_options.find("tab_stops");
+				if (tab_stops_option) {
+					Vector<String> splitters;
+					splitters.push_back(",");
+					splitters.push_back(";");
+					tab_stops = tab_stops_option->value.split_floats_mk(splitters);
+				}
+				OptionMap::Iterator align_option = bbcode_options.find("align");
+				if (align_option) {
+					if (align_option->value == "l" || align_option->value == "left") {
+						alignment = HORIZONTAL_ALIGNMENT_LEFT;
+					} else if (align_option->value == "c" || align_option->value == "center") {
+						alignment = HORIZONTAL_ALIGNMENT_CENTER;
+					} else if (align_option->value == "r" || align_option->value == "right") {
+						alignment = HORIZONTAL_ALIGNMENT_RIGHT;
+					} else if (align_option->value == "f" || align_option->value == "fill") {
+						alignment = HORIZONTAL_ALIGNMENT_FILL;
+					}
+				}
+				OptionMap::Iterator direction_option = bbcode_options.find("direction");
+				if (!direction_option) {
+					direction_option = bbcode_options.find("dir");
+				}
+				if (direction_option) {
+					if (direction_option->value == "a" || direction_option->value == "auto") {
+						dir = Control::TEXT_DIRECTION_AUTO;
+					} else if (direction_option->value == "l" || direction_option->value == "ltr") {
+						dir = Control::TEXT_DIRECTION_LTR;
+					} else if (direction_option->value == "r" || direction_option->value == "rtl") {
+						dir = Control::TEXT_DIRECTION_RTL;
+					}
+				}
+				OptionMap::Iterator language_option = bbcode_options.find("language");
+				if (!language_option) {
+					language_option = bbcode_options.find("lang");
+				}
+				if (language_option) {
+					lang = language_option->value;
+				}
+				OptionMap::Iterator bidi_override_option = bbcode_options.find("bidi_override");
+				if (!bidi_override_option) {
+					bidi_override_option = bbcode_options.find("st");
+				}
+				if (bidi_override_option) {
+					if (bidi_override_option->value == "d" || bidi_override_option->value == "default") {
+						st_parser_type = TextServer::STRUCTURED_TEXT_DEFAULT;
+					} else if (bidi_override_option->value == "u" || bidi_override_option->value == "uri") {
+						st_parser_type = TextServer::STRUCTURED_TEXT_URI;
+					} else if (bidi_override_option->value == "f" || bidi_override_option->value == "file") {
+						st_parser_type = TextServer::STRUCTURED_TEXT_FILE;
+					} else if (bidi_override_option->value == "e" || bidi_override_option->value == "email") {
+						st_parser_type = TextServer::STRUCTURED_TEXT_EMAIL;
+					} else if (bidi_override_option->value == "l" || bidi_override_option->value == "list") {
+						st_parser_type = TextServer::STRUCTURED_TEXT_LIST;
+					} else if (bidi_override_option->value == "n" || bidi_override_option->value == "gdscript") {
+						st_parser_type = TextServer::STRUCTURED_TEXT_GDSCRIPT;
+					} else if (bidi_override_option->value == "c" || bidi_override_option->value == "custom") {
+						st_parser_type = TextServer::STRUCTURED_TEXT_CUSTOM;
+					}
+				}
+
+				push_paragraph(alignment, dir, lang, st_parser_type, jst_flags, tab_stops);
+				tag_stack.push_front("p");
+			}
+			pos = brk_end + 1;
+		} else if (tag == "url") {
+			if (push_tags) {
+				int end = bbcode.find_char('[', brk_end);
+				if (end == -1) {
+					end = bbcode.length();
+				}
+				String url = bbcode.substr(brk_end + 1, end - brk_end - 1).unquote();
+				push_meta(url, META_UNDERLINE_ALWAYS);
+
+				tag_stack.push_front(tag);
+			}
+			pos = brk_end + 1;
+		} else if (tag.begins_with("url ")) {
+			if (push_tags) {
+				String url;
+				MetaUnderline underline = META_UNDERLINE_ALWAYS;
 				String tooltip;
-				bool width_in_percent = false;
-				bool height_in_percent = false;
-				if (!bbcode_value.is_empty()) {
-					int sep = bbcode_value.find_char('x');
-					if (sep == -1) {
-						width = bbcode_value.to_int();
-					} else {
-						width = bbcode_value.substr(0, sep).to_int();
-						height = bbcode_value.substr(sep + 1).to_int();
-					}
-				} else {
-					OptionMap::Iterator align_option = bbcode_options.find("align");
-					if (align_option) {
-						Vector<String> subtag = _split_unquoted(align_option->value, U',');
-						_normalize_subtags(subtag);
 
-						if (subtag.size() > 1) {
-							if (subtag[0] == "top" || subtag[0] == "t") {
-								alignment = INLINE_ALIGNMENT_TOP_TO;
-							} else if (subtag[0] == "center" || subtag[0] == "c") {
-								alignment = INLINE_ALIGNMENT_CENTER_TO;
-							} else if (subtag[0] == "bottom" || subtag[0] == "b") {
-								alignment = INLINE_ALIGNMENT_BOTTOM_TO;
-							}
-							if (subtag[1] == "top" || subtag[1] == "t") {
-								alignment |= INLINE_ALIGNMENT_TO_TOP;
-							} else if (subtag[1] == "center" || subtag[1] == "c") {
-								alignment |= INLINE_ALIGNMENT_TO_CENTER;
-							} else if (subtag[1] == "baseline" || subtag[1] == "l") {
-								alignment |= INLINE_ALIGNMENT_TO_BASELINE;
-							} else if (subtag[1] == "bottom" || subtag[1] == "b") {
-								alignment |= INLINE_ALIGNMENT_TO_BOTTOM;
-							}
-						} else if (!subtag.is_empty()) {
-							if (subtag[0] == "top" || subtag[0] == "t") {
-								alignment = INLINE_ALIGNMENT_TOP;
-							} else if (subtag[0] == "center" || subtag[0] == "c") {
-								alignment = INLINE_ALIGNMENT_CENTER;
-							} else if (subtag[0] == "bottom" || subtag[0] == "b") {
-								alignment = INLINE_ALIGNMENT_BOTTOM;
-							}
-						}
-					}
-					OptionMap::Iterator width_option = bbcode_options.find("width");
-					if (width_option) {
-						width = width_option->value.to_int();
-						if (width_option->value.ends_with("%")) {
-							width_in_percent = true;
-						}
-					}
-
-					OptionMap::Iterator height_option = bbcode_options.find("height");
-					if (height_option) {
-						height = height_option->value.to_int();
-						if (height_option->value.ends_with("%")) {
-							height_in_percent = true;
-						}
-					}
-
-					OptionMap::Iterator tooltip_option = bbcode_options.find("tooltip");
-					if (tooltip_option) {
-						tooltip = tooltip_option->value;
-					}
-
-					OptionMap::Iterator pad_option = bbcode_options.find("pad");
-					if (pad_option) {
-						pad = (pad_option->value == "true");
+				OptionMap::Iterator underline_option = bbcode_options.find("underline");
+				if (underline_option) {
+					if (underline_option->value == "never") {
+						underline = META_UNDERLINE_NEVER;
+					} else if (underline_option->value == "always") {
+						underline = META_UNDERLINE_ALWAYS;
+					} else if (underline_option->value == "hover") {
+						underline = META_UNDERLINE_ON_HOVER;
 					}
 				}
-
-				add_image(texture, width, height, color, (InlineAlignment)alignment, region, Variant(), pad, tooltip, width_in_percent, height_in_percent, alt_text);
-			}
-
-			pos = end;
-			tag_stack.push_front(bbcode_name);
-		} else if (tag.begins_with("color=")) {
-			String color_str = _get_tag_value(tag).unquote();
-			Color color = Color::from_string(color_str, theme_cache.default_color);
-			push_color(color);
-			pos = brk_end + 1;
-			tag_stack.push_front("color");
-
-		} else if (tag.begins_with("outline_color=")) {
-			String color_str = _get_tag_value(tag).unquote();
-			Color color = Color::from_string(color_str, theme_cache.default_color);
-			push_outline_color(color);
-			pos = brk_end + 1;
-			tag_stack.push_front("outline_color");
-
-		} else if (tag.begins_with("font_size=")) {
-			int fnt_size = _get_tag_value(tag).to_int();
-			push_font_size(fnt_size);
-			pos = brk_end + 1;
-			tag_stack.push_front("font_size");
-
-		} else if (tag.begins_with("opentype_features=") || tag.begins_with("otf=")) {
-			int value_pos = tag.find_char('=');
-			String fnt_ftr = tag.substr(value_pos + 1);
-			Vector<String> subtag = fnt_ftr.split(",");
-			_normalize_subtags(subtag);
-
-			Ref<Font> font = theme_cache.normal_font;
-			DefaultFont def_font = RTL_NORMAL_FONT;
-
-			ItemFont *font_it = _find_font(current);
-			if (font_it) {
-				if (font_it->font.is_valid()) {
-					font = font_it->font;
-					def_font = font_it->def_font;
+				OptionMap::Iterator tooltip_option = bbcode_options.find("tooltip");
+				if (tooltip_option) {
+					tooltip = tooltip_option->value;
 				}
-			}
-			Dictionary features;
-			if (!subtag.is_empty()) {
-				for (int i = 0; i < subtag.size(); i++) {
-					Vector<String> subtag_a = subtag[i].split("=");
-					_normalize_subtags(subtag_a);
+				OptionMap::Iterator href_option = bbcode_options.find("href");
+				if (href_option) {
+					url = href_option->value;
+				}
 
-					if (subtag_a.size() == 2) {
-						features[TS->name_to_tag(subtag_a[0])] = subtag_a[1].to_int();
-					} else if (subtag_a.size() == 1) {
-						features[TS->name_to_tag(subtag_a[0])] = 1;
+				push_meta(url, underline, tooltip);
+
+				tag_stack.push_front("url");
+			}
+			pos = brk_end + 1;
+		} else if (tag.begins_with("url=")) {
+			if (push_tags) {
+				String url = _get_tag_value(tag).unquote();
+				push_meta(url, META_UNDERLINE_ALWAYS);
+				tag_stack.push_front("url");
+			}
+			pos = brk_end + 1;
+		} else if (tag.begins_with("hint=")) {
+			if (push_tags) {
+				String description = _get_tag_value(tag).unquote();
+				push_hint(description);
+				tag_stack.push_front("hint");
+			}
+			pos = brk_end + 1;
+		} else if (tag.begins_with("dropcap")) {
+			if (push_tags) {
+				int fs = theme_cache.normal_font_size * 3;
+				Ref<Font> f = theme_cache.normal_font;
+				Color color = theme_cache.default_color;
+				Color outline_color = theme_cache.font_outline_color;
+				int outline_size = theme_cache.outline_size;
+				Rect2 dropcap_margins;
+
+				OptionMap::Iterator font_option = bbcode_options.find("font");
+				if (!font_option) {
+					font_option = bbcode_options.find("f");
+				}
+				if (font_option) {
+					const String &fnt = font_option->value;
+					Ref<Font> font = ResourceLoader::load(fnt, "Font");
+					if (font.is_valid()) {
+						f = font;
 					}
 				}
-			}
-			Ref<FontVariation> fc;
-			fc.instantiate();
+				OptionMap::Iterator font_size_option = bbcode_options.find("font_size");
+				if (font_size_option) {
+					fs = font_size_option->value.to_int();
+				}
+				OptionMap::Iterator margins_option = bbcode_options.find("margins");
+				if (margins_option) {
+					Vector<String> subtag_b = _split_unquoted(margins_option->value, U',');
+					_normalize_subtags(subtag_b);
 
-			fc->set_base_font(font);
-			fc->set_opentype_features(features);
+					if (subtag_b.size() == 4) {
+						dropcap_margins.position.x = subtag_b[0].to_float();
+						dropcap_margins.position.y = subtag_b[1].to_float();
+						dropcap_margins.size.x = subtag_b[2].to_float();
+						dropcap_margins.size.y = subtag_b[3].to_float();
+					}
+				}
+				OptionMap::Iterator outline_size_option = bbcode_options.find("outline_size");
+				if (outline_size_option) {
+					outline_size = outline_size_option->value.to_int();
+				}
+				OptionMap::Iterator color_option = bbcode_options.find("color");
+				if (color_option) {
+					color = Color::from_string(color_option->value, color);
+				}
+				OptionMap::Iterator outline_color_option = bbcode_options.find("outline_color");
+				if (outline_color_option) {
+					outline_color = Color::from_string(outline_color_option->value, outline_color);
+				}
 
-			if (def_font != RTL_CUSTOM_FONT) {
-				_push_def_font_var(def_font, fc);
+				int end = bbcode.find_char('[', brk_end);
+				if (end == -1) {
+					end = bbcode.length();
+				}
+
+				String dc_txt = bbcode.substr(brk_end + 1, end - brk_end - 1);
+
+				push_dropcap(dc_txt, f, fs, dropcap_margins, color, outline_size, outline_color);
+
+				pos = end;
+				tag_stack.push_front(bbcode_name);
 			} else {
-				push_font(fc);
+				pos = brk_end + 1;
+			}
+		} else if (tag.begins_with("hr")) {
+			if (push_tags) {
+				HorizontalAlignment alignment = HORIZONTAL_ALIGNMENT_CENTER;
+				OptionMap::Iterator align_option = bbcode_options.find("align");
+				if (align_option) {
+					if (align_option->value == "l" || align_option->value == "left") {
+						alignment = HORIZONTAL_ALIGNMENT_LEFT;
+					} else if (align_option->value == "c" || align_option->value == "center") {
+						alignment = HORIZONTAL_ALIGNMENT_CENTER;
+					} else if (align_option->value == "r" || align_option->value == "right") {
+						alignment = HORIZONTAL_ALIGNMENT_RIGHT;
+					}
+				}
+
+				Color color = theme_cache.default_color;
+				OptionMap::Iterator color_option = bbcode_options.find("color");
+				if (color_option) {
+					color = Color::from_string(color_option->value, color);
+				}
+				int width = 90;
+				bool width_in_percent = true;
+				OptionMap::Iterator width_option = bbcode_options.find("width");
+				if (width_option) {
+					width = width_option->value.to_int();
+					width_in_percent = (width_option->value.ends_with("%"));
+				}
+
+				int height = 2;
+				bool height_in_percent = false;
+				OptionMap::Iterator height_option = bbcode_options.find("height");
+				if (height_option) {
+					height = height_option->value.to_int();
+					height_in_percent = (height_option->value.ends_with("%"));
+				}
+
+				add_hr(width, height, color, alignment, width_in_percent, height_in_percent);
 			}
 
 			pos = brk_end + 1;
-			tag_stack.push_front(tag.substr(0, value_pos));
+		} else if (tag.begins_with("img")) {
+			if (push_tags) {
+				int alignment = INLINE_ALIGNMENT_CENTER;
+				if (tag.begins_with("img=")) {
+					Vector<String> subtag = _split_unquoted(_get_tag_value(tag), U',');
+					_normalize_subtags(subtag);
+
+					if (subtag.size() > 1) {
+						if (subtag[0] == "top" || subtag[0] == "t") {
+							alignment = INLINE_ALIGNMENT_TOP_TO;
+						} else if (subtag[0] == "center" || subtag[0] == "c") {
+							alignment = INLINE_ALIGNMENT_CENTER_TO;
+						} else if (subtag[0] == "bottom" || subtag[0] == "b") {
+							alignment = INLINE_ALIGNMENT_BOTTOM_TO;
+						}
+						if (subtag[1] == "top" || subtag[1] == "t") {
+							alignment |= INLINE_ALIGNMENT_TO_TOP;
+						} else if (subtag[1] == "center" || subtag[1] == "c") {
+							alignment |= INLINE_ALIGNMENT_TO_CENTER;
+						} else if (subtag[1] == "baseline" || subtag[1] == "l") {
+							alignment |= INLINE_ALIGNMENT_TO_BASELINE;
+						} else if (subtag[1] == "bottom" || subtag[1] == "b") {
+							alignment |= INLINE_ALIGNMENT_TO_BOTTOM;
+						}
+					} else if (!subtag.is_empty()) {
+						if (subtag[0] == "top" || subtag[0] == "t") {
+							alignment = INLINE_ALIGNMENT_TOP;
+						} else if (subtag[0] == "center" || subtag[0] == "c") {
+							alignment = INLINE_ALIGNMENT_CENTER;
+						} else if (subtag[0] == "bottom" || subtag[0] == "b") {
+							alignment = INLINE_ALIGNMENT_BOTTOM;
+						}
+					}
+				}
+
+				int end = bbcode.find_char('[', brk_end);
+				if (end == -1) {
+					end = bbcode.length();
+				}
+
+				String image = bbcode.substr(brk_end + 1, end - brk_end - 1);
+				String alt_text;
+
+				Ref<Texture2D> texture = ResourceLoader::load(image, "Texture2D");
+				if (texture.is_valid()) {
+					Rect2 region;
+					OptionMap::Iterator region_option = bbcode_options.find("region");
+					if (region_option) {
+						Vector<String> region_values = _split_unquoted(region_option->value, U',');
+						if (region_values.size() == 4) {
+							region.position.x = region_values[0].to_float();
+							region.position.y = region_values[1].to_float();
+							region.size.x = region_values[2].to_float();
+							region.size.y = region_values[3].to_float();
+						}
+					}
+
+					Color color = Color(1.0, 1.0, 1.0);
+					OptionMap::Iterator color_option = bbcode_options.find("color");
+					if (color_option) {
+						color = Color::from_string(color_option->value, color);
+					}
+
+					OptionMap::Iterator alt_text_option = bbcode_options.find("alt");
+					if (alt_text_option) {
+						alt_text = alt_text_option->value;
+					}
+
+					int width = 0;
+					int height = 0;
+					bool pad = false;
+					String tooltip;
+					bool width_in_percent = false;
+					bool height_in_percent = false;
+					if (!bbcode_value.is_empty()) {
+						int sep = bbcode_value.find_char('x');
+						if (sep == -1) {
+							width = bbcode_value.to_int();
+						} else {
+							width = bbcode_value.substr(0, sep).to_int();
+							height = bbcode_value.substr(sep + 1).to_int();
+						}
+					} else {
+						OptionMap::Iterator align_option = bbcode_options.find("align");
+						if (align_option) {
+							Vector<String> subtag = _split_unquoted(align_option->value, U',');
+							_normalize_subtags(subtag);
+
+							if (subtag.size() > 1) {
+								if (subtag[0] == "top" || subtag[0] == "t") {
+									alignment = INLINE_ALIGNMENT_TOP_TO;
+								} else if (subtag[0] == "center" || subtag[0] == "c") {
+									alignment = INLINE_ALIGNMENT_CENTER_TO;
+								} else if (subtag[0] == "bottom" || subtag[0] == "b") {
+									alignment = INLINE_ALIGNMENT_BOTTOM_TO;
+								}
+								if (subtag[1] == "top" || subtag[1] == "t") {
+									alignment |= INLINE_ALIGNMENT_TO_TOP;
+								} else if (subtag[1] == "center" || subtag[1] == "c") {
+									alignment |= INLINE_ALIGNMENT_TO_CENTER;
+								} else if (subtag[1] == "baseline" || subtag[1] == "l") {
+									alignment |= INLINE_ALIGNMENT_TO_BASELINE;
+								} else if (subtag[1] == "bottom" || subtag[1] == "b") {
+									alignment |= INLINE_ALIGNMENT_TO_BOTTOM;
+								}
+							} else if (!subtag.is_empty()) {
+								if (subtag[0] == "top" || subtag[0] == "t") {
+									alignment = INLINE_ALIGNMENT_TOP;
+								} else if (subtag[0] == "center" || subtag[0] == "c") {
+									alignment = INLINE_ALIGNMENT_CENTER;
+								} else if (subtag[0] == "bottom" || subtag[0] == "b") {
+									alignment = INLINE_ALIGNMENT_BOTTOM;
+								}
+							}
+						}
+						OptionMap::Iterator width_option = bbcode_options.find("width");
+						if (width_option) {
+							width = width_option->value.to_int();
+							if (width_option->value.ends_with("%")) {
+								width_in_percent = true;
+							}
+						}
+
+						OptionMap::Iterator height_option = bbcode_options.find("height");
+						if (height_option) {
+							height = height_option->value.to_int();
+							if (height_option->value.ends_with("%")) {
+								height_in_percent = true;
+							}
+						}
+
+						OptionMap::Iterator tooltip_option = bbcode_options.find("tooltip");
+						if (tooltip_option) {
+							tooltip = tooltip_option->value;
+						}
+
+						OptionMap::Iterator pad_option = bbcode_options.find("pad");
+						if (pad_option) {
+							pad = (pad_option->value == "true");
+						}
+					}
+
+					add_image(texture, width, height, color, (InlineAlignment)alignment, region, Variant(), pad, tooltip, width_in_percent, height_in_percent, alt_text);
+				}
+
+				pos = end;
+				tag_stack.push_front(bbcode_name);
+			} else {
+				pos = brk_end + 1;
+			}
+		} else if (tag.begins_with("color=")) {
+			if (push_tags) {
+				String color_str = _get_tag_value(tag).unquote();
+				Color color = Color::from_string(color_str, theme_cache.default_color);
+				push_color(color);
+				tag_stack.push_front("color");
+			}
+			pos = brk_end + 1;
+		} else if (tag.begins_with("outline_color=")) {
+			if (push_tags) {
+				String color_str = _get_tag_value(tag).unquote();
+				Color color = Color::from_string(color_str, theme_cache.default_color);
+				push_outline_color(color);
+				tag_stack.push_front("outline_color");
+			}
+			pos = brk_end + 1;
+		} else if (tag.begins_with("font_size=")) {
+			if (push_tags) {
+				int fnt_size = _get_tag_value(tag).to_int();
+				push_font_size(fnt_size);
+				tag_stack.push_front("font_size");
+			}
+			pos = brk_end + 1;
+		} else if (tag.begins_with("opentype_features=") || tag.begins_with("otf=")) {
+			if (push_tags) {
+				int value_pos = tag.find_char('=');
+				String fnt_ftr = tag.substr(value_pos + 1);
+				Vector<String> subtag = fnt_ftr.split(",");
+				_normalize_subtags(subtag);
+
+				Ref<Font> font = theme_cache.normal_font;
+				DefaultFont def_font = RTL_NORMAL_FONT;
+
+				ItemFont *font_it = _find_font(current);
+				if (font_it) {
+					if (font_it->font.is_valid()) {
+						font = font_it->font;
+						def_font = font_it->def_font;
+					}
+				}
+				Dictionary features;
+				if (!subtag.is_empty()) {
+					for (int i = 0; i < subtag.size(); i++) {
+						Vector<String> subtag_a = subtag[i].split("=");
+						_normalize_subtags(subtag_a);
+
+						if (subtag_a.size() == 2) {
+							features[TS->name_to_tag(subtag_a[0])] = subtag_a[1].to_int();
+						} else if (subtag_a.size() == 1) {
+							features[TS->name_to_tag(subtag_a[0])] = 1;
+						}
+					}
+				}
+
+				Ref<FontVariation> fc;
+				fc.instantiate();
+
+				fc->set_base_font(font);
+				fc->set_opentype_features(features);
+
+				if (def_font != RTL_CUSTOM_FONT) {
+					_push_def_font_var(def_font, fc);
+				} else {
+					push_font(fc);
+				}
+				tag_stack.push_front(tag.substr(0, value_pos));
+			}
+
+			pos = brk_end + 1;
 
 		} else if (tag.begins_with("font=")) {
-			String fnt = _get_tag_value(tag).unquote();
+			if (push_tags) {
+				String fnt = _get_tag_value(tag).unquote();
 
-			Ref<Font> fc = ResourceLoader::load(fnt, "Font");
-			if (fc.is_valid()) {
-				push_font(fc);
-			} else {
-				push_font(theme_cache.normal_font);
+				Ref<Font> fc = ResourceLoader::load(fnt, "Font");
+				if (fc.is_valid()) {
+					push_font(fc);
+				} else {
+					push_font(theme_cache.normal_font);
+				}
+
+				tag_stack.push_front("font");
 			}
-
 			pos = brk_end + 1;
-			tag_stack.push_front("font");
 
 		} else if (tag.begins_with("font ")) {
-			Ref<Font> font = theme_cache.normal_font;
-			DefaultFont def_font = RTL_NORMAL_FONT;
-			int fnt_size = -1;
+			if (push_tags) {
+				Ref<Font> font = theme_cache.normal_font;
+				DefaultFont def_font = RTL_NORMAL_FONT;
+				int fnt_size = -1;
 
-			ItemFont *font_it = _find_font(current);
-			if (font_it) {
-				if (font_it->font.is_valid()) {
-					font = font_it->font;
-					def_font = font_it->def_font;
-				}
-			}
-
-			Ref<FontVariation> fc;
-			fc.instantiate();
-
-			OptionMap::Iterator name_option = bbcode_options.find("name");
-			if (!name_option) {
-				name_option = bbcode_options.find("n");
-			}
-			if (name_option) {
-				const String &fnt = name_option->value;
-				Ref<Font> font_data = ResourceLoader::load(fnt, "Font");
-				if (font_data.is_valid()) {
-					font = font_data;
-					def_font = RTL_CUSTOM_FONT;
-				}
-			}
-			OptionMap::Iterator size_option = bbcode_options.find("size");
-			if (!size_option) {
-				size_option = bbcode_options.find("s");
-			}
-			if (size_option) {
-				fnt_size = size_option->value.to_int();
-			}
-			OptionMap::Iterator glyph_spacing_option = bbcode_options.find("glyph_spacing");
-			if (!glyph_spacing_option) {
-				glyph_spacing_option = bbcode_options.find("gl");
-			}
-			if (glyph_spacing_option) {
-				int spacing = glyph_spacing_option->value.to_int();
-				fc->set_spacing(TextServer::SPACING_GLYPH, spacing);
-			}
-			OptionMap::Iterator space_spacing_option = bbcode_options.find("space_spacing");
-			if (!space_spacing_option) {
-				space_spacing_option = bbcode_options.find("sp");
-			}
-			if (space_spacing_option) {
-				int spacing = space_spacing_option->value.to_int();
-				fc->set_spacing(TextServer::SPACING_SPACE, spacing);
-			}
-			OptionMap::Iterator top_spacing_option = bbcode_options.find("top_spacing");
-			if (!top_spacing_option) {
-				top_spacing_option = bbcode_options.find("top");
-			}
-			if (top_spacing_option) {
-				int spacing = top_spacing_option->value.to_int();
-				fc->set_spacing(TextServer::SPACING_TOP, spacing);
-			}
-			OptionMap::Iterator bottom_spacing_option = bbcode_options.find("bottom_spacing");
-			if (!bottom_spacing_option) {
-				bottom_spacing_option = bbcode_options.find("bt");
-			}
-			if (bottom_spacing_option) {
-				int spacing = bottom_spacing_option->value.to_int();
-				fc->set_spacing(TextServer::SPACING_BOTTOM, spacing);
-			}
-			OptionMap::Iterator embolden_option = bbcode_options.find("embolden");
-			if (!embolden_option) {
-				embolden_option = bbcode_options.find("emb");
-			}
-			if (embolden_option) {
-				float emb = embolden_option->value.to_float();
-				fc->set_variation_embolden(emb);
-			}
-			OptionMap::Iterator face_index_option = bbcode_options.find("face_index");
-			if (!face_index_option) {
-				face_index_option = bbcode_options.find("fi");
-			}
-			if (face_index_option) {
-				int fi = face_index_option->value.to_int();
-				fc->set_variation_face_index(fi);
-			}
-			OptionMap::Iterator slant_option = bbcode_options.find("slant");
-			if (!slant_option) {
-				slant_option = bbcode_options.find("sln");
-			}
-			if (slant_option) {
-				float slant = slant_option->value.to_float();
-				fc->set_variation_transform(Transform2D(1.0, slant, 0.0, 1.0, 0.0, 0.0));
-			}
-			OptionMap::Iterator opentype_variation_option = bbcode_options.find("opentype_variation");
-			if (!opentype_variation_option) {
-				opentype_variation_option = bbcode_options.find("otv");
-			}
-			if (opentype_variation_option) {
-				Dictionary variations;
-				if (!opentype_variation_option->value.is_empty()) {
-					Vector<String> variation_tags = opentype_variation_option->value.split(",");
-					for (int j = 0; j < variation_tags.size(); j++) {
-						Vector<String> subtag_b = variation_tags[j].split("=");
-						_normalize_subtags(subtag_b);
-
-						if (subtag_b.size() == 2) {
-							variations[TS->name_to_tag(subtag_b[0])] = subtag_b[1].to_float();
-						}
+				ItemFont *font_it = _find_font(current);
+				if (font_it) {
+					if (font_it->font.is_valid()) {
+						font = font_it->font;
+						def_font = font_it->def_font;
 					}
-					fc->set_variation_opentype(variations);
 				}
-			}
-			OptionMap::Iterator opentype_features_option = bbcode_options.find("opentype_features");
-			if (!opentype_features_option) {
-				opentype_features_option = bbcode_options.find("otf");
-			}
-			if (opentype_features_option) {
-				Dictionary features;
-				if (!opentype_features_option->value.is_empty()) {
-					Vector<String> feature_tags = opentype_features_option->value.split(",");
-					for (int j = 0; j < feature_tags.size(); j++) {
-						Vector<String> subtag_b = feature_tags[j].split("=");
-						_normalize_subtags(subtag_b);
 
-						if (subtag_b.size() == 2) {
-							features[TS->name_to_tag(subtag_b[0])] = subtag_b[1].to_float();
-						} else if (subtag_b.size() == 1) {
-							features[TS->name_to_tag(subtag_b[0])] = 1;
-						}
+				Ref<FontVariation> fc;
+				fc.instantiate();
+
+				OptionMap::Iterator name_option = bbcode_options.find("name");
+				if (!name_option) {
+					name_option = bbcode_options.find("n");
+				}
+				if (name_option) {
+					const String &fnt = name_option->value;
+					Ref<Font> font_data = ResourceLoader::load(fnt, "Font");
+					if (font_data.is_valid()) {
+						font = font_data;
+						def_font = RTL_CUSTOM_FONT;
 					}
-					fc->set_opentype_features(features);
 				}
-			}
+				OptionMap::Iterator size_option = bbcode_options.find("size");
+				if (!size_option) {
+					size_option = bbcode_options.find("s");
+				}
+				if (size_option) {
+					fnt_size = size_option->value.to_int();
+				}
+				OptionMap::Iterator glyph_spacing_option = bbcode_options.find("glyph_spacing");
+				if (!glyph_spacing_option) {
+					glyph_spacing_option = bbcode_options.find("gl");
+				}
+				if (glyph_spacing_option) {
+					int spacing = glyph_spacing_option->value.to_int();
+					fc->set_spacing(TextServer::SPACING_GLYPH, spacing);
+				}
+				OptionMap::Iterator space_spacing_option = bbcode_options.find("space_spacing");
+				if (!space_spacing_option) {
+					space_spacing_option = bbcode_options.find("sp");
+				}
+				if (space_spacing_option) {
+					int spacing = space_spacing_option->value.to_int();
+					fc->set_spacing(TextServer::SPACING_SPACE, spacing);
+				}
+				OptionMap::Iterator top_spacing_option = bbcode_options.find("top_spacing");
+				if (!top_spacing_option) {
+					top_spacing_option = bbcode_options.find("top");
+				}
+				if (top_spacing_option) {
+					int spacing = top_spacing_option->value.to_int();
+					fc->set_spacing(TextServer::SPACING_TOP, spacing);
+				}
+				OptionMap::Iterator bottom_spacing_option = bbcode_options.find("bottom_spacing");
+				if (!bottom_spacing_option) {
+					bottom_spacing_option = bbcode_options.find("bt");
+				}
+				if (bottom_spacing_option) {
+					int spacing = bottom_spacing_option->value.to_int();
+					fc->set_spacing(TextServer::SPACING_BOTTOM, spacing);
+				}
+				OptionMap::Iterator embolden_option = bbcode_options.find("embolden");
+				if (!embolden_option) {
+					embolden_option = bbcode_options.find("emb");
+				}
+				if (embolden_option) {
+					float emb = embolden_option->value.to_float();
+					fc->set_variation_embolden(emb);
+				}
+				OptionMap::Iterator face_index_option = bbcode_options.find("face_index");
+				if (!face_index_option) {
+					face_index_option = bbcode_options.find("fi");
+				}
+				if (face_index_option) {
+					int fi = face_index_option->value.to_int();
+					fc->set_variation_face_index(fi);
+				}
+				OptionMap::Iterator slant_option = bbcode_options.find("slant");
+				if (!slant_option) {
+					slant_option = bbcode_options.find("sln");
+				}
+				if (slant_option) {
+					float slant = slant_option->value.to_float();
+					fc->set_variation_transform(Transform2D(1.0, slant, 0.0, 1.0, 0.0, 0.0));
+				}
+				OptionMap::Iterator opentype_variation_option = bbcode_options.find("opentype_variation");
+				if (!opentype_variation_option) {
+					opentype_variation_option = bbcode_options.find("otv");
+				}
+				if (opentype_variation_option) {
+					Dictionary variations;
+					if (!opentype_variation_option->value.is_empty()) {
+						Vector<String> variation_tags = opentype_variation_option->value.split(",");
+						for (int j = 0; j < variation_tags.size(); j++) {
+							Vector<String> subtag_b = variation_tags[j].split("=");
+							_normalize_subtags(subtag_b);
 
-			fc->set_base_font(font);
+							if (subtag_b.size() == 2) {
+								variations[TS->name_to_tag(subtag_b[0])] = subtag_b[1].to_float();
+							}
+						}
+						fc->set_variation_opentype(variations);
+					}
+				}
+				OptionMap::Iterator opentype_features_option = bbcode_options.find("opentype_features");
+				if (!opentype_features_option) {
+					opentype_features_option = bbcode_options.find("otf");
+				}
+				if (opentype_features_option) {
+					Dictionary features;
+					if (!opentype_features_option->value.is_empty()) {
+						Vector<String> feature_tags = opentype_features_option->value.split(",");
+						for (int j = 0; j < feature_tags.size(); j++) {
+							Vector<String> subtag_b = feature_tags[j].split("=");
+							_normalize_subtags(subtag_b);
 
-			if (def_font != RTL_CUSTOM_FONT) {
-				_push_def_font_var(def_font, fc, fnt_size);
-			} else {
-				push_font(fc, fnt_size);
+							if (subtag_b.size() == 2) {
+								features[TS->name_to_tag(subtag_b[0])] = subtag_b[1].to_float();
+							} else if (subtag_b.size() == 1) {
+								features[TS->name_to_tag(subtag_b[0])] = 1;
+							}
+						}
+						fc->set_opentype_features(features);
+					}
+				}
+
+				fc->set_base_font(font);
+
+				if (def_font != RTL_CUSTOM_FONT) {
+					_push_def_font_var(def_font, fc, fnt_size);
+				} else {
+					push_font(fc, fnt_size);
+				}
+				tag_stack.push_front("font");
 			}
 
 			pos = brk_end + 1;
-			tag_stack.push_front("font");
 
 		} else if (tag.begins_with("outline_size=")) {
-			int fnt_size = _get_tag_value(tag).to_int();
-			push_outline_size(MAX(0, fnt_size));
+			if (push_tags) {
+				int fnt_size = _get_tag_value(tag).to_int();
+				push_outline_size(MAX(0, fnt_size));
+				tag_stack.push_front("outline_size");
+			}
 			pos = brk_end + 1;
-			tag_stack.push_front("outline_size");
 
 		} else if (bbcode_name == "fade") {
-			int start_index = 0;
-			OptionMap::Iterator start_option = bbcode_options.find("start");
-			if (start_option) {
-				start_index = start_option->value.to_int();
-			}
+			if (push_tags) {
+				int start_index = 0;
+				OptionMap::Iterator start_option = bbcode_options.find("start");
+				if (start_option) {
+					start_index = start_option->value.to_int();
+				}
 
-			int length = 10;
-			OptionMap::Iterator length_option = bbcode_options.find("length");
-			if (length_option) {
-				length = length_option->value.to_int();
-			}
+				int length = 10;
+				OptionMap::Iterator length_option = bbcode_options.find("length");
+				if (length_option) {
+					length = length_option->value.to_int();
+				}
 
-			push_fade(start_index, length);
+				push_fade(start_index, length);
+				tag_stack.push_front("fade");
+			}
 			pos = brk_end + 1;
-			tag_stack.push_front("fade");
 		} else if (bbcode_name == "shake") {
-			int strength = 5;
-			OptionMap::Iterator strength_option = bbcode_options.find("level");
-			if (strength_option) {
-				strength = strength_option->value.to_int();
-			}
+			if (push_tags) {
+				int strength = 5;
+				OptionMap::Iterator strength_option = bbcode_options.find("level");
+				if (strength_option) {
+					strength = strength_option->value.to_int();
+				}
 
-			float rate = 20.0f;
-			OptionMap::Iterator rate_option = bbcode_options.find("rate");
-			if (rate_option) {
-				rate = rate_option->value.to_float();
-			}
+				float rate = 20.0f;
+				OptionMap::Iterator rate_option = bbcode_options.find("rate");
+				if (rate_option) {
+					rate = rate_option->value.to_float();
+				}
 
-			bool connected = true;
-			OptionMap::Iterator connected_option = bbcode_options.find("connected");
-			if (connected_option) {
-				connected = connected_option->value.to_int();
-			}
+				bool connected = true;
+				OptionMap::Iterator connected_option = bbcode_options.find("connected");
+				if (connected_option) {
+					connected = connected_option->value.to_int();
+				}
 
-			push_shake(strength, rate, connected);
+				push_shake(strength, rate, connected);
+				tag_stack.push_front("shake");
+				set_process_internal(true);
+			}
 			pos = brk_end + 1;
-			tag_stack.push_front("shake");
-			set_process_internal(true);
 		} else if (bbcode_name == "wave") {
-			float amplitude = 20.0f;
-			OptionMap::Iterator amplitude_option = bbcode_options.find("amp");
-			if (amplitude_option) {
-				amplitude = amplitude_option->value.to_float();
-			}
+			if (push_tags) {
+				float amplitude = 20.0f;
+				OptionMap::Iterator amplitude_option = bbcode_options.find("amp");
+				if (amplitude_option) {
+					amplitude = amplitude_option->value.to_float();
+				}
 
-			float period = 5.0f;
-			OptionMap::Iterator period_option = bbcode_options.find("freq");
-			if (period_option) {
-				period = period_option->value.to_float();
-			}
+				float period = 5.0f;
+				OptionMap::Iterator period_option = bbcode_options.find("freq");
+				if (period_option) {
+					period = period_option->value.to_float();
+				}
 
-			bool connected = true;
-			OptionMap::Iterator connected_option = bbcode_options.find("connected");
-			if (connected_option) {
-				connected = connected_option->value.to_int();
-			}
+				bool connected = true;
+				OptionMap::Iterator connected_option = bbcode_options.find("connected");
+				if (connected_option) {
+					connected = connected_option->value.to_int();
+				}
 
-			push_wave(period, amplitude, connected);
+				push_wave(period, amplitude, connected);
+				tag_stack.push_front("wave");
+				set_process_internal(true);
+			}
 			pos = brk_end + 1;
-			tag_stack.push_front("wave");
-			set_process_internal(true);
 		} else if (bbcode_name == "tornado") {
-			float radius = 10.0f;
-			OptionMap::Iterator radius_option = bbcode_options.find("radius");
-			if (radius_option) {
-				radius = radius_option->value.to_float();
-			}
+			if (push_tags) {
+				float radius = 10.0f;
+				OptionMap::Iterator radius_option = bbcode_options.find("radius");
+				if (radius_option) {
+					radius = radius_option->value.to_float();
+				}
 
-			float frequency = 1.0f;
-			OptionMap::Iterator frequency_option = bbcode_options.find("freq");
-			if (frequency_option) {
-				frequency = frequency_option->value.to_float();
-			}
+				float frequency = 1.0f;
+				OptionMap::Iterator frequency_option = bbcode_options.find("freq");
+				if (frequency_option) {
+					frequency = frequency_option->value.to_float();
+				}
 
-			bool connected = true;
-			OptionMap::Iterator connected_option = bbcode_options.find("connected");
-			if (connected_option) {
-				connected = connected_option->value.to_int();
-			}
+				bool connected = true;
+				OptionMap::Iterator connected_option = bbcode_options.find("connected");
+				if (connected_option) {
+					connected = connected_option->value.to_int();
+				}
 
-			push_tornado(frequency, radius, connected);
+				push_tornado(frequency, radius, connected);
+				tag_stack.push_front("tornado");
+				set_process_internal(true);
+			}
 			pos = brk_end + 1;
-			tag_stack.push_front("tornado");
-			set_process_internal(true);
 		} else if (bbcode_name == "rainbow") {
-			float saturation = 0.8f;
-			OptionMap::Iterator saturation_option = bbcode_options.find("sat");
-			if (saturation_option) {
-				saturation = saturation_option->value.to_float();
-			}
+			if (push_tags) {
+				float saturation = 0.8f;
+				OptionMap::Iterator saturation_option = bbcode_options.find("sat");
+				if (saturation_option) {
+					saturation = saturation_option->value.to_float();
+				}
 
-			float value = 0.8f;
-			OptionMap::Iterator value_option = bbcode_options.find("val");
-			if (value_option) {
-				value = value_option->value.to_float();
-			}
+				float value = 0.8f;
+				OptionMap::Iterator value_option = bbcode_options.find("val");
+				if (value_option) {
+					value = value_option->value.to_float();
+				}
 
-			float frequency = 1.0f;
-			OptionMap::Iterator frequency_option = bbcode_options.find("freq");
-			if (frequency_option) {
-				frequency = frequency_option->value.to_float();
-			}
+				float frequency = 1.0f;
+				OptionMap::Iterator frequency_option = bbcode_options.find("freq");
+				if (frequency_option) {
+					frequency = frequency_option->value.to_float();
+				}
 
-			float speed = 1.0f;
-			OptionMap::Iterator speed_option = bbcode_options.find("speed");
-			if (speed_option) {
-				speed = speed_option->value.to_float();
-			}
+				float speed = 1.0f;
+				OptionMap::Iterator speed_option = bbcode_options.find("speed");
+				if (speed_option) {
+					speed = speed_option->value.to_float();
+				}
 
-			push_rainbow(saturation, value, frequency, speed);
+				push_rainbow(saturation, value, frequency, speed);
+				tag_stack.push_front("rainbow");
+				set_process_internal(true);
+			}
 			pos = brk_end + 1;
-			tag_stack.push_front("rainbow");
-			set_process_internal(true);
 		} else if (bbcode_name == "pulse") {
-			Color color = Color(1, 1, 1, 0.25);
-			OptionMap::Iterator color_option = bbcode_options.find("color");
-			if (color_option) {
-				color = Color::from_string(color_option->value, color);
-			}
+			if (push_tags) {
+				Color color = Color(1, 1, 1, 0.25);
+				OptionMap::Iterator color_option = bbcode_options.find("color");
+				if (color_option) {
+					color = Color::from_string(color_option->value, color);
+				}
 
-			float frequency = 1.0;
-			OptionMap::Iterator freq_option = bbcode_options.find("freq");
-			if (freq_option) {
-				frequency = freq_option->value.to_float();
-			}
+				float frequency = 1.0;
+				OptionMap::Iterator freq_option = bbcode_options.find("freq");
+				if (freq_option) {
+					frequency = freq_option->value.to_float();
+				}
 
-			float ease = -2.0;
-			OptionMap::Iterator ease_option = bbcode_options.find("ease");
-			if (ease_option) {
-				ease = ease_option->value.to_float();
-			}
+				float ease = -2.0;
+				OptionMap::Iterator ease_option = bbcode_options.find("ease");
+				if (ease_option) {
+					ease = ease_option->value.to_float();
+				}
 
-			push_pulse(color, frequency, ease);
+				push_pulse(color, frequency, ease);
+				tag_stack.push_front("pulse");
+				set_process_internal(true);
+			}
 			pos = brk_end + 1;
-			tag_stack.push_front("pulse");
-			set_process_internal(true);
 		} else if (tag.begins_with("bgcolor=")) {
-			String color_str = _get_tag_value(tag).unquote();
-			Color color = Color::from_string(color_str, theme_cache.default_color);
+			if (push_tags) {
+				String color_str = _get_tag_value(tag).unquote();
+				Color color = Color::from_string(color_str, theme_cache.default_color);
 
-			push_bgcolor(color);
+				push_bgcolor(color);
+				tag_stack.push_front("bgcolor");
+			}
 			pos = brk_end + 1;
-			tag_stack.push_front("bgcolor");
-
 		} else if (tag.begins_with("fgcolor=")) {
-			String color_str = _get_tag_value(tag).unquote();
-			Color color = Color::from_string(color_str, theme_cache.default_color);
+			if (push_tags) {
+				String color_str = _get_tag_value(tag).unquote();
+				Color color = Color::from_string(color_str, theme_cache.default_color);
 
-			push_fgcolor(color);
+				push_fgcolor(color);
+				tag_stack.push_front("fgcolor");
+			}
 			pos = brk_end + 1;
-			tag_stack.push_front("fgcolor");
-
 		} else {
+			if (p_drop_tags) {
+				add_text("[");
+				pos = brk_pos + 1;
+				continue;
+			}
+
 			Vector<String> &expr = split_tag_block;
 			if (expr.is_empty()) {
 				add_text("[");
@@ -7554,6 +7736,8 @@ bool RichTextLabel::_set(const StringName &p_name, const Variant &p_value) {
 #endif
 
 void RichTextLabel::_bind_methods() {
+	ClassDB::bind_static_method("RichTextLabel", D_METHOD("escape_bbcode", "text"), &RichTextLabel::escape_bbcode);
+
 	ClassDB::bind_method(D_METHOD("get_parsed_text"), &RichTextLabel::get_parsed_text);
 	ClassDB::bind_method(D_METHOD("add_text", "text"), &RichTextLabel::add_text);
 	ClassDB::bind_method(D_METHOD("set_text", "text"), &RichTextLabel::set_text);
@@ -7675,7 +7859,7 @@ void RichTextLabel::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("deselect"), &RichTextLabel::deselect);
 
 	ClassDB::bind_method(D_METHOD("parse_bbcode", "bbcode"), &RichTextLabel::parse_bbcode);
-	ClassDB::bind_method(D_METHOD("append_text", "bbcode"), &RichTextLabel::append_text);
+	ClassDB::bind_method(D_METHOD("append_text", "bbcode", "drop_tags"), &RichTextLabel::append_text, DEFVAL(false));
 
 	ClassDB::bind_method(D_METHOD("get_text"), &RichTextLabel::get_text);
 

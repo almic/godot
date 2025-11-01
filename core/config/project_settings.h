@@ -230,6 +230,8 @@ public:
 	void remove_global_group(const StringName &p_name);
 	bool has_global_group(const StringName &p_name) const;
 
+	Dictionary get_global_groups_copy() const;
+
 	const HashMap<StringName, HashSet<StringName>> &get_scene_groups_cache() const;
 	void add_scene_groups_cache(const StringName &p_path, const HashSet<StringName> &p_cache);
 	void remove_scene_groups_cache(const StringName &p_path);

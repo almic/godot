@@ -1530,6 +1530,14 @@ bool ProjectSettings::has_global_group(const StringName &p_name) const {
 	return global_groups.has(p_name);
 }
 
+Dictionary ProjectSettings::get_global_groups_copy() const {
+	Dictionary result;
+	for (const KeyValue<StringName, String> &E : global_groups) {
+		result.set(E.key, E.value);
+	}
+	return result;
+}
+
 void ProjectSettings::remove_scene_groups_cache(const StringName &p_path) {
 	scene_groups_cache.erase(p_path);
 }
@@ -1616,6 +1624,7 @@ void ProjectSettings::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_setting", "name", "default_value"), &ProjectSettings::get_setting, DEFVAL(Variant()));
 	ClassDB::bind_method(D_METHOD("get_setting_with_override", "name"), &ProjectSettings::get_setting_with_override);
 	ClassDB::bind_method(D_METHOD("get_global_class_list"), &ProjectSettings::get_global_class_list);
+	ClassDB::bind_method(D_METHOD("get_global_groups"), &ProjectSettings::get_global_groups_copy);
 	ClassDB::bind_method(D_METHOD("get_setting_with_override_and_custom_features", "name", "features"), &ProjectSettings::get_setting_with_override_and_custom_features);
 	ClassDB::bind_method(D_METHOD("set_order", "name", "position"), &ProjectSettings::set_order);
 	ClassDB::bind_method(D_METHOD("get_order", "name"), &ProjectSettings::get_order);

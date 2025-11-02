@@ -611,6 +611,8 @@ public:
 	_FORCE_INLINE_ bool containsn(const char *p_str) const { return findn(p_str) != -1; }
 	_FORCE_INLINE_ bool containsn(const String &p_str) const { return findn(p_str) != -1; }
 
+	static void fuzzy_search(const String &p_filter, const Vector<String> &p_targets, Array p_results, bool case_sensitive = false);
+
 	// path functions
 	bool is_absolute_path() const;
 	bool is_relative_path() const;

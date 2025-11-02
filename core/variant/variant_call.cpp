@@ -2185,6 +2185,7 @@ static void _register_variant_builtin_methods_string() {
 	bind_static_method(String, num_uint64, sarray("number", "base", "capitalize_hex"), varray(10, false));
 	bind_static_method(String, chr, sarray("code"), varray());
 	bind_static_method(String, humanize_size, sarray("size"), varray());
+	bind_static_method(String, fuzzy_search, sarray("filter", "targets", "results", "case_sensitive"), varray(false));
 
 	/* StringName */
 

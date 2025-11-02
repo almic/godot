@@ -41,6 +41,7 @@ STATIC_ASSERT_INCOMPLETE_TYPE(class, Object);
 #include "core/object/object.h"
 #include "core/os/memory.h"
 #include "core/os/os.h"
+#include "core/string/fuzzy_search.h"
 #include "core/string/print_string.h"
 #include "core/string/string_name.h"
 #include "core/string/translation_server.h"
@@ -2835,6 +2836,32 @@ Vector<uint8_t> String::sha256_buffer() const {
 		ret_ptrw[i] = hash[i];
 	}
 	return ret;
+}
+
+void String::fuzzy_search(const String &p_filter, const Vector<String> &p_targets, Array p_results, bool case_sensitive) {
+	if (p_targets.is_empty())
+	{
+		p_results.resize(0);
+		return;
+	}
+
+	FuzzySearch fuzzy;
+	Vector<FuzzySearchResult> results;
+
+	fuzzy.set_query(p_filter, case_sensitive);
+	fuzzy.search_all(p_targets, results);
+
+	p_results.resize(results.size());
+	int i = 0;
+	for (const FuzzySearchResult &res : results) {
+		Dictionary d;
+		d["target"] = res.target;
+		d["score"] = res.score;
+		d["original_index"] = res.original_index;
+		d["dir_index"] = res.dir_index;
+		p_results[i] = d;
+		i++;
+	}
 }
 
 String String::insert(int p_at_pos, const String &p_string) const {

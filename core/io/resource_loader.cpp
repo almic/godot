@@ -468,6 +468,8 @@ void ResourceLoader::_run_load_task(void *p_userdata) {
 		if (_loaded_callback) {
 			_loaded_callback(load_task.resource, load_task.local_path);
 		}
+
+		load_task.resource->on_load(load_task.local_path);
 	} else if (!ignoring) {
 		Ref<Resource> existing = ResourceCache::get_ref(load_task.local_path);
 		if (existing.is_valid()) {
@@ -481,6 +483,8 @@ void ResourceLoader::_run_load_task(void *p_userdata) {
 			if (_loaded_callback) {
 				_loaded_callback(load_task.resource, load_task.local_path);
 			}
+
+			load_task.resource->on_load(load_task.local_path);
 		}
 	}
 

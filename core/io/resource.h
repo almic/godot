@@ -121,6 +121,7 @@ protected:
 
 	GDVIRTUAL1C(_set_path_cache, String);
 	GDVIRTUAL0(_reset_state);
+	GDVIRTUAL1C(_on_load, String);
 
 	virtual Ref<Resource> _duplicate(const DuplicateParams &p_params) const;
 	virtual String _to_string() override;
@@ -162,6 +163,8 @@ public:
 	void set_local_to_scene(bool p_enable);
 	bool is_local_to_scene() const;
 	virtual void setup_local_to_scene();
+
+	virtual void on_load(const String &p_local_path) const;
 
 	Node *get_local_scene() const;
 

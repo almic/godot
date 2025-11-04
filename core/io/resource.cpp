@@ -222,6 +222,10 @@ void Resource::reset_state() {
 	GDVIRTUAL_CALL(_reset_state);
 }
 
+void Resource::on_load(const String &p_local_path) const {
+	GDVIRTUAL_CALL(_on_load, p_local_path);
+}
+
 Error Resource::copy_from(const Ref<Resource> &p_resource) {
 	ERR_FAIL_COND_V(p_resource.is_null(), ERR_INVALID_PARAMETER);
 	if (get_class() != p_resource->get_class()) {
@@ -734,6 +738,7 @@ void Resource::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_local_scene"), &Resource::get_local_scene);
 	ClassDB::bind_method(D_METHOD("setup_local_to_scene"), &Resource::setup_local_to_scene);
 	ClassDB::bind_method(D_METHOD("reset_state"), &Resource::reset_state);
+	ClassDB::bind_method(D_METHOD("on_load", "path"), &Resource::on_load);
 
 	ClassDB::bind_method(D_METHOD("set_id_for_path", "path", "id"), &Resource::set_id_for_path);
 	ClassDB::bind_method(D_METHOD("get_id_for_path", "path"), &Resource::get_id_for_path);
@@ -768,6 +773,7 @@ void Resource::_bind_methods() {
 	GDVIRTUAL_BIND(_get_rid);
 	GDVIRTUAL_BIND(_reset_state);
 	GDVIRTUAL_BIND(_set_path_cache, "path");
+	GDVIRTUAL_BIND(_on_load, "path");
 }
 
 Resource::Resource() :

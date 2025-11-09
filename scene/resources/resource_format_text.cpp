@@ -713,6 +713,8 @@ Error ResourceLoaderText::load() {
 		if (!missing_resource_properties.is_empty()) {
 			res->set_meta(META_MISSING_RESOURCES, missing_resource_properties);
 		}
+
+		res->on_load(path);
 	}
 
 	while (true) {

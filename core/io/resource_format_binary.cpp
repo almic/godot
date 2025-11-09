@@ -898,6 +898,8 @@ Error ResourceLoaderBinary::load() {
 			error = OK;
 			return OK;
 		}
+
+		res->on_load(path);
 	}
 
 	return ERR_FILE_EOF;

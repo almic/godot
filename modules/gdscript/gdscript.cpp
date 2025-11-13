@@ -1602,6 +1602,28 @@ bool GDScriptInstance::set(const StringName &p_name, const Variant &p_value) {
 }
 
 bool GDScriptInstance::get(const StringName &p_name, Variant &r_ret) const {
+	// Call the first _get() in the inheritance chain
+	const GDScript *sptr = script.ptr();
+	while(sptr) {
+		if (likely(sptr->valid)) {
+			HashMap<StringName, GDScriptFunction *>::ConstIterator E = sptr->member_functions.find(GDScriptLanguage::get_singleton()->strings._get);
+			if (E) {
+				Variant name = p_name;
+				const Variant *args[1] = { &name };
+
+				Callable::CallError err;
+				Variant ret = E->value->call(const_cast<GDScriptInstance *>(this), (const Variant **)args, 1, err);
+				if (err.error == Callable::CallError::CALL_OK && ret.get_type() != Variant::NIL) {
+					r_ret = ret;
+					return true;
+				}
+				break;
+			}
+		}
+
+		sptr = sptr->base.ptr();
+	}
+
 	{
 		HashMap<StringName, GDScript::MemberInfo>::ConstIterator E = script->member_indices.find(p_name);
 		if (E) {
@@ -1616,7 +1638,7 @@ bool GDScriptInstance::get(const StringName &p_name, Variant &r_ret) const {
 		}
 	}
 
-	const GDScript *sptr = script.ptr();
+	sptr = script.ptr();
 	while (sptr) {
 		{
 			HashMap<StringName, Variant>::ConstIterator E = sptr->constants.find(p_name);
@@ -1668,20 +1690,6 @@ bool GDScriptInstance::get(const StringName &p_name, Variant &r_ret) const {
 			}
 		}
 
-		if (likely(sptr->valid)) {
-			HashMap<StringName, GDScriptFunction *>::ConstIterator E = sptr->member_functions.find(GDScriptLanguage::get_singleton()->strings._get);
-			if (E) {
-				Variant name = p_name;
-				const Variant *args[1] = { &name };
-
-				Callable::CallError err;
-				Variant ret = E->value->call(const_cast<GDScriptInstance *>(this), (const Variant **)args, 1, err);
-				if (err.error == Callable::CallError::CALL_OK && ret.get_type() != Variant::NIL) {
-					r_ret = ret;
-					return true;
-				}
-			}
-		}
 		sptr = sptr->base.ptr();
 	}
 

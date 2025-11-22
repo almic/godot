@@ -70,7 +70,7 @@ void jolt_aligned_free(void *p_mem) {
 	Memory::free_aligned_static(p_mem);
 }
 
-#ifdef JPH_ENABLE_ASSERTS
+#ifdef JPH_ENABLE_TRACE
 
 void jolt_trace(const char *p_format, ...) {
 	va_list args;
@@ -78,9 +78,11 @@ void jolt_trace(const char *p_format, ...) {
 	char buffer[1024] = { '\0' };
 	vsnprintf(buffer, sizeof(buffer), p_format, args);
 	va_end(args);
-	print_verbose(buffer);
+	print_line(buffer);
 }
+#endif
 
+#ifdef JPH_ENABLE_ASSERTS
 bool jolt_assert(const char *p_expr, const char *p_msg, const char *p_file, uint32_t p_line) {
 	ERR_PRINT(vformat("Jolt Physics assertion '%s' failed with message '%s' at '%s:%d'", p_expr, p_msg != nullptr ? p_msg : "", p_file, p_line));
 	return false;
@@ -95,8 +97,10 @@ void jolt_initialize() {
 	JPH::AlignedAllocate = &jolt_aligned_alloc;
 	JPH::AlignedFree = &jolt_aligned_free;
 
-#ifdef JPH_ENABLE_ASSERTS
+#ifdef JPH_ENABLE_TRACE
 	JPH::Trace = &jolt_trace;
+#endif
+#ifdef JPH_ENABLE_ASSERTS
 	JPH::AssertFailed = &jolt_assert;
 #endif
 

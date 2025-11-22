@@ -273,8 +273,10 @@ EPhysicsUpdateError PhysicsSystem::Update(float inDeltaTime, int inCollisionStep
 			if (is_first_step)
 			{
 			#ifdef JPH_ENABLE_ASSERTS
+			#ifndef JPH_DISABLE_ASSERTS_MUTEX
 				// Don't allow write operations to the active bodies list
 				mBodyManager.SetActiveBodiesLocked(true);
+			#endif
 			#endif
 
 				// Store the number of active bodies at the start of the step
@@ -604,8 +606,10 @@ EPhysicsUpdateError PhysicsSystem::Update(float inDeltaTime, int inCollisionStep
 	mConstraintManager.UnlockAllConstraints();
 
 #ifdef JPH_ENABLE_ASSERTS
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	// Allow write operations to the active bodies list
 	mBodyManager.SetActiveBodiesLocked(false);
+#endif
 #endif
 
 	// Unlock all bodies
@@ -623,11 +627,13 @@ EPhysicsUpdateError PhysicsSystem::Update(float inDeltaTime, int inCollisionStep
 void PhysicsSystem::JobStepListeners(PhysicsUpdateContext::Step *ioStep)
 {
 #ifdef JPH_ENABLE_ASSERTS
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	// Read positions (broadphase updates concurrently so we can't write), read/write velocities
 	BodyAccess::Grant grant(BodyAccess::EAccess::ReadWrite, BodyAccess::EAccess::Read);
 
 	// Can activate bodies only (we cache the amount of active bodies at the beginning of the step in mNumActiveBodiesAtStepStart so we cannot deactivate here)
 	BodyManager::GrantActiveBodiesAccess grant_active(true, false);
+#endif
 #endif
 
 	PhysicsStepListenerContext context;
@@ -653,8 +659,10 @@ void PhysicsSystem::JobStepListeners(PhysicsUpdateContext::Step *ioStep)
 void PhysicsSystem::JobDetermineActiveConstraints(PhysicsUpdateContext::Step *ioStep) const
 {
 #ifdef JPH_ENABLE_ASSERTS
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	// No body access
 	BodyAccess::Grant grant(BodyAccess::EAccess::None, BodyAccess::EAccess::None);
+#endif
 #endif
 
 	uint32 num_constraints = mConstraintManager.GetNumConstraints();
@@ -686,8 +694,10 @@ void PhysicsSystem::JobDetermineActiveConstraints(PhysicsUpdateContext::Step *io
 void PhysicsSystem::JobApplyGravity(const PhysicsUpdateContext *ioContext, PhysicsUpdateContext::Step *ioStep)
 {
 #ifdef JPH_ENABLE_ASSERTS
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	// We update velocities and need the rotation to do so
 	BodyAccess::Grant grant(BodyAccess::EAccess::ReadWrite, BodyAccess::EAccess::Read);
+#endif
 #endif
 
 	// Get list of active bodies that we had at the start of the physics update.
@@ -733,8 +743,10 @@ void PhysicsSystem::JobApplyGravity(const PhysicsUpdateContext *ioContext, Physi
 void PhysicsSystem::JobSetupVelocityConstraints(float inDeltaTime, PhysicsUpdateContext::Step *ioStep) const
 {
 #ifdef JPH_ENABLE_ASSERTS
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	// We only read positions
 	BodyAccess::Grant grant(BodyAccess::EAccess::None, BodyAccess::EAccess::Read);
+#endif
 #endif
 
 	uint32 num_constraints = ioStep->mNumActiveConstraints;
@@ -753,11 +765,13 @@ void PhysicsSystem::JobSetupVelocityConstraints(float inDeltaTime, PhysicsUpdate
 void PhysicsSystem::JobBuildIslandsFromConstraints(PhysicsUpdateContext *ioContext, PhysicsUpdateContext::Step *ioStep)
 {
 #ifdef JPH_ENABLE_ASSERTS
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	// We read constraints and positions
 	BodyAccess::Grant grant(BodyAccess::EAccess::None, BodyAccess::EAccess::Read);
 
 	// Can only activate bodies
 	BodyManager::GrantActiveBodiesAccess grant_active(true, false);
+#endif
 #endif
 
 	// Prepare the island builder
@@ -833,11 +847,13 @@ JPH_TSAN_NO_SANITIZE
 void PhysicsSystem::JobFindCollisions(PhysicsUpdateContext::Step *ioStep, int inJobIndex)
 {
 #ifdef JPH_ENABLE_ASSERTS
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	// We read positions and read velocities (for elastic collisions)
 	BodyAccess::Grant grant(BodyAccess::EAccess::Read, BodyAccess::EAccess::Read);
 
 	// Can only activate bodies
 	BodyManager::GrantActiveBodiesAccess grant_active(true, false);
+#endif
 #endif
 
 	// Allocation context for allocating new contact points
@@ -1285,8 +1301,10 @@ void PhysicsSystem::ProcessBodyPair(ContactAllocator &ioContactAllocator, const 
 void PhysicsSystem::JobFinalizeIslands(PhysicsUpdateContext *ioContext)
 {
 #ifdef JPH_ENABLE_ASSERTS
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	// We only touch island data
 	BodyAccess::Grant grant(BodyAccess::EAccess::None, BodyAccess::EAccess::None);
+#endif
 #endif
 
 	// Finish collecting the islands, at this point the active body list doesn't change so it's safe to access
@@ -1300,8 +1318,10 @@ void PhysicsSystem::JobFinalizeIslands(PhysicsUpdateContext *ioContext)
 void PhysicsSystem::JobBodySetIslandIndex()
 {
 #ifdef JPH_ENABLE_ASSERTS
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	// We only touch island data
 	BodyAccess::Grant grant(BodyAccess::EAccess::None, BodyAccess::EAccess::None);
+#endif
 #endif
 
 	// Loop through the result and tag all bodies with an island index
@@ -1320,8 +1340,10 @@ JPH_CLANG_SUPPRESS_WARNING("-Wundefined-func-template") // ConstraintManager::sW
 void PhysicsSystem::JobSolveVelocityConstraints(PhysicsUpdateContext *ioContext, PhysicsUpdateContext::Step *ioStep)
 {
 #ifdef JPH_ENABLE_ASSERTS
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	// We update velocities and need to read positions to do so
 	BodyAccess::Grant grant(BodyAccess::EAccess::ReadWrite, BodyAccess::EAccess::Read);
+#endif
 #endif
 
 	float delta_time = ioContext->mStepDeltaTime;
@@ -1494,8 +1516,10 @@ void PhysicsSystem::JobPreIntegrateVelocity(PhysicsUpdateContext *ioContext, Phy
 void PhysicsSystem::JobIntegrateVelocity(const PhysicsUpdateContext *ioContext, PhysicsUpdateContext::Step *ioStep)
 {
 #ifdef JPH_ENABLE_ASSERTS
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	// We update positions and need velocity to do so, we also clamp velocities so need to write to them
 	BodyAccess::Grant grant(BodyAccess::EAccess::ReadWrite, BodyAccess::EAccess::ReadWrite);
+#endif
 #endif
 
 	float delta_time = ioContext->mStepDeltaTime;
@@ -1693,8 +1717,10 @@ inline static PhysicsUpdateContext::Step::CCDBody *sGetCCDBody(const Body &inBod
 void PhysicsSystem::JobFindCCDContacts(const PhysicsUpdateContext *ioContext, PhysicsUpdateContext::Step *ioStep)
 {
 #ifdef JPH_ENABLE_ASSERTS
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	// We only read positions, but the validate callback may read body positions and velocities
 	BodyAccess::Grant grant(BodyAccess::EAccess::Read, BodyAccess::EAccess::Read);
+#endif
 #endif
 
 	// Allocation context for allocating new contact points
@@ -1985,11 +2011,13 @@ void PhysicsSystem::JobFindCCDContacts(const PhysicsUpdateContext *ioContext, Ph
 void PhysicsSystem::JobResolveCCDContacts(PhysicsUpdateContext *ioContext, PhysicsUpdateContext::Step *ioStep)
 {
 #ifdef JPH_ENABLE_ASSERTS
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	// Read/write body access
 	BodyAccess::Grant grant(BodyAccess::EAccess::ReadWrite, BodyAccess::EAccess::ReadWrite);
 
 	// We activate bodies that we collide with
 	BodyManager::GrantActiveBodiesAccess grant_active(true, false);
+#endif
 #endif
 
 	uint32 num_active_bodies_after_find_collisions = ioStep->mActiveBodyReadIdx;
@@ -2259,8 +2287,10 @@ void PhysicsSystem::JobResolveCCDContacts(PhysicsUpdateContext *ioContext, Physi
 void PhysicsSystem::JobContactRemovedCallbacks(const PhysicsUpdateContext::Step *ioStep)
 {
 #ifdef JPH_ENABLE_ASSERTS
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	// We don't touch any bodies
 	BodyAccess::Grant grant(BodyAccess::EAccess::None, BodyAccess::EAccess::None);
+#endif
 #endif
 
 	// Reset the Body::EFlags::InvalidateContactCache flag for all bodies
@@ -2376,11 +2406,13 @@ void PhysicsSystem::CheckSleepAndUpdateBounds(uint32 inIslandIndex, const Physic
 void PhysicsSystem::JobSolvePositionConstraints(PhysicsUpdateContext *ioContext, PhysicsUpdateContext::Step *ioStep)
 {
 #ifdef JPH_ENABLE_ASSERTS
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	// We fix up position errors
 	BodyAccess::Grant grant(BodyAccess::EAccess::None, BodyAccess::EAccess::ReadWrite);
 
 	// Can only deactivate bodies
 	BodyManager::GrantActiveBodiesAccess grant_active(false, true);
+#endif
 #endif
 
 	float delta_time = ioContext->mStepDeltaTime;
@@ -2496,8 +2528,10 @@ void PhysicsSystem::JobSoftBodyPrepare(PhysicsUpdateContext *ioContext, PhysicsU
 
 	{
 	#ifdef JPH_ENABLE_ASSERTS
+	#ifndef JPH_DISABLE_ASSERTS_MUTEX
 		// Reading soft body positions
 		BodyAccess::Grant grant(BodyAccess::EAccess::None, BodyAccess::EAccess::Read);
+	#endif
 	#endif
 
 		// Get the active soft bodies
@@ -2574,8 +2608,10 @@ void PhysicsSystem::JobSoftBodyPrepare(PhysicsUpdateContext *ioContext, PhysicsU
 void PhysicsSystem::JobSoftBodyCollide(PhysicsUpdateContext *ioContext) const
 {
 #ifdef JPH_ENABLE_ASSERTS
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	// Reading rigid body positions and velocities
 	BodyAccess::Grant grant(BodyAccess::EAccess::Read, BodyAccess::EAccess::Read);
+#endif
 #endif
 
 	for (;;)
@@ -2594,8 +2630,10 @@ void PhysicsSystem::JobSoftBodyCollide(PhysicsUpdateContext *ioContext) const
 void PhysicsSystem::JobSoftBodySimulate(PhysicsUpdateContext *ioContext, uint inThreadIndex) const
 {
 #ifdef JPH_ENABLE_ASSERTS
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	// Updating velocities of soft bodies, allow the contact listener to read the soft body state
 	BodyAccess::Grant grant(BodyAccess::EAccess::ReadWrite, BodyAccess::EAccess::Read);
+#endif
 #endif
 
 	// Calculate at which body we start to distribute the workload across the threads
@@ -2634,11 +2672,13 @@ void PhysicsSystem::JobSoftBodySimulate(PhysicsUpdateContext *ioContext, uint in
 void PhysicsSystem::JobSoftBodyFinalize(PhysicsUpdateContext *ioContext)
 {
 #ifdef JPH_ENABLE_ASSERTS
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	// Updating rigid body velocities and soft body positions / velocities
 	BodyAccess::Grant grant(BodyAccess::EAccess::ReadWrite, BodyAccess::EAccess::ReadWrite);
 
 	// Can activate and deactivate bodies
 	BodyManager::GrantActiveBodiesAccess grant_active(true, true);
+#endif
 #endif
 
 	static constexpr int cBodiesBatch = 64;

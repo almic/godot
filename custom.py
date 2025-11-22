@@ -2,8 +2,15 @@
 
 extra_suffix = "zombie_game"
 production = "yes"
+# dev_build = "yes"
 precision = "double"
 use_llvm = "yes"
+
+#jolt_trace_vehicle = "yes"
+#jolt_enable_asserts = "yes"
+#jolt_enable_asserts_mutex = "no"
+#jolt_enable_trace = "yes"
+
 module_camera_enabled = "no"
 module_dds_enabled = "no"
 module_enet_enabled = "no"

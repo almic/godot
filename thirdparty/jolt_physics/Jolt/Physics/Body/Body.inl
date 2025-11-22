@@ -8,21 +8,27 @@ JPH_NAMESPACE_BEGIN
 
 RMat44 Body::GetWorldTransform() const
 {
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	JPH_ASSERT(BodyAccess::sCheckRights(BodyAccess::sPositionAccess(), BodyAccess::EAccess::Read));
+#endif
 
 	return RMat44::sRotationTranslation(mRotation, mPosition).PreTranslated(-mShape->GetCenterOfMass());
 }
 
 RMat44 Body::GetCenterOfMassTransform() const
 {
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	JPH_ASSERT(BodyAccess::sCheckRights(BodyAccess::sPositionAccess(), BodyAccess::EAccess::Read));
+#endif
 
 	return RMat44::sRotationTranslation(mRotation, mPosition);
 }
 
 RMat44 Body::GetInverseCenterOfMassTransform() const
 {
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	JPH_ASSERT(BodyAccess::sCheckRights(BodyAccess::sPositionAccess(), BodyAccess::EAccess::Read));
+#endif
 
 	return RMat44::sInverseRotationTranslation(mRotation, mPosition);
 }
@@ -81,7 +87,9 @@ inline bool Body::sFindCollidingPairsCanCollide(const Body &inBody1, const Body 
 void Body::AddRotationStep(Vec3Arg inAngularVelocityTimesDeltaTime)
 {
 	JPH_ASSERT(IsRigidBody());
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	JPH_ASSERT(BodyAccess::sCheckRights(BodyAccess::sPositionAccess(), BodyAccess::EAccess::ReadWrite));
+#endif
 
 	// This used to use the equation: d/dt R(t) = 1/2 * w(t) * R(t) so that R(t + dt) = R(t) + 1/2 * w(t) * R(t) * dt
 	// See: Appendix B of An Introduction to Physically Based Modeling: Rigid Body Simulation II-Nonpenetration Constraints
@@ -100,7 +108,9 @@ void Body::AddRotationStep(Vec3Arg inAngularVelocityTimesDeltaTime)
 void Body::SubRotationStep(Vec3Arg inAngularVelocityTimesDeltaTime)
 {
 	JPH_ASSERT(IsRigidBody());
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	JPH_ASSERT(BodyAccess::sCheckRights(BodyAccess::sPositionAccess(), BodyAccess::EAccess::ReadWrite));
+#endif
 
 	// See comment at Body::AddRotationStep
 	float len = inAngularVelocityTimesDeltaTime.Length();
@@ -155,7 +165,9 @@ void Body::AddAngularImpulse(Vec3Arg inAngularImpulse)
 
 void Body::GetSleepTestPoints(RVec3 *outPoints) const
 {
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	JPH_ASSERT(BodyAccess::sCheckRights(BodyAccess::sPositionAccess(), BodyAccess::EAccess::Read));
+#endif
 
 	// Center of mass is the first position
 	outPoints[0] = mPosition;

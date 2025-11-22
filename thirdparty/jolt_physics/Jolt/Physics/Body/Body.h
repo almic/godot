@@ -172,7 +172,13 @@ public:
 	inline Vec3				GetPointVelocityCOM(Vec3Arg inPointRelativeToCOM) const			{ return !IsStatic()? mMotionProperties->GetPointVelocityCOM(inPointRelativeToCOM) : Vec3::sZero(); }
 
 	/// Velocity of point inPoint (in world space, e.g. on the surface of the body) of the body (unit: m/s)
-	inline Vec3				GetPointVelocity(RVec3Arg inPoint) const						{ JPH_ASSERT(BodyAccess::sCheckRights(BodyAccess::sPositionAccess(), BodyAccess::EAccess::Read)); return GetPointVelocityCOM(Vec3(inPoint - mPosition)); }
+	inline Vec3				GetPointVelocity(RVec3Arg inPoint) const
+	{
+	#ifndef JPH_DISABLE_ASSERTS_MUTEX
+		JPH_ASSERT(BodyAccess::sCheckRights(BodyAccess::sPositionAccess(), BodyAccess::EAccess::Read));
+	#endif
+		return GetPointVelocityCOM(Vec3(inPoint - mPosition));
+	}
 
 	/// Add force (unit: N) at center of mass for the next time step, will be reset after the next call to PhysicsSystem::Update.
 	/// If you want the body to wake up when it is sleeping, use BodyInterface::AddForce instead.
@@ -265,16 +271,34 @@ public:
 	inline const Shape *	GetShape() const												{ return mShape; }
 
 	/// World space position of the body
-	inline RVec3			GetPosition() const												{ JPH_ASSERT(BodyAccess::sCheckRights(BodyAccess::sPositionAccess(), BodyAccess::EAccess::Read)); return mPosition - mRotation * mShape->GetCenterOfMass(); }
+	inline RVec3			GetPosition() const
+	{
+	#ifndef JPH_DISABLE_ASSERTS_MUTEX
+		JPH_ASSERT(BodyAccess::sCheckRights(BodyAccess::sPositionAccess(), BodyAccess::EAccess::Read));
+	#endif
+		return mPosition - mRotation * mShape->GetCenterOfMass();
+	}
 
 	/// World space rotation of the body
-	inline Quat				GetRotation() const												{ JPH_ASSERT(BodyAccess::sCheckRights(BodyAccess::sPositionAccess(), BodyAccess::EAccess::Read)); return mRotation; }
+	inline Quat				GetRotation() const
+	{
+	#ifndef JPH_DISABLE_ASSERTS_MUTEX
+		JPH_ASSERT(BodyAccess::sCheckRights(BodyAccess::sPositionAccess(), BodyAccess::EAccess::Read));
+	#endif
+		return mRotation;
+	}
 
 	/// Calculates the transform of this body
 	inline RMat44			GetWorldTransform() const;
 
 	/// Gets the world space position of this body's center of mass
-	inline RVec3			GetCenterOfMassPosition() const									{ JPH_ASSERT(BodyAccess::sCheckRights(BodyAccess::sPositionAccess(), BodyAccess::EAccess::Read)); return mPosition; }
+	inline RVec3			GetCenterOfMassPosition() const
+	{
+	#ifndef JPH_DISABLE_ASSERTS_MUTEX
+		JPH_ASSERT(BodyAccess::sCheckRights(BodyAccess::sPositionAccess(), BodyAccess::EAccess::Read));
+	#endif
+		return mPosition;
+	}
 
 	/// Calculates the transform for this body's center of mass
 	inline RMat44			GetCenterOfMassTransform() const;
@@ -320,7 +344,13 @@ public:
 	inline Vec3				GetWorldSpaceSurfaceNormal(const SubShapeID &inSubShapeID, RVec3Arg inPosition) const;
 
 	/// Get the transformed shape of this body, which can be used to do collision detection outside of a body lock
-	inline TransformedShape	GetTransformedShape() const										{ JPH_ASSERT(BodyAccess::sCheckRights(BodyAccess::sPositionAccess(), BodyAccess::EAccess::Read)); return TransformedShape(mPosition, mRotation, mShape, mID); }
+	inline TransformedShape	GetTransformedShape() const
+	{
+	#ifndef JPH_DISABLE_ASSERTS_MUTEX
+		JPH_ASSERT(BodyAccess::sCheckRights(BodyAccess::sPositionAccess(), BodyAccess::EAccess::Read));
+	#endif
+		return TransformedShape(mPosition, mRotation, mShape, mID);
+	}
 
 	/// Debug function to convert a body back to a body creation settings object to be able to save/recreate the body later
 	BodyCreationSettings	GetBodyCreationSettings() const;
@@ -339,8 +369,24 @@ public:
 	static inline bool		sFindCollidingPairsCanCollide(const Body &inBody1, const Body &inBody2);
 
 	/// Update position using an Euler step (used during position integrate & constraint solving)
-	inline void				AddPositionStep(Vec3Arg inLinearVelocityTimesDeltaTime)			{ JPH_ASSERT(IsRigidBody()); JPH_ASSERT(BodyAccess::sCheckRights(BodyAccess::sPositionAccess(), BodyAccess::EAccess::ReadWrite)); mPosition += mMotionProperties->LockTranslation(inLinearVelocityTimesDeltaTime); JPH_ASSERT(!mPosition.IsNaN()); }
-	inline void				SubPositionStep(Vec3Arg inLinearVelocityTimesDeltaTime)			{ JPH_ASSERT(IsRigidBody()); JPH_ASSERT(BodyAccess::sCheckRights(BodyAccess::sPositionAccess(), BodyAccess::EAccess::ReadWrite)); mPosition -= mMotionProperties->LockTranslation(inLinearVelocityTimesDeltaTime); JPH_ASSERT(!mPosition.IsNaN()); }
+	inline void				AddPositionStep(Vec3Arg inLinearVelocityTimesDeltaTime)
+	{
+		JPH_ASSERT(IsRigidBody());
+	#ifndef JPH_DISABLE_ASSERTS_MUTEX
+		JPH_ASSERT(BodyAccess::sCheckRights(BodyAccess::sPositionAccess(), BodyAccess::EAccess::ReadWrite));
+	#endif
+		mPosition += mMotionProperties->LockTranslation(inLinearVelocityTimesDeltaTime);
+		JPH_ASSERT(!mPosition.IsNaN());
+	}
+	inline void				SubPositionStep(Vec3Arg inLinearVelocityTimesDeltaTime)
+	{
+		JPH_ASSERT(IsRigidBody());
+	#ifndef JPH_DISABLE_ASSERTS_MUTEX
+		JPH_ASSERT(BodyAccess::sCheckRights(BodyAccess::sPositionAccess(), BodyAccess::EAccess::ReadWrite));
+	#endif
+		mPosition -= mMotionProperties->LockTranslation(inLinearVelocityTimesDeltaTime);
+		JPH_ASSERT(!mPosition.IsNaN());
+	}
 
 	/// Update rotation using an Euler step (used during position integrate & constraint solving)
 	inline void				AddRotationStep(Vec3Arg inAngularVelocityTimesDeltaTime);

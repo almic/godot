@@ -5,6 +5,7 @@
 #pragma once
 
 #ifdef JPH_ENABLE_ASSERTS
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 
 JPH_NAMESPACE_BEGIN
 
@@ -66,3 +67,4 @@ public:
 JPH_NAMESPACE_END
 
 #endif // JPH_ENABLE_ASSERTS
+#endif

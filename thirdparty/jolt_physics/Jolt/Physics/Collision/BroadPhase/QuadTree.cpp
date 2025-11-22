@@ -274,8 +274,10 @@ AABox QuadTree::GetBounds() const
 void QuadTree::UpdatePrepare(const BodyVector &inBodies, TrackingVector &ioTracking, UpdateState &outUpdateState, bool inFullRebuild)
 {
 #ifdef JPH_ENABLE_ASSERTS
+#ifndef JPH_DISABLE_ASSERTS_MUTEX
 	// We only read positions
 	BodyAccess::Grant grant(BodyAccess::EAccess::None, BodyAccess::EAccess::Read);
+#endif
 #endif
 
 	// Assert we have no nodes pending deletion, this means DiscardOldTree wasn't called yet

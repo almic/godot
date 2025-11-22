@@ -1,6 +1,6 @@
 #!/bin/sh
 
-scons production=true
+scons
 
 retVal=$?
 if [ $retVal -ne 0 ]; then

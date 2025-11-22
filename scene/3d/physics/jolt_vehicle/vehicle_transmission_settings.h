@@ -50,7 +50,7 @@ public:
 	{
 		reverse_gear_ratio_list = p_reverse_gear_list;
 
-		settings.mReverseGearRatios.resize(gear_ratio_list.size());
+		settings.mReverseGearRatios.resize(reverse_gear_ratio_list.size());
 		int i = 0;
 		for (float f : reverse_gear_ratio_list)
 		{

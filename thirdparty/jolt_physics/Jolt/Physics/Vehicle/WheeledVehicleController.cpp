@@ -607,14 +607,14 @@ void WheeledVehicleController::PostCollide(float inDeltaTime, PhysicsSystem &inP
 	}
 
 	// Calculate if any of the wheels are slipping, this is used to prevent gear switching
-	bool wheels_slipping = false;
+	mAnyDrivenWheelSlipping = false;
 	for (const DrivenWheel &w : driven_wheels)
-		wheels_slipping |= w.mClutchToWheelTorqueRatio > 0.0f && (!w.mWheel->HasContact() || w.mWheel->mLongitudinalSlip > 0.1f);
+		mAnyDrivenWheelSlipping |= w.mClutchToWheelTorqueRatio > 0.0f && (!w.mWheel->HasContact() || w.mWheel->mLongitudinalSlip > 0.1f);
 
 	// Only allow shifting up when we're not slipping and we're increasing our RPM.
 	// After a jump, we have a very high engine RPM but once we hit the ground the RPM should be decreasing and we don't want to shift up
 	// during that time.
-	bool can_shift_up = !wheels_slipping && mEngine.GetCurrentRPM() >= old_engine_rpm;
+	bool can_shift_up = !mAnyDrivenWheelSlipping && mEngine.GetCurrentRPM() >= old_engine_rpm;
 
 	// Update transmission
 	mTransmission.Update(inDeltaTime, mEngine.GetCurrentRPM(), mForwardInput, can_shift_up);

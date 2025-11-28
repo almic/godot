@@ -79,7 +79,7 @@ void WheelBaseSettings::_bind_methods() {
 
 void WheelBaseSettings::_validate_property(PropertyInfo &p_property) const
 {
-	if (!get_enable_suspension_force_point() && p_property.name == "suspension_enable_force_point") {
+	if (!get_enable_suspension_force_point() && p_property.name == "suspension_force_point") {
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	} else if (p_property.name == "spring_stiffness") {
 		if (get_spring_mode() == SPRING_MODE_FREQUENCY) {

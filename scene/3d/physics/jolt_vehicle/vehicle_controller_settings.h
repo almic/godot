@@ -163,7 +163,7 @@ protected:
 	Ref<VehicleTransmissionSettings> transmission;
 	LocalVector<Ref<VehicleDifferentialSettings>> differentials;
 
-	real_t differential_slip_ratio;
+	real_t differential_slip_ratio = settings.mDifferentialLimitedSlipRatio;
 
 	void _apply_engine()
 	{

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/config/engine.h"
 #include "core/object/ref_counted.h"
 #include "core/variant/dictionary.h"
 #include "core/variant/typed_array.h"
@@ -14,13 +15,18 @@ class VehicleController : public RefCounted {
 
 public:
 	virtual void set_controller(JPH::VehicleController *controller) {}
+	virtual float get_speed_kmh() const { return 0.0f; }
+	float get_speed_mph() const { return get_speed_kmh() / 1.609344; }
+
+protected:
+	static void _bind_methods();
 };
 
 class WheeledVehicleController : public VehicleController {
 	GDCLASS(WheeledVehicleController, VehicleController);
 
 protected:
-	JPH::WheeledVehicleController *jolt_controller;
+	JPH::WheeledVehicleController *jolt_controller = nullptr;
 
 	friend class JoltVehicle;
 
@@ -66,6 +72,44 @@ public:
 
 	bool is_any_driven_wheel_slipping() const {
 		return jolt_controller->IsAnyDrivenWheelSlipping();
+	}
+
+	virtual float get_speed_kmh() const override {
+		float kmh = 0.0f;
+
+		const JPH::Wheels wheels = jolt_controller->GetConstraint().GetWheels();
+		const int size = wheels.size();
+		int on_ground = 0;
+
+		for (int i = 0; i < size; i++) {
+			JPH::WheelWV *wheel = static_cast<JPH::WheelWV *>(wheels[i]);
+			if (!wheel->HasContact()) {
+				continue;
+			}
+
+			float slip = wheel->mLongitudinalSlip;
+			if (slip > 0.5f) {
+				continue;
+			}
+
+			++on_ground;
+			float ms = wheel->GetSettings()->mRadius * std::abs(wheel->GetAngularVelocity());
+			if (slip > 0.0) {
+				ms *= 1.0f - slip;
+			}
+			kmh += ms;
+		}
+
+		if (on_ground > 0) {
+			kmh *= 3.6f;
+			kmh /= on_ground;
+		}
+
+		if (kmh < 0.1f) {
+			kmh = 0.0f;
+		}
+
+		return kmh;
 	}
 
 protected:

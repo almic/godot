@@ -610,7 +610,7 @@ void WheeledVehicleController::PostCollide(float inDeltaTime, PhysicsSystem &inP
 	// Calculate if any of the wheels are slipping, this is used to prevent gear switching
 	mAnyDrivenWheelSlipping = false;
 	for (const DrivenWheel &w : driven_wheels)
-		mAnyDrivenWheelSlipping |= w.mClutchToWheelTorqueRatio > 0.0f && (!w.mWheel->HasContact() || w.mWheel->mLongitudinalSlip > 0.5f);
+		mAnyDrivenWheelSlipping |= w.mClutchToWheelTorqueRatio > 0.0f && (!w.mWheel->HasContact() || w.mWheel->mLongitudinalSlip > 0.1f);
 
 	// Only allow shifting up when we're not slipping and we're increasing our RPM.
 	// After a jump, we have a very high engine RPM but once we hit the ground the RPM should be decreasing and we don't want to shift up

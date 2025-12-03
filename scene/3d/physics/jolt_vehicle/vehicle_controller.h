@@ -62,6 +62,8 @@ public:
 			d["steer_angle"] = wheel->GetSteerAngle();
 			d["angular_velocity"] = wheel->GetAngularVelocity();
 			d["rotation_angle"] = wheel->GetRotationAngle();
+			d["lambda_lat"] = wheel->GetLateralLambda();
+			d["lambda_long"] = wheel->GetLongitudinalLambda();
 
 			results[i] = d;
 

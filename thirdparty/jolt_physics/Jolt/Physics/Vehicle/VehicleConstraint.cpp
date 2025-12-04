@@ -226,7 +226,8 @@ void VehicleConstraint::OnStep(const PhysicsStepListenerContext &inContext)
 			w->mContactBodyID = BodyID();
 			w->mContactBody = nullptr;
 			w->mContactSubShapeID = SubShapeID();
-			w->mSuspensionLength = settings->mSuspensionMaxLength;
+			// Do not reset suspension length, remember it between calls
+			// w->mSuspensionLength = settings->mSuspensionMaxLength;
 
 			// Test collision to find the floor
 			if (mVehicleCollisionTester->Collide(*inContext.mPhysicsSystem, *this, wheel_index, ws_origin, ws_direction, mBody->GetID(), w->mContactBody, w->mContactSubShapeID, w->mContactPosition, w->mContactNormal, w->mSuspensionLength))

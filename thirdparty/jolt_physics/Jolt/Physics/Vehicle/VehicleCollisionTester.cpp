@@ -316,16 +316,26 @@ bool VehicleCollisionTesterCastCylinder::Collide(PhysicsSystem &inPhysicsSystem,
 
 	MyCollector collector(inPhysicsSystem, shape_cast);
 	inPhysicsSystem.GetNarrowPhaseQueryNoLock().CastShape(shape_cast, settings, shape_cast.mCenterOfMassStart.GetTranslation(), collector, broadphase_layer_filter, object_layer_filter, body_filter);
-	if (collector.mBody == nullptr)
-		return false;
 
-	outBody = const_cast<Body *>(collector.mBody);
-	outSubShapeID = collector.mSubShapeID2;
-	outContactPosition = collector.mContactPosition;
-	outContactNormal = collector.mContactNormal;
-	outSuspensionLength = max_suspension_length * collector.mFraction;
+	float target_length = max_suspension_length;
 
-	return true;
+	if (collector.mBody != nullptr)
+	{
+		outBody = const_cast<Body *>(collector.mBody);
+		outSubShapeID = collector.mSubShapeID2;
+		outContactPosition = collector.mContactPosition;
+		outContactNormal = collector.mContactNormal;
+
+		// Limit based on contact normal alignment with wheel's suspension axis
+		RMat44 body_transform = inVehicleConstraint.GetVehicleBody()->GetWorldTransform();
+		Vec3 suspension_direction = body_transform.Multiply3x3(wheel_settings->mSuspensionDirection);
+		float c_dot_s = max(0.0f, suspension_direction.Dot(-outContactNormal));
+
+		target_length = (target_length * (1.0 - c_dot_s)) + (target_length * collector.mFraction * c_dot_s);
+	}
+
+	outSuspensionLength = target_length;
+	return collector.mBody != nullptr;
 }
 
 void VehicleCollisionTesterCastCylinder::PredictContactProperties(PhysicsSystem &inPhysicsSystem, const VehicleConstraint &inVehicleConstraint, uint inWheelIndex, RVec3Arg inOrigin, Vec3Arg inDirection, const BodyID &inVehicleBodyID, Body *&ioBody, SubShapeID &ioSubShapeID, RVec3 &ioContactPosition, Vec3 &ioContactNormal, float &ioSuspensionLength) const

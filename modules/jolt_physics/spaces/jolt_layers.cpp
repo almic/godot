@@ -160,7 +160,17 @@ bool JoltLayers::ShouldCollide(JPH::ObjectLayer p_encoded_layer1, JPH::ObjectLay
 	const bool first_scans_second = (collision_mask1 & collision_layer2) != 0;
 	const bool second_scans_first = (collision_mask2 & collision_layer1) != 0;
 
-	return first_scans_second || second_scans_first;
+	// If one of the objects is static, test only if the non-static scans the static
+	if (
+			broad_phase_layer1 == JoltBroadPhaseLayer::BODY_STATIC || broad_phase_layer1 == JoltBroadPhaseLayer::BODY_STATIC_BIG) {
+		return second_scans_first;
+	}
+	if (
+			broad_phase_layer2 == JoltBroadPhaseLayer::BODY_STATIC || broad_phase_layer2 == JoltBroadPhaseLayer::BODY_STATIC_BIG) {
+		return first_scans_second;
+	}
+
+	return first_scans_second && second_scans_first;
 }
 
 bool JoltLayers::ShouldCollide(JPH::ObjectLayer p_encoded_layer1, JPH::BroadPhaseLayer p_broad_phase_layer2) const {

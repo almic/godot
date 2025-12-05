@@ -1,0 +1,155 @@
+#!/bin/sh
+
+link_steam=
+steam_dir=
+use_llvm=
+skip_build=
+
+function read_steam_dir(){
+    if test $# -gt 0; then
+        if [ $1 != "-*" ]; then
+            steam_dir=$1
+            shift
+        fi
+    fi
+}
+
+while test $# -gt 0; do
+    case "$1" in
+        ?|-h|--help)
+            echo "Compile Godot editor, and optionally link to Steam library"
+            echo " "
+            echo "build [options]"
+            echo " "
+            echo "options:"
+            echo "-h, --help           show brief help"
+            echo "-s, --steam [DIR]    Link binary to Steam app, optionally provide the directory"
+            echo "-n, --nobuild        Skip build, use with -s to only link build output"
+            echo " "
+            echo "--llvm               Pass 'use_llvm=\"true\"' to scons"
+            exit 0
+            ;;
+        --llvm)
+            use_llvm=1
+            shift
+            ;;
+        -s|--steam)
+            link_steam=1
+            shift
+            read_steam_dir
+            ;;
+        -a)
+            use_llvm=1
+            link_steam=1
+            shift
+            ;;
+        -n|--nobuild)
+            skip_build=1
+            shift
+            ;;
+        *)
+            echo "Unknown argument '$1', exiting"
+            exit 1
+            ;;
+    esac
+done
+
+if [ ! -z "$skip_build" ]; then
+    echo "-n passed, skipping build"
+else
+
+    if [ ! -z "$use_llvm" ]; then
+        scons use_llvm="yes"
+    else
+        scons
+    fi
+
+    retVal=$?
+    if [ $retVal -ne 0 ]; then
+        echo "Error during build"
+        if [ ! -z "$link_steam" ]; then
+            echo "Skipping output build link"
+        fi
+        exit $retval
+    fi
+
+fi
+
+if [ -z "$link_steam" ]; then
+    echo "Done."
+    exit 0
+fi
+
+function detect_steam_path() {
+    steam_dir="$HOME/.local/share/Steam/steamapps/common/Godot Engine"
+    if [ -d "$steam_dir" ] && [ -w "$steam_dir" ]; then
+        return 0
+    fi
+    return 1
+}
+
+if [ -z "$steam_dir" ]; then
+    retVal=0
+    detect_steam_path || retVal=$?
+    # echo "Steam path: $steam_dir"
+    if [ $retVal -ne 0 ]; then
+        echo "Could not locate Steam path for Godot Engine, skipping build link"
+        exit 0
+    fi
+else
+    $steam_dir="$(pwd)"
+    # echo "Steam path: $steam_dir"
+fi
+
+
+# Form the out binary path
+out_bin="$(pwd)/bin/godot.linuxbsd.editor.double.x86_64"
+if [ ! -z "$use_llvm" ]; then
+    out_bin="$out_bin.llvm"
+fi
+out_bin="$out_bin.zombie_game"
+# echo "Out path: $out_bin"
+
+if [ ! -e "$out_bin" ]; then
+    echo "Could not locate output build, skipping build link"
+    exit 0
+fi
+
+# Check if link is already assigned
+current_bin="$steam_dir/godot.x11.opt.tools.64"
+# echo "Current binary: $current_bin"
+if [ -e "$current_bin" ]; then
+    if [ ! -r "$current_bin" ]; then
+        echo "Cannot read existing Steam path for Godot Engine, skipping build link"
+        exit 0
+    fi
+
+    current_target=$(readlink -f "$current_bin")
+    # echo "Current target: $current_target"
+    if [ "$out_bin" == "$current_target" ]; then
+        echo "Steam symlink is up-to-date"
+        exit 0
+    fi
+
+    # If .old file is missing, rename current executable to .old
+    old_bin="$current_bin.old"
+    if [ ! -e "$old_bin" ] && [ -e "$current_bin" ]; then
+        if [ ! -w "$current_bin" ]; then
+            echo "No permission to rename previous godot binary, skipping build link"
+        fi
+        echo "Moving current binary to alternate \".old\" path"
+        mv "$current_bin" "$old_bin"
+    fi
+
+    if [ -e "$current_bin" ]; then
+        if [ ! -w "$current_bin" ]; then
+            echo "Cannot overwrite existing Steam path for Godot Engine, skipping build link"
+            exit 0
+        fi
+        rm "$current_bin"
+    fi
+fi
+
+echo "Creating symlink"
+ln -s "$out_bin" "$current_bin"
+echo "Done."

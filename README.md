@@ -1,3 +1,11 @@
+# :warning: CUSTOM VERSION :warning:
+
+This is a highly modified version of the Godot engine. Use at your own peril.
+Made for [zombie game](https://github.com/almic/zombie-game).
+
+
+# ORIGINAL README
+
 # Godot Engine
 
 <p align="center">

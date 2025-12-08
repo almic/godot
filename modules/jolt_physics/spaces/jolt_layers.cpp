@@ -169,6 +169,15 @@ bool JoltLayers::ShouldCollide(JPH::ObjectLayer p_encoded_layer1, JPH::ObjectLay
 			broad_phase_layer2 == JoltBroadPhaseLayer::BODY_STATIC || broad_phase_layer2 == JoltBroadPhaseLayer::BODY_STATIC_BIG) {
 		return first_scans_second;
 	}
+	// If one of the objects is an area, test if the area scans the other
+	if (
+			broad_phase_layer1 == JoltBroadPhaseLayer::AREA_DETECTABLE || broad_phase_layer1 == JoltBroadPhaseLayer::AREA_UNDETECTABLE) {
+		return first_scans_second;
+	}
+	if (
+			broad_phase_layer2 == JoltBroadPhaseLayer::AREA_DETECTABLE || broad_phase_layer2 == JoltBroadPhaseLayer::AREA_UNDETECTABLE) {
+		return second_scans_first;
+	}
 
 	return first_scans_second && second_scans_first;
 }

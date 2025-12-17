@@ -599,6 +599,14 @@ void EditorNode3DGizmo::handles_intersect_ray(Camera3D *p_camera, const Vector2 
 		return;
 	}
 
+	if (GDVIRTUAL_CALL(_handles_intersect_ray, p_camera, p_point, r_id)) {
+		return;
+	}
+
+	if (gizmo_plugin && gizmo_plugin->handles_intersect_ray(this, p_camera, p_point, r_id)) {
+		return;
+	}
+
 	Transform3D camera_xform = p_camera->get_global_transform();
 	Transform3D t = spatial_node->get_global_transform();
 	if (billboard_handle) {
@@ -870,6 +878,7 @@ void EditorNode3DGizmo::_bind_methods() {
 
 	GDVIRTUAL_BIND(_redraw);
 	GDVIRTUAL_BIND(_get_handle_name, "id", "secondary");
+	GDVIRTUAL_BIND(_handles_intersect_ray, "camera", "screen_pos");
 	GDVIRTUAL_BIND(_is_handle_highlighted, "id", "secondary");
 
 	GDVIRTUAL_BIND(_get_handle_value, "id", "secondary");
@@ -1093,6 +1102,7 @@ void EditorNode3DGizmoPlugin::_bind_methods() {
 
 	GDVIRTUAL_BIND(_redraw, "gizmo");
 	GDVIRTUAL_BIND(_get_handle_name, "gizmo", "handle_id", "secondary");
+	GDVIRTUAL_BIND(_handles_intersect_ray, "gizmo", "camera", "screen_pos");
 	GDVIRTUAL_BIND(_is_handle_highlighted, "gizmo", "handle_id", "secondary");
 	GDVIRTUAL_BIND(_get_handle_value, "gizmo", "handle_id", "secondary");
 
@@ -1150,6 +1160,10 @@ bool EditorNode3DGizmoPlugin::is_handle_highlighted(const EditorNode3DGizmo *p_g
 	bool ret = false;
 	GDVIRTUAL_CALL(_is_handle_highlighted, Ref<EditorNode3DGizmo>(p_gizmo), p_id, p_secondary, ret);
 	return ret;
+}
+
+bool EditorNode3DGizmoPlugin::handles_intersect_ray(const EditorNode3DGizmo *p_gizmo,  Camera3D *p_camera, const Vector2 &p_point, int &r_id) const {
+	return GDVIRTUAL_CALL(_handles_intersect_ray, Ref<EditorNode3DGizmo>(p_gizmo), p_camera, p_point, r_id);
 }
 
 String EditorNode3DGizmoPlugin::get_handle_name(const EditorNode3DGizmo *p_gizmo, int p_id, bool p_secondary) const {

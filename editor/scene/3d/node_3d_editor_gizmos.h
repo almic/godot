@@ -85,6 +85,7 @@ protected:
 
 	GDVIRTUAL0(_redraw)
 	GDVIRTUAL2RC(String, _get_handle_name, int, bool)
+	GDVIRTUAL2RC(int, _handles_intersect_ray, const Camera3D *, Vector2)
 	GDVIRTUAL2RC(bool, _is_handle_highlighted, int, bool)
 	GDVIRTUAL2RC(Variant, _get_handle_value, int, bool)
 	GDVIRTUAL2(_begin_handle_action, int, bool)
@@ -173,6 +174,7 @@ protected:
 
 	GDVIRTUAL1(_redraw, Ref<EditorNode3DGizmo>)
 	GDVIRTUAL3RC(String, _get_handle_name, Ref<EditorNode3DGizmo>, int, bool)
+	GDVIRTUAL3RC(int, _handles_intersect_ray, Ref<EditorNode3DGizmo>, const Camera3D *, Vector2)
 	GDVIRTUAL3RC(bool, _is_handle_highlighted, Ref<EditorNode3DGizmo>, int, bool)
 	GDVIRTUAL3RC(Variant, _get_handle_value, Ref<EditorNode3DGizmo>, int, bool)
 
@@ -202,6 +204,7 @@ public:
 
 	virtual void redraw(EditorNode3DGizmo *p_gizmo);
 	virtual bool is_handle_highlighted(const EditorNode3DGizmo *p_gizmo, int p_id, bool p_secondary) const;
+	virtual bool handles_intersect_ray(const EditorNode3DGizmo *p_gizmo, Camera3D *p_camera, const Vector2 &p_point, int &r_id) const;
 	virtual String get_handle_name(const EditorNode3DGizmo *p_gizmo, int p_id, bool p_secondary) const;
 	virtual Variant get_handle_value(const EditorNode3DGizmo *p_gizmo, int p_id, bool p_secondary) const;
 	virtual void begin_handle_action(const EditorNode3DGizmo *p_gizmo, int p_id, bool p_secondary);

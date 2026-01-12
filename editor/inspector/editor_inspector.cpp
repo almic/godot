@@ -5899,6 +5899,9 @@ void EditorInspector::_bind_methods() {
 	ClassDB::bind_method("get_selected_path", &EditorInspector::get_selected_path);
 	ClassDB::bind_method("get_edited_object", &EditorInspector::get_edited_object);
 
+	ClassDB::bind_method(D_METHOD("set_use_doc_hints", "hints"), &EditorInspector::set_use_doc_hints);
+	ClassDB::bind_method(D_METHOD("set_use_folding", "folding", "update_tree"), &EditorInspector::set_use_folding, DEFVAL(true));
+
 	ClassDB::bind_static_method("EditorInspector", D_METHOD("instantiate_property_editor", "object", "type", "path", "hint", "hint_text", "usage", "wide"), &EditorInspector::instantiate_property_editor, DEFVAL(false));
 
 	ADD_SIGNAL(MethodInfo("property_selected", PropertyInfo(Variant::STRING, "property")));

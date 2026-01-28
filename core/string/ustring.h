@@ -38,6 +38,7 @@
 #include "core/templates/vector.h"
 #include "core/typedefs.h"
 
+class Array;
 class String;
 template <typename T>
 class CharStringT;

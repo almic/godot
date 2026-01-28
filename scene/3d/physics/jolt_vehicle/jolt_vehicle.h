@@ -248,7 +248,7 @@ protected:
 	}
 
 	static void init_jolt_vehicle(JoltVehicle &jolt_vehicle, PhysicsDirectBodyState3D *state) {
-		JoltPhysicsDirectSpaceState3D *jolt_direct_space = (JoltPhysicsDirectSpaceState3D *)state->get_space_state();
+		JoltPhysicsDirectSpaceState3D *jolt_direct_space = (JoltPhysicsDirectSpaceState3D *)state->get_space_state().ptr();
 		JoltSpace3D &jolt_space = jolt_direct_space->get_space();
 		JPH::PhysicsSystem &physics_system = jolt_space.get_physics_system();
 

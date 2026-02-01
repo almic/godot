@@ -1992,13 +1992,14 @@ static String rtos_fix(double p_value, bool p_compat) {
 			return "inf_neg";
 		}
 	}
+	// If the difference between the float'd and the double'd is less than 0.000001% of the value,
+	// then trim it to a float
+	if (std::abs((abs_val - (double)(float)abs_val)) / abs_val < 1.0e-8) {
+		return String::num_scientific((float)p_value);
+	}
 	// Avoid excessive 9s and 0s for non-extreme values
 	if (abs_val > 1.0e-4 && abs_val < std::pow(10, std::numeric_limits<double>::digits10)) {
 		return String::num_real(p_value, false);
-	}
-	// Hack to avoid garbage digits when the underlying float is 32-bit.
-	if ((double)(float)p_value == p_value) {
-		return String::num_scientific((float)p_value);
 	}
 	return String::num_scientific(p_value);
 }

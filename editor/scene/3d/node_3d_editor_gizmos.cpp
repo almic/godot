@@ -1149,7 +1149,7 @@ bool EditorNode3DGizmoPlugin::is_selectable_when_hidden() const {
 }
 
 bool EditorNode3DGizmoPlugin::can_commit_handle_on_click() const {
-	return false;
+	return true;
 }
 
 void EditorNode3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {

@@ -525,6 +525,10 @@ public:
 	EXBIND2(generic_6dof_joint_set_angular_target_rotation, RID, const Quaternion &)
 	EXBIND1RC(Quaternion, generic_6dof_joint_get_angular_target_rotation, RID)
 
+	EXBIND5(joint_make_distance, RID, RID, const Vector3 &, RID, const Vector3 &)
+
+	EXBIND3(distance_joint_set_param, RID, DistanceJointParam, real_t)
+
 	EXBIND1RC(JointType, joint_get_type, RID)
 
 	EXBIND2(joint_set_solver_priority, RID, int)

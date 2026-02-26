@@ -386,6 +386,10 @@ public:
 	FUNC2(generic_6dof_joint_set_angular_target_rotation, RID, const Quaternion &)
 	FUNC1RC(Quaternion, generic_6dof_joint_get_angular_target_rotation, RID)
 
+	FUNC5(joint_make_distance, RID, RID, const Vector3 &, RID, const Vector3 &)
+
+	FUNC3(distance_joint_set_param, RID, DistanceJointParam, real_t)
+
 	FUNC1RC(JointType, joint_get_type, RID);
 
 	FUNC2(joint_set_solver_priority, RID, int);

@@ -369,8 +369,6 @@ real_t Vector3::signed_angle_to(const Vector3 &p_to, const Vector3 &p_axis) cons
 
 real_t Vector3::signed_angle_2(const Vector3 &p_to, const Vector3 &p_axis) const {
 #ifdef MATH_CHECKS
-	ERR_FAIL_COND_V_MSG(!is_normalized(), 0.0, "The Vector3 must be normalized.");
-	ERR_FAIL_COND_V_MSG(!p_to.is_normalized(), 0.0, "The 'to' Vector3 " + p_to.operator String() + " must be normalized.");
 	ERR_FAIL_COND_V_MSG(!p_axis.is_normalized(), 0.0, "The 'axis' Vector3 " + p_axis.operator String() + " must be normalized.");
 #endif
 	Vector3 a = slide(p_axis);

@@ -58,6 +58,9 @@ void Generic6DOFJoint3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("has_target_rotation"), &Generic6DOFJoint3D::has_target_rotation);
 	ClassDB::bind_method(D_METHOD("clear_angular_target_rotation"), &Generic6DOFJoint3D::clear_angular_target_rotation);
 
+	ClassDB::bind_method(D_METHOD("set_linear_limit", "lower_limit", "upper_limit"), &Generic6DOFJoint3D::set_linear_limit);
+	ClassDB::bind_method(D_METHOD("get_linear_limit"), &Generic6DOFJoint3D::get_linear_limit);
+
 	ADD_GROUP("Linear Limit", "linear_limit_");
 
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "linear_limit_x/enabled"), "set_flag_x", "get_flag_x", FLAG_ENABLE_LINEAR_LIMIT);
@@ -400,6 +403,44 @@ void Generic6DOFJoint3D::clear_angular_target_rotation() {
 	server->generic_6dof_joint_set_param(get_rid(), Vector3::AXIS_X, PhysicsServer3D::G6DOF_JOINT_ANGULAR_SPRING_EQUILIBRIUM_POINT, params_x[PARAM_ANGULAR_SPRING_EQUILIBRIUM_POINT]);
 	server->generic_6dof_joint_set_param(get_rid(), Vector3::AXIS_Y, PhysicsServer3D::G6DOF_JOINT_ANGULAR_SPRING_EQUILIBRIUM_POINT, params_y[PARAM_ANGULAR_SPRING_EQUILIBRIUM_POINT]);
 	server->generic_6dof_joint_set_param(get_rid(), Vector3::AXIS_Z, PhysicsServer3D::G6DOF_JOINT_ANGULAR_SPRING_EQUILIBRIUM_POINT, params_z[PARAM_ANGULAR_SPRING_EQUILIBRIUM_POINT]);
+}
+
+void Generic6DOFJoint3D::set_linear_limit(const Vector3 &p_lower, const Vector3 &p_upper) {
+	params_x[PARAM_LINEAR_LOWER_LIMIT] = p_lower.x;
+	params_y[PARAM_LINEAR_LOWER_LIMIT] = p_lower.y;
+	params_z[PARAM_LINEAR_LOWER_LIMIT] = p_lower.z;
+
+	params_x[PARAM_LINEAR_UPPER_LIMIT] = p_upper.x;
+	params_y[PARAM_LINEAR_UPPER_LIMIT] = p_upper.y;
+	params_z[PARAM_LINEAR_UPPER_LIMIT] = p_upper.z;
+
+	if (is_configured()) {
+		PhysicsServer3D::get_singleton()->generic_6dof_joint_set_param(get_rid(), Vector3::AXIS_X, PhysicsServer3D::G6DOFJointAxisParam(PARAM_LINEAR_LOWER_LIMIT), p_lower.x);
+		PhysicsServer3D::get_singleton()->generic_6dof_joint_set_param(get_rid(), Vector3::AXIS_Y, PhysicsServer3D::G6DOFJointAxisParam(PARAM_LINEAR_LOWER_LIMIT), p_lower.y);
+		PhysicsServer3D::get_singleton()->generic_6dof_joint_set_param(get_rid(), Vector3::AXIS_Z, PhysicsServer3D::G6DOFJointAxisParam(PARAM_LINEAR_LOWER_LIMIT), p_lower.z);
+
+		PhysicsServer3D::get_singleton()->generic_6dof_joint_set_param(get_rid(), Vector3::AXIS_X, PhysicsServer3D::G6DOFJointAxisParam(PARAM_LINEAR_UPPER_LIMIT), p_upper.x);
+		PhysicsServer3D::get_singleton()->generic_6dof_joint_set_param(get_rid(), Vector3::AXIS_Y, PhysicsServer3D::G6DOFJointAxisParam(PARAM_LINEAR_UPPER_LIMIT), p_upper.y);
+		PhysicsServer3D::get_singleton()->generic_6dof_joint_set_param(get_rid(), Vector3::AXIS_Z, PhysicsServer3D::G6DOFJointAxisParam(PARAM_LINEAR_UPPER_LIMIT), p_upper.z);
+	}
+
+	update_gizmos();
+}
+
+PackedVector3Array Generic6DOFJoint3D::get_linear_limit() const {
+	PackedVector3Array result;
+	result.reserve_exact(2);
+	result.push_back(
+			Vector3(
+					params_x[PARAM_LINEAR_LOWER_LIMIT],
+					params_y[PARAM_LINEAR_LOWER_LIMIT],
+					params_z[PARAM_LINEAR_LOWER_LIMIT]));
+	result.push_back(
+			Vector3(
+					params_x[PARAM_LINEAR_UPPER_LIMIT],
+					params_y[PARAM_LINEAR_UPPER_LIMIT],
+					params_z[PARAM_LINEAR_UPPER_LIMIT]));
+	return result;
 }
 
 void Generic6DOFJoint3D::_configure_joint(RID p_joint, PhysicsBody3D *body_a, PhysicsBody3D *body_b) {

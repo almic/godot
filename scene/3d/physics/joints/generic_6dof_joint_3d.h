@@ -120,6 +120,9 @@ public:
 	bool has_target_rotation() const;
 	void clear_angular_target_rotation();
 
+	void set_linear_limit(const Vector3 &p_lower, const Vector3 &p_upper);
+	PackedVector3Array get_linear_limit() const;
+
 	Generic6DOFJoint3D();
 };
 

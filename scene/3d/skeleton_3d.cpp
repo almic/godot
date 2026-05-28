@@ -427,11 +427,16 @@ void Skeleton3D::_notification(int p_what) {
 	}
 }
 
-void Skeleton3D::advance(double p_delta) {
+void Skeleton3D::advance(double p_delta, bool p_immediate) {
 	_find_modifiers();
 	if (!modifiers.is_empty()) {
 		update_delta += p_delta; // Accumulate delta for manual advance as it needs to process in deferred update.
-		_update_deferred(UPDATE_FLAG_MODIFIER);
+		if (p_immediate) {
+			update_flags |= UPDATE_FLAG_MODIFIER;
+			_notification(NOTIFICATION_UPDATE_SKELETON);
+		} else {
+			_update_deferred(UPDATE_FLAG_MODIFIER);
+		}
 	}
 }
 
@@ -1299,7 +1304,8 @@ void Skeleton3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_modifier_callback_mode_process", "mode"), &Skeleton3D::set_modifier_callback_mode_process);
 	ClassDB::bind_method(D_METHOD("get_modifier_callback_mode_process"), &Skeleton3D::get_modifier_callback_mode_process);
 
-	ClassDB::bind_method(D_METHOD("advance", "delta"), &Skeleton3D::advance);
+	ClassDB::bind_method(D_METHOD("advance", "delta", "immediate"), &Skeleton3D::advance, DEFVAL(false));
+
 
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_scale", PROPERTY_HINT_RANGE, "0.001,10,0.001,or_greater"), "set_motion_scale", "get_motion_scale");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "show_rest_only"), "set_show_rest_only", "is_show_rest_only");

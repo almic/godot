@@ -335,6 +335,10 @@ void Joint3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 
 	p_gizmo->clear();
 
+	if (!joint->is_visible_in_tree()) {
+		return;
+	}
+
 	Node3D *node_body_a = nullptr;
 	if (!joint->get_node_a().is_empty()) {
 		node_body_a = Object::cast_to<Node3D>(joint->get_node(joint->get_node_a()));

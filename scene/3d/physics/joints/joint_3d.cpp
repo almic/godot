@@ -203,6 +203,14 @@ bool Joint3D::get_exclude_nodes_from_collision() const {
 	return exclude_from_collision;
 }
 
+void Joint3D::force_update_joint() {
+	if (is_configured()) {
+		_disconnect_signals();
+	}
+
+	_update_joint();
+}
+
 PackedStringArray Joint3D::get_configuration_warnings() const {
 	PackedStringArray warnings = Node3D::get_configuration_warnings();
 
@@ -225,6 +233,8 @@ void Joint3D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_exclude_nodes_from_collision", "enable"), &Joint3D::set_exclude_nodes_from_collision);
 	ClassDB::bind_method(D_METHOD("get_exclude_nodes_from_collision"), &Joint3D::get_exclude_nodes_from_collision);
+
+	ClassDB::bind_method(D_METHOD("force_update_joint"), &Joint3D::force_update_joint);
 
 	ClassDB::bind_method(D_METHOD("get_rid"), &Joint3D::get_rid);
 

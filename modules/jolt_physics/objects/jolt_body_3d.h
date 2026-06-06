@@ -238,6 +238,7 @@ public:
 	void add_collision_exception(const RID &p_excepted_body);
 	void remove_collision_exception(const RID &p_excepted_body);
 	bool has_collision_exception(const RID &p_excepted_body) const;
+	bool has_any_collision_exception() const;
 
 	const LocalVector<RID> &get_collision_exceptions() const { return exceptions; }
 
@@ -247,6 +248,7 @@ public:
 
 	void add_joint(JoltJoint3D *p_joint);
 	void remove_joint(JoltJoint3D *p_joint);
+	void joint_changed(JoltJoint3D *p_joint);
 
 	void call_queries();
 

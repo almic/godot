@@ -409,7 +409,7 @@ void JoltBody3D::_clear_areas() {
 }
 
 void JoltBody3D::_update_group_filter() {
-	JPH::GroupFilter *group_filter = !exceptions.is_empty() ? JoltGroupFilter::instance : nullptr;
+	JPH::GroupFilter *group_filter = has_any_collision_exception() ? JoltGroupFilter::instance : nullptr;
 
 	if (!in_space()) {
 		jolt_settings->mCollisionGroup.SetGroupFilter(group_filter);
@@ -472,6 +472,7 @@ void JoltBody3D::_areas_changed() {
 }
 
 void JoltBody3D::_joints_changed() {
+	_update_group_filter();
 	wake_up();
 }
 
@@ -1016,6 +1017,10 @@ void JoltBody3D::set_constant_torque(const Vector3 &p_torque) {
 }
 
 void JoltBody3D::add_collision_exception(const RID &p_excepted_body) {
+	if (exceptions.has(p_excepted_body)) {
+		return;
+	}
+
 	exceptions.push_back(p_excepted_body);
 
 	_exceptions_changed();
@@ -1028,7 +1033,52 @@ void JoltBody3D::remove_collision_exception(const RID &p_excepted_body) {
 }
 
 bool JoltBody3D::has_collision_exception(const RID &p_excepted_body) const {
-	return exceptions.find(p_excepted_body) >= 0;
+	if (exceptions.has(p_excepted_body)) {
+		return true;
+	}
+
+	const JoltBody3D* a;
+	const JoltBody3D* b;
+	for (JoltJoint3D* joint : joints) {
+		if (!joint->is_collision_disabled()) {
+			continue;
+		}
+
+		a = joint->get_body_a();
+		b = joint->get_body_b();
+
+		if (
+				   (a != nullptr && a->get_rid() == p_excepted_body)
+				|| (b != nullptr && b->get_rid() == p_excepted_body)
+		) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool JoltBody3D::has_any_collision_exception() const {
+	if (!exceptions.is_empty()) {
+		return true;
+	}
+
+	const JoltBody3D* a;
+	const JoltBody3D* b;
+	for (JoltJoint3D* joint : joints) {
+		if (!joint->is_collision_disabled()) {
+			continue;
+		}
+
+		a = joint->get_body_a();
+		b = joint->get_body_b();
+
+		if ((a != nullptr && a != this) || (b != nullptr && b != this)) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void JoltBody3D::add_area(JoltArea3D *p_area) {
@@ -1060,6 +1110,10 @@ void JoltBody3D::update_area(JoltArea3D *p_area, bool p_priority_changed) {
 }
 
 void JoltBody3D::add_joint(JoltJoint3D *p_joint) {
+	if (joints.has(p_joint)) {
+		return;
+	}
+
 	joints.push_back(p_joint);
 
 	_joints_changed();
@@ -1067,6 +1121,14 @@ void JoltBody3D::add_joint(JoltJoint3D *p_joint) {
 
 void JoltBody3D::remove_joint(JoltJoint3D *p_joint) {
 	joints.erase(p_joint);
+
+	_joints_changed();
+}
+
+void JoltBody3D::joint_changed(JoltJoint3D *p_joint) {
+	if (!joints.has(p_joint)) {
+		return;
+	}
 
 	_joints_changed();
 }

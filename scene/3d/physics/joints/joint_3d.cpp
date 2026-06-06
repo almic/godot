@@ -54,14 +54,6 @@ void Joint3D::_body_exit_tree() {
 }
 
 void Joint3D::_update_joint(bool p_only_free) {
-	if (ba.is_valid() && bb.is_valid()) {
-		PhysicsServer3D::get_singleton()->body_remove_collision_exception(ba, bb);
-		PhysicsServer3D::get_singleton()->body_remove_collision_exception(bb, ba);
-	}
-
-	ba = RID();
-	bb = RID();
-
 	configured = false;
 
 	if (p_only_free || !is_inside_tree()) {
@@ -108,14 +100,12 @@ void Joint3D::_update_joint(bool p_only_free) {
 	PhysicsServer3D::get_singleton()->joint_set_solver_priority(joint, solver_priority);
 
 	if (body_a) {
-		ba = body_a->get_rid();
 		if (!body_a->is_connected(SceneStringName(tree_exiting), callable_mp(this, &Joint3D::_body_exit_tree))) {
 			body_a->connect(SceneStringName(tree_exiting), callable_mp(this, &Joint3D::_body_exit_tree));
 		}
 	}
 
 	if (body_b) {
-		bb = body_b->get_rid();
 		if (!body_b->is_connected(SceneStringName(tree_exiting), callable_mp(this, &Joint3D::_body_exit_tree))) {
 			body_b->connect(SceneStringName(tree_exiting), callable_mp(this, &Joint3D::_body_exit_tree));
 		}
@@ -188,15 +178,8 @@ void Joint3D::_notification(int p_what) {
 }
 
 void Joint3D::set_exclude_nodes_from_collision(bool p_enable) {
-	if (exclude_from_collision == p_enable) {
-		return;
-	}
-	if (is_configured()) {
-		_disconnect_signals();
-	}
-	_update_joint(true);
 	exclude_from_collision = p_enable;
-	_update_joint();
+	PhysicsServer3D::get_singleton()->joint_disable_collisions_between_bodies(joint, exclude_from_collision);
 }
 
 bool Joint3D::get_exclude_nodes_from_collision() const {

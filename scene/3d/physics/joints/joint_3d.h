@@ -36,8 +36,6 @@
 class Joint3D : public Node3D {
 	GDCLASS(Joint3D, Node3D);
 
-	RID ba, bb;
-
 	RID joint;
 
 	NodePath a;

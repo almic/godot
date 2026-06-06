@@ -212,20 +212,18 @@ void JoltJoint3D::set_solver_position_iterations(int p_iterations) {
 }
 
 void JoltJoint3D::set_collision_disabled(bool p_disabled) {
-	collision_disabled = p_disabled;
-
-	if (body_a == nullptr || body_b == nullptr) {
+	if (collision_disabled == p_disabled) {
 		return;
 	}
 
-	JoltPhysicsServer3D *physics_server = JoltPhysicsServer3D::get_singleton();
+	collision_disabled = p_disabled;
 
-	if (collision_disabled) {
-		physics_server->body_add_collision_exception(body_a->get_rid(), body_b->get_rid());
-		physics_server->body_add_collision_exception(body_b->get_rid(), body_a->get_rid());
-	} else {
-		physics_server->body_remove_collision_exception(body_a->get_rid(), body_b->get_rid());
-		physics_server->body_remove_collision_exception(body_b->get_rid(), body_a->get_rid());
+	if (body_a != nullptr) {
+		body_a->joint_changed(this);
+	}
+
+	if (body_b != nullptr) {
+		body_b->joint_changed(this);
 	}
 }
 

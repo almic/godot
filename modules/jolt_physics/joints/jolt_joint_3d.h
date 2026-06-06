@@ -87,6 +87,9 @@ public:
 
 	JPH::Constraint *get_jolt_ref() const { return jolt_ref; }
 
+	const JoltBody3D* get_body_a() const { return body_a; }
+	const JoltBody3D* get_body_b() const { return body_b; }
+
 	bool is_enabled() const { return enabled; }
 	void set_enabled(bool p_enabled);
 

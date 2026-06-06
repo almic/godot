@@ -1695,6 +1695,10 @@ void GodotPhysicsServer3D::distance_joint_set_param(RID p_joint, DistanceJointPa
 	ERR_FAIL_MSG("GodotPhysicsServer3D does not support distance constraint.");
 }
 
+float GodotPhysicsServer3D::distance_joint_get_applied_force(RID p_joint) const {
+	ERR_FAIL_V_MSG(0.0, "GodotPhysicsServer3D does not support distance constraint.");
+}
+
 void GodotPhysicsServer3D::free_rid(RID p_rid) {
 	_update_shapes(); //just in case
 

@@ -824,6 +824,8 @@ public:
 
 	virtual void distance_joint_set_param(RID p_joint, DistanceJointParam p_param, real_t p_value) = 0;
 
+	virtual float distance_joint_get_applied_force(RID p_joint) const = 0;
+
 	/* QUERY API */
 
 	enum AreaBodyStatus {

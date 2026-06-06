@@ -70,6 +70,8 @@ public:
 
 	virtual PackedStringArray get_configuration_warnings() const override;
 
+	float get_applied_force() const;
+
 	DistanceJoint3D();
 };
 

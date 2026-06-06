@@ -444,6 +444,8 @@ public:
 
 	virtual void distance_joint_set_param(RID p_joint, DistanceJointParam p_param, real_t p_value) override {}
 
+	virtual float distance_joint_get_applied_force(RID p_joint) const override { return 0; }
+
 	/* MISC */
 
 	virtual void free_rid(RID p_rid) override {}

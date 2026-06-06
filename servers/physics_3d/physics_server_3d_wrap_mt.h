@@ -404,6 +404,8 @@ public:
 
 	FUNC3(distance_joint_set_param, RID, DistanceJointParam, real_t)
 
+	FUNC1RC(float, distance_joint_get_applied_force, RID)
+
 	FUNC1RC(JointType, joint_get_type, RID);
 
 	FUNC2(joint_set_solver_priority, RID, int);

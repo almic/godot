@@ -2081,7 +2081,7 @@ float JoltPhysicsServer3D::generic_6dof_joint_get_applied_torque(RID p_joint) co
 	return g6dof_joint->get_applied_torque();
 }
 
-float JoltPhysicsServer3D::distance_joint_get_applied_force(RID p_joint) {
+float JoltPhysicsServer3D::distance_joint_get_applied_force(RID p_joint) const {
 	JoltJoint3D *joint = joint_owner.get_or_null(p_joint);
 	ERR_FAIL_NULL_V(joint, 0.0f);
 

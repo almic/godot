@@ -382,6 +382,8 @@ public:
 
 	virtual void distance_joint_set_param(RID p_joint, DistanceJointParam p_param, real_t p_value) override;
 
+	virtual float distance_joint_get_applied_force(RID p_joint) const override;
+
 	virtual JointType joint_get_type(RID p_joint) const override;
 
 	virtual void joint_set_solver_priority(RID p_joint, int p_priority) override;

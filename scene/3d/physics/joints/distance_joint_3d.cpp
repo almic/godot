@@ -38,6 +38,7 @@ void DistanceJoint3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_point_param", "point", "value"), &DistanceJoint3D::set_point_param);
 	ClassDB::bind_method(D_METHOD("get_point_param", "point"), &DistanceJoint3D::get_point_param);
 	ClassDB::bind_method(D_METHOD("get_global_point", "point"), &DistanceJoint3D::get_global_point);
+	ClassDB::bind_method(D_METHOD("get_applied_force"), &DistanceJoint3D::get_applied_force);
 
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "spring/stiffness", PROPERTY_HINT_RANGE, "0,100,or_greater,hide_control,suffix:N/m"), "set_param", "get_param", PARAM_LIMITS_SPRING_STIFFNESS);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "spring/damping", PROPERTY_HINT_RANGE, "0,2,or_greater,hide_control"), "set_param", "get_param", PARAM_LIMITS_SPRING_DAMPING);
@@ -98,6 +99,10 @@ PhysicsBody3D *DistanceJoint3D::_get_body_from_param(PointParam p_param) const {
 	const NodePath node_path = p_param == POINT_PARAM_A ? get_node_a() : get_node_b();
 	Node *node = get_node_or_null(node_path);
 	return Object::cast_to<PhysicsBody3D>(node);
+}
+
+float DistanceJoint3D::get_applied_force() const {
+	return PhysicsServer3D::get_singleton()->distance_joint_get_applied_force(get_rid());
 }
 
 void DistanceJoint3D::_configure_joint(RID p_joint, PhysicsBody3D * /*p_body_a is unused*/, PhysicsBody3D * /*p_body_b is unused*/) {

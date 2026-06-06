@@ -543,6 +543,8 @@ public:
 
 	EXBIND3(distance_joint_set_param, RID, DistanceJointParam, real_t)
 
+	EXBIND1RC(float, distance_joint_get_applied_force, RID)
+
 	EXBIND1RC(JointType, joint_get_type, RID)
 
 	EXBIND2(joint_set_solver_priority, RID, int)

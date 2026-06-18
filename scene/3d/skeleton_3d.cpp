@@ -34,9 +34,6 @@
 #include "core/object/callable_mp.h"
 #include "core/object/class_db.h"
 #include "scene/3d/skeleton_modifier_3d.h"
-#if !defined(DISABLE_DEPRECATED) && !defined(PHYSICS_3D_DISABLED)
-#include "scene/3d/physics/physical_bone_simulator_3d.h"
-#endif // _DISABLE_DEPRECATED && PHYSICS_3D_DISABLED
 #include "servers/rendering/rendering_server.h"
 
 void SkinReference::_skin_changed() {
@@ -70,12 +67,6 @@ SkinReference::~SkinReference() {
 ///////////////////////////////////////
 
 bool Skeleton3D::_set(const StringName &p_path, const Variant &p_value) {
-#if !defined(DISABLE_DEPRECATED) && !defined(PHYSICS_3D_DISABLED)
-	if (p_path == SNAME("animate_physical_bones")) {
-		set_animate_physical_bones(p_value);
-		return true;
-	}
-#endif // _DISABLE_DEPRECATED && PHYSICS_3D_DISABLED
 	String path = p_path;
 
 	if (!path.begins_with("bones/")) {
@@ -142,12 +133,6 @@ bool Skeleton3D::_set(const StringName &p_path, const Variant &p_value) {
 }
 
 bool Skeleton3D::_get(const StringName &p_path, Variant &r_ret) const {
-#if !defined(DISABLE_DEPRECATED) && !defined(PHYSICS_3D_DISABLED)
-	if (p_path == SNAME("animate_physical_bones")) {
-		r_ret = get_animate_physical_bones();
-		return true;
-	}
-#endif // _DISABLE_DEPRECATED && PHYSICS_3D_DISABLED
 	String path = p_path;
 
 	if (!path.begins_with("bones/")) {
@@ -273,28 +258,10 @@ StringName Skeleton3D::get_concatenated_bone_names() const {
 	return concatenated_bone_names;
 }
 
-#if !defined(DISABLE_DEPRECATED) && !defined(PHYSICS_3D_DISABLED)
-void Skeleton3D::setup_simulator() {
-	if (simulator && simulator->get_parent() == this) {
-		remove_child(simulator);
-		simulator->queue_free();
-	}
-	PhysicalBoneSimulator3D *sim = memnew(PhysicalBoneSimulator3D);
-	simulator = sim;
-	sim->is_compat = true;
-	sim->set_active(false); // Don't run unneeded process.
-	add_child(simulator, false, INTERNAL_MODE_BACK);
-	set_animate_physical_bones(animate_physical_bones);
-}
-#endif // _DISABLE_DEPRECATED && PHYSICS_3D_DISABLED
-
 void Skeleton3D::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_ENTER_TREE: {
 			_process_changed();
-#if !defined(DISABLE_DEPRECATED) && !defined(PHYSICS_3D_DISABLED)
-			setup_simulator();
-#endif // _DISABLE_DEPRECATED && PHYSICS_3D_DISABLED
 		} break;
 		case NOTIFICATION_POST_ENTER_TREE: {
 			_make_dirty();
@@ -1330,18 +1297,6 @@ void Skeleton3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_bone_global_pose_override", "bone_idx", "pose", "amount", "persistent"), &Skeleton3D::set_bone_global_pose_override, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("get_bone_global_pose_override", "bone_idx"), &Skeleton3D::get_bone_global_pose_override);
 	ClassDB::bind_method(D_METHOD("get_bone_global_pose_no_override", "bone_idx"), &Skeleton3D::get_bone_global_pose_no_override);
-
-#ifndef PHYSICS_3D_DISABLED
-	ClassDB::bind_method(D_METHOD("set_animate_physical_bones", "enabled"), &Skeleton3D::set_animate_physical_bones);
-	ClassDB::bind_method(D_METHOD("get_animate_physical_bones"), &Skeleton3D::get_animate_physical_bones);
-	ClassDB::bind_method(D_METHOD("physical_bones_stop_simulation"), &Skeleton3D::physical_bones_stop_simulation);
-	ClassDB::bind_method(D_METHOD("physical_bones_start_simulation", "bones"), &Skeleton3D::physical_bones_start_simulation_on, DEFVAL(Array()));
-	ClassDB::bind_method(D_METHOD("physical_bones_add_collision_exception", "exception"), &Skeleton3D::physical_bones_add_collision_exception);
-	ClassDB::bind_method(D_METHOD("physical_bones_remove_collision_exception", "exception"), &Skeleton3D::physical_bones_remove_collision_exception);
-
-	ADD_GROUP("Deprecated", "");
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "animate_physical_bones"), "set_animate_physical_bones", "get_animate_physical_bones");
-#endif // PHYSICS_3D_DISABLED
 #endif // _DISABLE_DEPRECATED
 }
 
@@ -1377,59 +1332,6 @@ Transform3D Skeleton3D::get_bone_global_pose_no_override(int p_bone) const {
 	_force_update_all_dirty_bones();
 	return bones[p_bone].pose_global_no_override;
 }
-
-#ifndef PHYSICS_3D_DISABLED
-Node *Skeleton3D::get_simulator() {
-	return simulator;
-}
-
-void Skeleton3D::set_animate_physical_bones(bool p_enabled) {
-	animate_physical_bones = p_enabled;
-	PhysicalBoneSimulator3D *sim = cast_to<PhysicalBoneSimulator3D>(simulator);
-	if (!sim) {
-		return;
-	}
-	sim->set_active(animate_physical_bones || sim->is_simulating_physics());
-}
-
-bool Skeleton3D::get_animate_physical_bones() const {
-	return animate_physical_bones;
-}
-
-void Skeleton3D::physical_bones_stop_simulation() {
-	PhysicalBoneSimulator3D *sim = cast_to<PhysicalBoneSimulator3D>(simulator);
-	if (!sim) {
-		return;
-	}
-	sim->physical_bones_stop_simulation();
-	sim->set_active(animate_physical_bones || sim->is_simulating_physics());
-}
-
-void Skeleton3D::physical_bones_start_simulation_on(const TypedArray<StringName> &p_bones) {
-	PhysicalBoneSimulator3D *sim = cast_to<PhysicalBoneSimulator3D>(simulator);
-	if (!sim) {
-		return;
-	}
-	sim->set_active(true);
-	sim->physical_bones_start_simulation_on(p_bones);
-}
-
-void Skeleton3D::physical_bones_add_collision_exception(RID p_exception) {
-	PhysicalBoneSimulator3D *sim = cast_to<PhysicalBoneSimulator3D>(simulator);
-	if (!sim) {
-		return;
-	}
-	sim->physical_bones_add_collision_exception(p_exception);
-}
-
-void Skeleton3D::physical_bones_remove_collision_exception(RID p_exception) {
-	PhysicalBoneSimulator3D *sim = cast_to<PhysicalBoneSimulator3D>(simulator);
-	if (!sim) {
-		return;
-	}
-	sim->physical_bones_remove_collision_exception(p_exception);
-}
-#endif // PHYSICS_3D_DISABLED
 #endif // _DISABLE_DEPRECATED
 
 Skeleton3D::Skeleton3D() {

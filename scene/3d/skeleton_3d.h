@@ -69,12 +69,6 @@ class Skeleton3D : public Node3D {
 	bool saving = false;
 #endif // TOOLS_ENABLED
 
-#if !defined(DISABLE_DEPRECATED) && !defined(PHYSICS_3D_DISABLED)
-	bool animate_physical_bones = true;
-	Node *simulator = nullptr;
-	void setup_simulator();
-#endif // _DISABLE_DEPRECATED && PHYSICS_3D_DISABLED
-
 public:
 	enum ModifierCallbackModeProcess {
 		MODIFIER_CALLBACK_MODE_PROCESS_PHYSICS,
@@ -309,16 +303,6 @@ public:
 	void clear_bones_global_pose_override();
 	Transform3D get_bone_global_pose_override(int p_bone) const;
 	void set_bone_global_pose_override(int p_bone, const Transform3D &p_pose, real_t p_amount, bool p_persistent = false);
-
-	Node *get_simulator();
-#ifndef PHYSICS_3D_DISABLED
-	void set_animate_physical_bones(bool p_enabled);
-	bool get_animate_physical_bones() const;
-	void physical_bones_stop_simulation();
-	void physical_bones_start_simulation_on(const TypedArray<StringName> &p_bones);
-	void physical_bones_add_collision_exception(RID p_exception);
-	void physical_bones_remove_collision_exception(RID p_exception);
-#endif // PHYSICS_3D_DISABLED
 #endif // _DISABLE_DEPRECATED
 
 public:

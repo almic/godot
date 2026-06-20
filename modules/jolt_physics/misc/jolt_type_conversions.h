@@ -36,10 +36,12 @@
 #include "core/math/quaternion.h"
 #include "core/math/transform_3d.h"
 #include "core/string/ustring.h"
+#include "scene/resources/curve.h"
 
 #include <Jolt/Jolt.h>
 
 #include <Jolt/Core/Color.h>
+#include <Jolt/Core/LinearCurve.h>
 #include <Jolt/Geometry/AABox.h>
 #include <Jolt/Geometry/Plane.h>
 #include <Jolt/Math/Mat44.h>
@@ -89,6 +91,29 @@ _FORCE_INLINE_ AABB to_godot(const JPH::AABox &p_aabb) {
 
 _FORCE_INLINE_ Plane to_godot(const JPH::Plane &p_plane) {
 	return Plane(to_godot(p_plane.GetNormal()), (real_t)p_plane.GetConstant());
+}
+
+_FORCE_INLINE_ void to_godot(const JPH::LinearCurve &p_curve, Curve &p_godot_curve) {
+	p_godot_curve.clear_points();
+
+	for (JPH::LinearCurve::Point point : p_curve.mPoints) {
+		// Curves limit their range and domain, so expand the range/ domain if needed
+		if (p_godot_curve.get_min_value() > point.mY) {
+			p_godot_curve.set_min_value(point.mY);
+		}
+		if (p_godot_curve.get_max_value() < point.mY) {
+			p_godot_curve.set_max_value(point.mY);
+		}
+
+		if (p_godot_curve.get_min_domain() > point.mX) {
+			p_godot_curve.set_min_domain(point.mX);
+		}
+		if (p_godot_curve.get_max_domain() < point.mX) {
+			p_godot_curve.set_max_domain(point.mX);
+		}
+
+		p_godot_curve.add_point(Vector2(point.mX, point.mY), 0, 0, Curve::TANGENT_LINEAR, Curve::TANGENT_LINEAR);
+	}
 }
 
 _FORCE_INLINE_ JPH::Vec3 to_jolt(const Vector3 &p_vec) {
@@ -141,4 +166,16 @@ _FORCE_INLINE_ JPH::RMat44 to_jolt_r(const Transform3D &p_transform) {
 			JPH::Vec4(b[0][1], b[1][1], b[2][1], 0.0f),
 			JPH::Vec4(b[0][2], b[1][2], b[2][2], 0.0f),
 			JPH::RVec3(o.x, o.y, o.z));
+}
+
+_FORCE_INLINE_ void to_jolt(const Curve &p_curve, JPH::LinearCurve &p_jolt_curve) {
+	p_jolt_curve.Clear();
+	int count = p_curve.get_point_count();
+	p_jolt_curve.Reserve(count);
+
+	Curve::Point point;
+	for (int i = 0; i < count; ++i) {
+		point = p_curve.get_point(i);
+		p_jolt_curve.AddPoint((float)point.position.x, (float)point.position.y);
+	}
 }

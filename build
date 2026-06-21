@@ -1,6 +1,7 @@
 #!/bin/sh
 
 custom_suffix="planet_game"
+export BUILD_NAME=planet_game
 
 link_steam=
 steam_dir=
@@ -113,7 +114,7 @@ out_bin="$out_bin.$custom_suffix"
 # echo "Out path: $out_bin"
 
 if [ ! -e "$out_bin" ]; then
-    echo "Could not locate output build, skipping build link"
+    echo "Could not locate output build $out_bin, skipping build link"
     exit 0
 fi
 

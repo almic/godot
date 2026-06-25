@@ -3,6 +3,7 @@ production = "yes"
 # dev_build = "yes"
 precision = "double"
 accesskit = "no"
+num_jobs = 18
 
 module_camera_enabled = "no"
 module_dds_enabled = "no"

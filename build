@@ -6,6 +6,7 @@ export BUILD_NAME=planet_game
 link_steam=
 steam_dir=
 use_llvm=
+dev=
 skip_build=
 
 function read_steam_dir(){
@@ -30,10 +31,15 @@ while test $# -gt 0; do
             echo "-n, --nobuild        Skip build, use with -s to only link build output"
             echo " "
             echo "--llvm               Pass 'use_llvm=\"true\"' to scons"
+            echo "-d, --dev            Link to .dev build outputs"
             exit 0
             ;;
         --llvm)
             use_llvm=1
+            shift
+            ;;
+        -d|--dev)
+            dev=1
             shift
             ;;
         -s|--steam)
@@ -106,7 +112,16 @@ fi
 
 
 # Form the out binary path
-out_bin="$(pwd)/bin/godot.linuxbsd.editor.double.x86_64"
+out_bin="$(pwd)/bin/godot.linuxbsd.editor"
+
+# Dev mode
+if [ ! -z "$dev" ]; then
+    out_bin="$out_bin.dev"
+fi
+
+out_bin="$out_bin.double.x86_64"
+
+# LLVM
 if [ ! -z "$use_llvm" ]; then
     out_bin="$out_bin.llvm"
 fi
@@ -128,7 +143,7 @@ if [ -e "$current_bin" ]; then
     fi
 
     current_target=$(readlink -f "$current_bin")
-    # echo "Current target: $current_target"
+    echo "Current target: $current_target"
     if [ "$out_bin" == "$current_target" ]; then
         echo "Steam symlink is up-to-date"
         exit 0
@@ -154,5 +169,5 @@ if [ -e "$current_bin" ]; then
 fi
 
 echo "Creating symlink"
-ln -s "$out_bin" "$current_bin"
+ln -f -s "$out_bin" "$current_bin"
 echo "Done."

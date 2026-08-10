@@ -1,6 +1,8 @@
 extra_suffix = "planet_game"
 production = "yes"
 # dev_build = "yes"
+# debug_symbols = "yes"
+# optimize = "none"
 precision = "double"
 accesskit = "no"
 num_jobs = 18

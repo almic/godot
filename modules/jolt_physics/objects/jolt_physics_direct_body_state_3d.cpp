@@ -70,6 +70,10 @@ Vector3 JoltPhysicsDirectBodyState3D::get_inverse_inertia() const {
 	return body->get_inverse_inertia();
 }
 
+Vector3 JoltPhysicsDirectBodyState3D::get_inverse_inertia_diagonal() const {
+	return body->get_inverse_inertia_diagonal();
+}
+
 Basis JoltPhysicsDirectBodyState3D::get_inverse_inertia_tensor() const {
 	return body->get_inverse_inertia_tensor();
 }

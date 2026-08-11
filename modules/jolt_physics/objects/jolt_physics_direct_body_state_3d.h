@@ -56,6 +56,7 @@ public:
 
 	virtual real_t get_inverse_mass() const override;
 	virtual Vector3 get_inverse_inertia() const override;
+	virtual Vector3 get_inverse_inertia_diagonal() const override;
 	virtual Basis get_inverse_inertia_tensor() const override;
 
 	virtual void set_linear_velocity(const Vector3 &p_velocity) override;

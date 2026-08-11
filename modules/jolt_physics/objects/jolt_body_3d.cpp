@@ -727,6 +727,16 @@ Vector3 JoltBody3D::get_inverse_inertia() const {
 	return to_godot(jolt_body->GetMotionPropertiesUnchecked()->GetLocalSpaceInverseInertia().GetDiagonal3());
 }
 
+Vector3 JoltBody3D::get_inverse_inertia_diagonal() const {
+	ERR_FAIL_COND_V_MSG(!in_space(), Vector3(), vformat("Failed to retrieve inverse inertia diagonal of '%s'. Doing so without a physics space is not supported when using Jolt Physics. If this relates to a node, try adding the node to a scene tree first.", to_string()));
+
+	if (unlikely(is_static() || is_kinematic())) {
+		return Vector3();
+	}
+
+	return to_godot(jolt_body->GetMotionPropertiesUnchecked()->GetInverseInertiaDiagonal());
+}
+
 Basis JoltBody3D::get_inverse_inertia_tensor() const {
 	ERR_FAIL_COND_V_MSG(!in_space(), Basis(), vformat("Failed to retrieve inverse inertia tensor of '%s'. Doing so without a physics space is not supported when using Jolt Physics. If this relates to a node, try adding the node to a scene tree first.", to_string()));
 

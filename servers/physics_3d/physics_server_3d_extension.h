@@ -54,6 +54,7 @@ public:
 	EXBIND0RC(Basis, get_principal_inertia_axes)
 	EXBIND0RC(real_t, get_inverse_mass)
 	EXBIND0RC(Vector3, get_inverse_inertia)
+	EXBIND0RC(Vector3, get_inverse_inertia_diagonal)
 	EXBIND0RC(Basis, get_inverse_inertia_tensor)
 
 	EXBIND1(set_linear_velocity, const Vector3 &)

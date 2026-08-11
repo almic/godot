@@ -65,6 +65,10 @@ Vector3 GodotPhysicsDirectBodyState3D::get_inverse_inertia() const {
 	return body->get_inv_inertia();
 }
 
+Vector3 GodotPhysicsDirectBodyState3D::get_inverse_inertia_diagonal() const {
+	return Vector3();
+}
+
 Basis GodotPhysicsDirectBodyState3D::get_inverse_inertia_tensor() const {
 	return body->get_inv_inertia_tensor();
 }

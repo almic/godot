@@ -55,6 +55,7 @@ public:
 	virtual Basis get_principal_inertia_axes() const = 0;
 	virtual real_t get_inverse_mass() const = 0; // get the mass
 	virtual Vector3 get_inverse_inertia() const = 0; // get density of this body space
+	virtual Vector3 get_inverse_inertia_diagonal() const = 0;
 	virtual Basis get_inverse_inertia_tensor() const = 0; // get density of this body space
 
 	virtual void set_linear_velocity(const Vector3 &p_velocity) = 0;

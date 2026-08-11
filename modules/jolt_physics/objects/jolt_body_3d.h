@@ -189,6 +189,7 @@ public:
 
 	Basis get_principal_inertia_axes() const;
 	Vector3 get_inverse_inertia() const;
+	Vector3 get_inverse_inertia_diagonal() const;
 	Basis get_inverse_inertia_tensor() const;
 
 	void set_linear_velocity(const Vector3 &p_velocity);

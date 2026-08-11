@@ -168,6 +168,6 @@ if [ -e "$current_bin" ]; then
     fi
 fi
 
-echo "Creating symlink"
+echo "Creating symlink to $out_bin"
 ln -f -s "$out_bin" "$current_bin"
 echo "Done."

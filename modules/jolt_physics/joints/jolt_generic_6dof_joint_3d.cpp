@@ -34,7 +34,12 @@
 #include "../objects/jolt_body_3d.h"
 #include "../spaces/jolt_space_3d.h"
 
+#include "core/error/error_macros.h"
+#include "servers/physics_3d/physics_server_3d.h"
+
 #include <Jolt/Physics/Constraints/SixDOFConstraint.h>
+
+#include <cstdint>
 
 namespace {
 
@@ -85,6 +90,18 @@ JPH::Constraint *JoltGeneric6DOFJoint3D::_build_6dof(JPH::Body *p_jolt_body_a, J
 		return constraint_settings.Create(*p_jolt_body_a, JPH::Body::sFixedToWorld);
 	} else {
 		return constraint_settings.Create(*p_jolt_body_a, *p_jolt_body_b);
+	}
+}
+
+bool JoltGeneric6DOFJoint3D::_is_pid_active(uint8_t p_mask, int p_axis) const {
+	return (p_mask & (1 << p_axis)) != 0;
+}
+
+void JoltGeneric6DOFJoint3D::_set_pid_active(uint8_t &p_mask, int p_axis, bool active) {
+	if (active) {
+		p_mask |= (1 << p_axis);
+	} else {
+		p_mask &= ~(1 << p_axis);
 	}
 }
 
@@ -223,6 +240,20 @@ void JoltGeneric6DOFJoint3D::_update_angular_target_rotation() {
 	constraint->SetTargetOrientationCS(target_orientation);
 }
 
+void JoltGeneric6DOFJoint3D::_update_motor_pid(int p_axis) {
+	JPH::SixDOFConstraint *const constraint = static_cast<JPH::SixDOFConstraint *>(jolt_ref.GetPtr());
+	ERR_FAIL_NULL(constraint);
+
+	const JoltAxis axis = JoltAxis(p_axis);
+	constraint->SetPIDVelocityActive(axis, _is_pid_active(motor_pid_velocity_active, p_axis));
+	constraint->SetPIDAccelerationActive(axis, _is_pid_active(motor_pid_acceleration_active, p_axis));
+
+	const Vector3 vel_params = motor_pid_velocity[p_axis];
+	const Vector3 acc_params = motor_pid_acceleration[p_axis];
+	constraint->SetPIDVelocitySettings(axis, vel_params.x, vel_params.y, vel_params.z);
+	constraint->SetPIDAccelerationSettings(axis, acc_params.x, acc_params.y, acc_params.z);
+}
+
 void JoltGeneric6DOFJoint3D::_limits_changed() {
 	rebuild();
 	_wake_up_bodies();
@@ -266,6 +297,11 @@ void JoltGeneric6DOFJoint3D::_spring_equilibrium_changed(int p_axis) {
 
 void JoltGeneric6DOFJoint3D::_drive_limit_changed(int p_axis) {
 	_update_motor_limit(p_axis);
+	_wake_up_bodies();
+}
+
+void JoltGeneric6DOFJoint3D::_motor_pid_changed(int p_axis) {
+	_update_motor_pid(p_axis);
 	_wake_up_bodies();
 }
 
@@ -498,6 +534,18 @@ bool JoltGeneric6DOFJoint3D::get_flag(Axis p_axis, Flag p_flag) const {
 		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_LINEAR_MOTOR: {
 			return motor_enabled[axis_lin];
 		}
+		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_ACCELERATION_ANGULAR: {
+			return _is_pid_active(motor_pid_acceleration_active, axis_ang);
+		}
+		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_VELOCITY_ANGULAR: {
+			return _is_pid_active(motor_pid_velocity_active, axis_ang);
+		}
+		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_ACCELERATION_LINEAR: {
+			return _is_pid_active(motor_pid_acceleration_active, axis_lin);
+		}
+		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_VELOCITY_LINEAR: {
+			return _is_pid_active(motor_pid_velocity_active, axis_lin);
+		}
 		default: {
 			ERR_FAIL_V_MSG(false, vformat("Unhandled flag: '%d'. This should not happen. Please report this.", p_flag));
 		}
@@ -533,6 +581,22 @@ void JoltGeneric6DOFJoint3D::set_flag(Axis p_axis, Flag p_flag, bool p_enabled) 
 			motor_enabled[axis_lin] = p_enabled;
 			_motor_state_changed(axis_lin);
 		} break;
+		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_ACCELERATION_ANGULAR: {
+			_set_pid_active(motor_pid_acceleration_active, axis_ang, p_enabled);
+			_motor_pid_changed(axis_ang);
+		} break;
+		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_VELOCITY_ANGULAR: {
+			_set_pid_active(motor_pid_velocity_active, axis_ang, p_enabled);
+			_motor_pid_changed(axis_ang);
+		} break;
+		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_ACCELERATION_LINEAR: {
+			_set_pid_active(motor_pid_acceleration_active, axis_lin, p_enabled);
+			_motor_pid_changed(axis_lin);
+		} break;
+		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_VELOCITY_LINEAR: {
+			_set_pid_active(motor_pid_velocity_active, axis_lin, p_enabled);
+			_motor_pid_changed(axis_lin);
+		} break;
 		default: {
 			ERR_FAIL_MSG(vformat("Unhandled flag: '%d'. This should not happen. Please report this.", p_flag));
 		} break;
@@ -567,6 +631,32 @@ Quaternion JoltGeneric6DOFJoint3D::get_angular_target_rotation() const {
 	const Basis constraint_to_body_2 = to_godot(constraint->GetConstraintToBody2Matrix()).basis;
 
 	return (constraint_to_body_1 * target_orientation_cs * constraint_to_body_2.inverse()).get_quaternion();
+}
+
+Vector3 JoltGeneric6DOFJoint3D::get_motor_pid_velocity_settings(int p_axis) const {
+	ERR_FAIL_INDEX_V_MSG(p_axis, AXIS_COUNT, Vector3(), vformat("Axis parameter must be 0-%d", AXIS_COUNT - 1));
+
+	return motor_pid_velocity[p_axis];
+}
+
+void JoltGeneric6DOFJoint3D::set_motor_pid_velocity_settings(int p_axis, float p_proportional, float p_integral, float p_derivative) {
+	ERR_FAIL_INDEX_MSG(p_axis, AXIS_COUNT, vformat("Axis parameter must be 0-%d", AXIS_COUNT - 1));
+
+	motor_pid_velocity[p_axis] = Vector3(p_proportional, p_integral, p_derivative);
+	_motor_pid_changed(p_axis);
+}
+
+Vector3 JoltGeneric6DOFJoint3D::get_motor_pid_acceleration_settings(int p_axis) const {
+	ERR_FAIL_INDEX_V_MSG(p_axis, AXIS_COUNT, Vector3(), vformat("Axis parameter must be 0-%d", AXIS_COUNT - 1));
+
+	return motor_pid_acceleration[p_axis];
+}
+
+void JoltGeneric6DOFJoint3D::set_motor_pid_acceleration_settings(int p_axis, float p_proportional, float p_integral, float p_derivative) {
+	ERR_FAIL_INDEX_MSG(p_axis, AXIS_COUNT, vformat("Axis parameter must be 0-%d", AXIS_COUNT - 1));
+
+	motor_pid_acceleration[p_axis] = Vector3(p_proportional, p_integral, p_derivative);
+	_motor_pid_changed(p_axis);
 }
 
 double JoltGeneric6DOFJoint3D::get_jolt_param(Axis p_axis, JoltParam p_param) const {
@@ -750,6 +840,7 @@ void JoltGeneric6DOFJoint3D::rebuild() {
 		_update_motor_limit(axis);
 		_update_spring_parameters(axis);
 		_update_spring_equilibrium(axis);
+		_update_motor_pid(axis);
 	}
 
 	_update_angular_target_rotation();

@@ -424,6 +424,8 @@ void SixDOFConstraint::SetupVelocityConstraint(float inDeltaTime)
 				break;
 
 			case EMotorState::Velocity:
+				if (IsPIDVelocityActive(axis))
+					mTargetVelocity.SetComponent(i, mMotorPIDVelocity[axis].Update(d, mTargetPosition[i], inDeltaTime));
 				mMotorTranslationConstraintPart[i].CalculateConstraintProperties(*mBody1, r1_plus_u, *mBody2, r2, translation_axis, -mTargetVelocity[i]);
 				break;
 
@@ -555,6 +557,22 @@ void SixDOFConstraint::SetupVelocityConstraint(float inDeltaTime)
 					break;
 
 				case EMotorState::Velocity:
+					if (IsPIDVelocityActive(axis))
+					{
+						Vec3 local_axis = rotation2.Conjugated() * rotation_axis;
+						Quat snapped_diff = (Quat::sFromTo(diff * local_axis, local_axis) * diff).Normalized();
+						snapped_diff.EnsureWPositive();
+
+						Vec3 diff_axis;
+						float diff_angle;
+						snapped_diff.GetAxisAngle(diff_axis, diff_angle);
+
+						if (local_axis.Dot(diff_axis) < 0.0) {
+							diff_angle = -diff_angle;
+						}
+
+						mTargetAngularVelocity.SetComponent(i, -mMotorPIDVelocity[axis].Update(diff_angle, 0.0, inDeltaTime));
+					}
 					mMotorRotationConstraintPart[i].CalculateConstraintProperties(*mBody1, *mBody2, rotation_axis, -mTargetAngularVelocity[i]);
 					break;
 
@@ -634,6 +652,17 @@ bool SixDOFConstraint::SolveVelocityConstraint(float inDeltaTime)
 				}
 
 				case EMotorState::Velocity:
+				{
+					EAxis axis = EAxis(EAxis::TranslationX + i);
+					if (IsPIDAccelerationActive(axis))
+					{
+						float target_velocity = -mTargetVelocity[i];
+						float current_velocity = mTranslationAxis[i].Dot(mBody1->GetLinearVelocity() - mBody2->GetLinearVelocity());
+						float acceleration = mMotorPIDAcceleration[axis].Update(current_velocity, target_velocity, inDeltaTime);
+						mMotorTranslationConstraintPart[i].SetBias(current_velocity + acceleration);
+					}
+				}
+				[[fallthrough]];
 				case EMotorState::Position:
 					// Drive motor
 					impulse |= mMotorTranslationConstraintPart[i].SolveVelocityConstraint(*mBody1, *mBody2, mTranslationAxis[i], inDeltaTime * mMotorSettings[i].mMinForceLimit, inDeltaTime * mMotorSettings[i].mMaxForceLimit);
@@ -657,6 +686,17 @@ bool SixDOFConstraint::SolveVelocityConstraint(float inDeltaTime)
 				}
 
 				case EMotorState::Velocity:
+				{
+					EAxis axis = EAxis(EAxis::RotationX + i);
+					if (IsPIDAccelerationActive(axis))
+					{
+						float target_velocity = -mTargetAngularVelocity[i];
+						float current_velocity = mRotationAxis[i].Dot(mBody1->GetAngularVelocity() - mBody2->GetAngularVelocity());
+						float acceleration = mMotorPIDAcceleration[axis].Update(current_velocity, target_velocity, inDeltaTime);
+						mMotorRotationConstraintPart[i].SetBias(current_velocity + acceleration);
+					}
+				}
+				[[fallthrough]];
 				case EMotorState::Position:
 					// Drive motor
 					impulse |= mMotorRotationConstraintPart[i].SolveVelocityConstraint(*mBody1, *mBody2, mRotationAxis[i], inDeltaTime * mMotorSettings[axis].mMinTorqueLimit, inDeltaTime * mMotorSettings[axis].mMaxTorqueLimit);
@@ -850,6 +890,11 @@ void SixDOFConstraint::SaveState(StateRecorder &inStream) const
 	inStream.Write(mTargetAngularVelocity);
 	inStream.Write(mTargetPosition);
 	inStream.Write(mTargetOrientation);
+
+	for (const PIDController &c : mMotorPIDVelocity)
+		c.SaveState(inStream);
+	for (const PIDController &c : mMotorPIDAcceleration)
+		c.SaveState(inStream);
 }
 
 void SixDOFConstraint::RestoreState(StateRecorder &inStream)
@@ -871,6 +916,11 @@ void SixDOFConstraint::RestoreState(StateRecorder &inStream)
 	inStream.Read(mTargetAngularVelocity);
 	inStream.Read(mTargetPosition);
 	inStream.Read(mTargetOrientation);
+
+	for (PIDController &c : mMotorPIDVelocity)
+		c.RestoreState(inStream);
+	for (PIDController &c : mMotorPIDAcceleration)
+		c.RestoreState(inStream);
 
 	CacheTranslationMotorActive();
 	CacheRotationMotorActive();

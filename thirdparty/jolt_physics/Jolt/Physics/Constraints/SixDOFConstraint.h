@@ -6,6 +6,7 @@
 
 #include <Jolt/Physics/Constraints/TwoBodyConstraint.h>
 #include <Jolt/Physics/Constraints/MotorSettings.h>
+#include "Jolt/Physics/Constraints/PIDController.h"
 #include <Jolt/Physics/Constraints/ConstraintPart/PointConstraintPart.h>
 #include <Jolt/Physics/Constraints/ConstraintPart/AxisConstraintPart.h>
 #include <Jolt/Physics/Constraints/ConstraintPart/AngleConstraintPart.h>
@@ -192,6 +193,16 @@ public:
 	/// Solve: R2 * ConstraintToBody2 = R1 * ConstraintToBody1 * q (see SwingTwistConstraint::GetSwingTwist) and R2 = R1 * inOrientation for q.
 	void						SetTargetOrientationBS(QuatArg inOrientation)				{ SetTargetOrientationCS(mConstraintToBody1.Conjugated() * inOrientation * mConstraintToBody2); }
 
+	Vec3						GetPIDVelocitySettings(EAxis inAxis) const																{ JPH_ASSERT(inAxis < EAxis::Num); const PIDController &pid = mMotorPIDVelocity[inAxis]; return Vec3(pid.mProportional, pid.mIntegral, pid.mDerivative); }
+	void						SetPIDVelocitySettings(EAxis inAxis, float inProportional, float inIntegral, float inDerivative)		{ JPH_ASSERT(inAxis < EAxis::Num); mMotorPIDVelocity[inAxis].SetParameters(inProportional, inIntegral, inDerivative); }
+	Vec3						GetPIDAccelerationSettings(EAxis inAxis) const															{ JPH_ASSERT(inAxis < EAxis::Num); const PIDController &pid = mMotorPIDAcceleration[inAxis]; return Vec3(pid.mProportional, pid.mIntegral, pid.mDerivative); }
+	void						SetPIDAccelerationSettings(EAxis inAxis, float inProportional, float inIntegral, float inDerivative)	{ JPH_ASSERT(inAxis < EAxis::Num); mMotorPIDAcceleration[inAxis].SetParameters(inProportional, inIntegral, inDerivative); }
+
+	bool						IsPIDVelocityActive(EAxis inAxis) const						{ return (mMotorPIDVelocityActive & (1 << inAxis)) != 0; }
+	void						SetPIDVelocityActive(EAxis inAxis, bool inActive)			{ inActive ? mMotorPIDVelocityActive |= (1 << inAxis) : mMotorPIDVelocityActive &= ~(1 << inAxis); }
+	bool						IsPIDAccelerationActive(EAxis inAxis) const					{ return (mMotorPIDAccelerationActive & (1 << inAxis)) != 0; }
+	void						SetPIDAccelerationActive(EAxis inAxis, bool inActive)		{ inActive ? mMotorPIDAccelerationActive |= (1 << inAxis) : mMotorPIDAccelerationActive &= ~(1 << inAxis); }
+
 	///@name Get Lagrange multiplier from last physics update (the linear/angular impulse applied to satisfy the constraint)
 	inline Vec3					GetTotalLambdaPosition() const								{ return IsTranslationFullyConstrained()? mPointConstraintPart.GetTotalLambda() : Vec3(mTranslationConstraintPart[0].GetTotalLambda(), mTranslationConstraintPart[1].GetTotalLambda(), mTranslationConstraintPart[2].GetTotalLambda()); }
 	inline Vec3					GetTotalLambdaRotation() const								{ return IsRotationFullyConstrained()? mRotationConstraintPart.GetTotalLambda() : Vec3(mSwingTwistConstraintPart.GetTotalTwistLambda(), mSwingTwistConstraintPart.GetTotalSwingYLambda(), mSwingTwistConstraintPart.GetTotalSwingZLambda()); }
@@ -263,6 +274,12 @@ private:
 	Vec3						mTargetAngularVelocity = Vec3::sZero();
 	Vec3						mTargetPosition = Vec3::sZero();
 	Quat						mTargetOrientation = Quat::sIdentity();
+
+	// PID
+	PIDController				mMotorPIDVelocity[EAxis::Num];
+	PIDController				mMotorPIDAcceleration[EAxis::Num];
+	uint8						mMotorPIDVelocityActive = 0;								// Bitmask of axis that use PID velocity controllor (bit 0 = TranslationX)
+	uint8						mMotorPIDAccelerationActive = 0;							// Bitmask of axis that use PID acceleration controllor (bit 0 = TranslationX)
 
 	// RUN TIME PROPERTIES FOLLOW
 

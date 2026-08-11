@@ -1567,6 +1567,36 @@ Quaternion JoltPhysicsServer3D::generic_6dof_joint_get_angular_target_rotation(R
 	return g6dof_joint->get_angular_target_rotation();
 }
 
+void JoltPhysicsServer3D::generic_6dof_joint_set_motor_pid(RID p_joint, int p_type, PhysicsServer3D::G6DOFJointMotorAxis p_axis, real_t p_proportional, real_t p_integral, real_t p_derivative) {
+	JoltJoint3D *const joint = joint_owner.get_or_null(p_joint);
+	ERR_FAIL_NULL(joint);
+
+	ERR_FAIL_COND(joint->get_type() != JOINT_TYPE_6DOF);
+	JoltGeneric6DOFJoint3D *const g6dof_joint = static_cast<JoltGeneric6DOFJoint3D *const>(joint);
+
+	if (p_type == 0) {
+		g6dof_joint->set_motor_pid_velocity_settings(p_axis, p_proportional, p_integral, p_derivative);
+	} else if (p_type == 1) {
+		g6dof_joint->set_motor_pid_acceleration_settings(p_axis, p_proportional, p_integral, p_derivative);
+	}
+}
+
+Vector3 JoltPhysicsServer3D::generic_6dof_joint_get_motor_pid(RID p_joint, int p_type, PhysicsServer3D::G6DOFJointMotorAxis p_axis) const {
+	const JoltJoint3D *const joint = joint_owner.get_or_null(p_joint);
+	ERR_FAIL_NULL_V(joint, Vector3());
+
+	ERR_FAIL_COND_V(joint->get_type() != JOINT_TYPE_6DOF, Vector3());
+	const JoltGeneric6DOFJoint3D *const g6dof_joint = static_cast<const JoltGeneric6DOFJoint3D *const>(joint);
+
+	if (p_type == 0) {
+		return g6dof_joint->get_motor_pid_velocity_settings(p_axis);
+	} else if (p_type == 1) {
+		return g6dof_joint->get_motor_pid_acceleration_settings(p_axis);
+	}
+
+	return Vector3();
+}
+
 void JoltPhysicsServer3D::joint_make_distance(
 		RID p_joint,
 		RID p_body_a,

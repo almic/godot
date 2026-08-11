@@ -537,6 +537,9 @@ public:
 	EXBIND2(generic_6dof_joint_set_angular_target_rotation, RID, const Quaternion &)
 	EXBIND1RC(Quaternion, generic_6dof_joint_get_angular_target_rotation, RID)
 
+	EXBIND6(generic_6dof_joint_set_motor_pid, RID, int, G6DOFJointMotorAxis, real_t, real_t, real_t)
+	EXBIND3RC(Vector3, generic_6dof_joint_get_motor_pid, RID, int, G6DOFJointMotorAxis)
+
 	EXBIND1RC(float, generic_6dof_joint_get_applied_force, RID)
 	EXBIND1RC(float, generic_6dof_joint_get_applied_torque, RID)
 

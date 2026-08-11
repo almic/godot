@@ -1042,7 +1042,21 @@ void PhysicsServer3D::_bind_methods() {
 	BIND_ENUM_CONSTANT(G6DOF_JOINT_FLAG_ENABLE_LINEAR_SPRING);
 	BIND_ENUM_CONSTANT(G6DOF_JOINT_FLAG_ENABLE_MOTOR);
 	BIND_ENUM_CONSTANT(G6DOF_JOINT_FLAG_ENABLE_LINEAR_MOTOR);
+	BIND_ENUM_CONSTANT(G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_ACCELERATION_ANGULAR);
+	BIND_ENUM_CONSTANT(G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_VELOCITY_ANGULAR);
+	BIND_ENUM_CONSTANT(G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_ACCELERATION_LINEAR);
+	BIND_ENUM_CONSTANT(G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_VELOCITY_LINEAR);
 	BIND_ENUM_CONSTANT(G6DOF_JOINT_FLAG_MAX);
+
+	BIND_ENUM_CONSTANT(G6DOF_JOINT_MOTOR_AXIS_LINEAR);
+	BIND_ENUM_CONSTANT(G6DOF_JOINT_MOTOR_AXIS_LINEAR_X);
+	BIND_ENUM_CONSTANT(G6DOF_JOINT_MOTOR_AXIS_LINEAR_Y);
+	BIND_ENUM_CONSTANT(G6DOF_JOINT_MOTOR_AXIS_LINEAR_Z);
+	BIND_ENUM_CONSTANT(G6DOF_JOINT_MOTOR_AXIS_ANGULAR);
+	BIND_ENUM_CONSTANT(G6DOF_JOINT_MOTOR_AXIS_ANGULAR_X);
+	BIND_ENUM_CONSTANT(G6DOF_JOINT_MOTOR_AXIS_ANGULAR_Y);
+	BIND_ENUM_CONSTANT(G6DOF_JOINT_MOTOR_AXIS_ANGULAR_Z);
+	BIND_ENUM_CONSTANT(G6DOF_JOINT_MOTOR_AXIS_MAX);
 
 	ClassDB::bind_method(D_METHOD("joint_get_type", "joint"), &PhysicsServer3D::joint_get_type);
 
@@ -1062,6 +1076,9 @@ void PhysicsServer3D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("generic_6dof_joint_set_angular_target_rotation", "joint", "target_rotation"), &PhysicsServer3D::generic_6dof_joint_set_angular_target_rotation);
 	ClassDB::bind_method(D_METHOD("generic_6dof_joint_get_angular_target_rotation", "joint"), &PhysicsServer3D::generic_6dof_joint_get_angular_target_rotation);
+
+	ClassDB::bind_method(D_METHOD("generic_6dof_joint_set_motor_pid", "joint", "type", "axis", "proportional", "integral", "derivative"), &PhysicsServer3D::generic_6dof_joint_set_motor_pid);
+	ClassDB::bind_method(D_METHOD("generic_6dof_joint_get_motor_pid", "joint", "type", "axis"), &PhysicsServer3D::generic_6dof_joint_get_motor_pid);
 
 	ClassDB::bind_method(D_METHOD("generic_6dof_joint_get_applied_force", "joint"), &PhysicsServer3D::generic_6dof_joint_get_applied_force);
 	ClassDB::bind_method(D_METHOD("generic_6dof_joint_get_applied_torque", "joint"), &PhysicsServer3D::generic_6dof_joint_get_applied_torque);

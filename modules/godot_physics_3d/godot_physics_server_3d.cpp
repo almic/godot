@@ -1671,6 +1671,15 @@ Quaternion GodotPhysicsServer3D::generic_6dof_joint_get_angular_target_rotation(
 	return Quaternion();
 }
 
+void GodotPhysicsServer3D::generic_6dof_joint_set_motor_pid(RID p_joint, int p_type, G6DOFJointMotorAxis p_axis, real_t p_proportional, real_t p_integral, real_t p_derivative) {
+	WARN_PRINT_ONCE("Motor PID Controller for Generic6DOFJoint3D are only supported by Jolt Physics. This will be ignored by GodotPhysics3D.");
+}
+
+Vector3 GodotPhysicsServer3D::generic_6dof_joint_get_motor_pid(RID p_joint, int p_type, G6DOFJointMotorAxis p_axis) const {
+	WARN_PRINT_ONCE("Moter PID Controller for Generic6DOFJoint3D are only supported by Jolt Physics. GodotPhysics3D returns the zero vector.");
+	return Vector3();
+}
+
 float GodotPhysicsServer3D::generic_6dof_joint_get_applied_force(RID p_joint) const {
 	GodotJoint3D *joint = joint_owner.get_or_null(p_joint);
 	ERR_FAIL_NULL_V(joint, false);

@@ -58,6 +58,11 @@ void Generic6DOFJoint3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("has_target_rotation"), &Generic6DOFJoint3D::has_target_rotation);
 	ClassDB::bind_method(D_METHOD("clear_angular_target_rotation"), &Generic6DOFJoint3D::clear_angular_target_rotation);
 
+	ClassDB::bind_method(D_METHOD("set_motor_pid_acceleration", "axis", "proportional", "integral", "derivative"), &Generic6DOFJoint3D::set_motor_pid_acceleration);
+	ClassDB::bind_method(D_METHOD("get_motor_pid_acceleration", "axis"), &Generic6DOFJoint3D::get_motor_pid_acceleration);
+	ClassDB::bind_method(D_METHOD("set_motor_pid_velocity", "axis", "proportional", "integral", "derivative"), &Generic6DOFJoint3D::set_motor_pid_velocity);
+	ClassDB::bind_method(D_METHOD("get_motor_pid_velocity", "axis"), &Generic6DOFJoint3D::get_motor_pid_velocity);
+
 	ClassDB::bind_method(D_METHOD("set_linear_limit", "lower_limit", "upper_limit"), &Generic6DOFJoint3D::set_linear_limit);
 	ClassDB::bind_method(D_METHOD("get_linear_limit"), &Generic6DOFJoint3D::get_linear_limit);
 
@@ -225,7 +230,21 @@ void Generic6DOFJoint3D::_bind_methods() {
 	BIND_ENUM_CONSTANT(FLAG_ENABLE_ANGULAR_SPRING);
 	BIND_ENUM_CONSTANT(FLAG_ENABLE_MOTOR);
 	BIND_ENUM_CONSTANT(FLAG_ENABLE_LINEAR_MOTOR);
+	BIND_ENUM_CONSTANT(FLAG_ENABLE_MOTOR_PID_ACCELERATION_ANGULAR);
+	BIND_ENUM_CONSTANT(FLAG_ENABLE_MOTOR_PID_VELOCITY_ANGULAR);
+	BIND_ENUM_CONSTANT(FLAG_ENABLE_MOTOR_PID_ACCELERATION_LINEAR);
+	BIND_ENUM_CONSTANT(FLAG_ENABLE_MOTOR_PID_VELOCITY_LINEAR);
 	BIND_ENUM_CONSTANT(FLAG_MAX);
+
+	BIND_ENUM_CONSTANT(MOTOR_AXIS_LINEAR);
+	BIND_ENUM_CONSTANT(MOTOR_AXIS_LINEAR_X);
+	BIND_ENUM_CONSTANT(MOTOR_AXIS_LINEAR_Y);
+	BIND_ENUM_CONSTANT(MOTOR_AXIS_LINEAR_Z);
+	BIND_ENUM_CONSTANT(MOTOR_AXIS_ANGULAR);
+	BIND_ENUM_CONSTANT(MOTOR_AXIS_ANGULAR_X);
+	BIND_ENUM_CONSTANT(MOTOR_AXIS_ANGULAR_Y);
+	BIND_ENUM_CONSTANT(MOTOR_AXIS_ANGULAR_Z);
+	BIND_ENUM_CONSTANT(MOTOR_AXIS_MAX);
 }
 
 void Generic6DOFJoint3D::set_param_x(Param p_param, real_t p_value) {
@@ -411,6 +430,38 @@ void Generic6DOFJoint3D::clear_angular_target_rotation() {
 	server->generic_6dof_joint_set_param(get_rid(), Vector3::AXIS_Z, PhysicsServer3D::G6DOF_JOINT_ANGULAR_SPRING_EQUILIBRIUM_POINT, params_z[PARAM_ANGULAR_SPRING_EQUILIBRIUM_POINT]);
 }
 
+void Generic6DOFJoint3D::set_motor_pid_acceleration(MotorAxis p_axis, real_t p_proportional, real_t p_integral, real_t p_derivative) {
+	ERR_FAIL_INDEX_MSG(p_axis, MotorAxis::MOTOR_AXIS_MAX, vformat("Axis parameter must be 0-%d", MotorAxis::MOTOR_AXIS_MAX - 1));
+	motor_pid_params[p_axis * 2 + 1] = Vector3(p_proportional, p_integral, p_derivative);
+
+	if (!is_configured()) {
+		return;
+	}
+
+	PhysicsServer3D::get_singleton()->generic_6dof_joint_set_motor_pid(get_rid(), 1, PhysicsServer3D::G6DOFJointMotorAxis(p_axis), p_proportional, p_integral, p_derivative);
+}
+
+Vector3 Generic6DOFJoint3D::get_motor_pid_acceleration(MotorAxis p_axis) const {
+	ERR_FAIL_INDEX_V_MSG(p_axis, MotorAxis::MOTOR_AXIS_MAX, Vector3(), vformat("Axis parameter must be 0-%d", MotorAxis::MOTOR_AXIS_MAX - 1));
+	return motor_pid_params[p_axis * 2 + 1];
+}
+
+void Generic6DOFJoint3D::set_motor_pid_velocity(MotorAxis p_axis, real_t p_proportional, real_t p_integral, real_t p_derivative) {
+	ERR_FAIL_INDEX_MSG(p_axis, MotorAxis::MOTOR_AXIS_MAX, vformat("Axis parameter must be 0-%d", MotorAxis::MOTOR_AXIS_MAX - 1));
+	motor_pid_params[p_axis * 2] = Vector3(p_proportional, p_integral, p_derivative);
+
+	if (!is_configured()) {
+		return;
+	}
+
+	PhysicsServer3D::get_singleton()->generic_6dof_joint_set_motor_pid(get_rid(), 0, PhysicsServer3D::G6DOFJointMotorAxis(p_axis), p_proportional, p_integral, p_derivative);
+}
+
+Vector3 Generic6DOFJoint3D::get_motor_pid_velocity(MotorAxis p_axis) const {
+	ERR_FAIL_INDEX_V_MSG(p_axis, MotorAxis::MOTOR_AXIS_MAX, Vector3(), vformat("Axis parameter must be 0-%d", MotorAxis::MOTOR_AXIS_MAX - 1));
+	return motor_pid_params[p_axis * 2];
+}
+
 void Generic6DOFJoint3D::set_linear_limit(const Vector3 &p_lower, const Vector3 &p_upper) {
 	params_x[PARAM_LINEAR_LOWER_LIMIT] = p_lower.x;
 	params_y[PARAM_LINEAR_LOWER_LIMIT] = p_lower.y;
@@ -543,6 +594,10 @@ Generic6DOFJoint3D::Generic6DOFJoint3D() {
 	set_flag_x(FLAG_ENABLE_LINEAR_SPRING, false);
 	set_flag_x(FLAG_ENABLE_MOTOR, false);
 	set_flag_x(FLAG_ENABLE_LINEAR_MOTOR, false);
+	set_flag_x(FLAG_ENABLE_MOTOR_PID_ACCELERATION_ANGULAR, false);
+	set_flag_x(FLAG_ENABLE_MOTOR_PID_VELOCITY_ANGULAR, false);
+	set_flag_x(FLAG_ENABLE_MOTOR_PID_ACCELERATION_LINEAR, false);
+	set_flag_x(FLAG_ENABLE_MOTOR_PID_VELOCITY_LINEAR, false);
 
 	set_param_y(PARAM_LINEAR_LOWER_LIMIT, 0);
 	set_param_y(PARAM_LINEAR_UPPER_LIMIT, 0);
@@ -575,6 +630,10 @@ Generic6DOFJoint3D::Generic6DOFJoint3D() {
 	set_flag_y(FLAG_ENABLE_LINEAR_SPRING, false);
 	set_flag_y(FLAG_ENABLE_MOTOR, false);
 	set_flag_y(FLAG_ENABLE_LINEAR_MOTOR, false);
+	set_flag_y(FLAG_ENABLE_MOTOR_PID_ACCELERATION_ANGULAR, false);
+	set_flag_y(FLAG_ENABLE_MOTOR_PID_VELOCITY_ANGULAR, false);
+	set_flag_y(FLAG_ENABLE_MOTOR_PID_ACCELERATION_LINEAR, false);
+	set_flag_y(FLAG_ENABLE_MOTOR_PID_VELOCITY_LINEAR, false);
 
 	set_param_z(PARAM_LINEAR_LOWER_LIMIT, 0);
 	set_param_z(PARAM_LINEAR_UPPER_LIMIT, 0);
@@ -607,6 +666,10 @@ Generic6DOFJoint3D::Generic6DOFJoint3D() {
 	set_flag_z(FLAG_ENABLE_LINEAR_SPRING, false);
 	set_flag_z(FLAG_ENABLE_MOTOR, false);
 	set_flag_z(FLAG_ENABLE_LINEAR_MOTOR, false);
+	set_flag_z(FLAG_ENABLE_MOTOR_PID_ACCELERATION_ANGULAR, false);
+	set_flag_z(FLAG_ENABLE_MOTOR_PID_VELOCITY_ANGULAR, false);
+	set_flag_z(FLAG_ENABLE_MOTOR_PID_ACCELERATION_LINEAR, false);
+	set_flag_z(FLAG_ENABLE_MOTOR_PID_VELOCITY_LINEAR, false);
 
 	setting_default_params = false;
 }

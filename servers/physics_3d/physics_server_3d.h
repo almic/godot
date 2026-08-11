@@ -797,7 +797,25 @@ public:
 		G6DOF_JOINT_FLAG_ENABLE_LINEAR_SPRING,
 		G6DOF_JOINT_FLAG_ENABLE_MOTOR,
 		G6DOF_JOINT_FLAG_ENABLE_LINEAR_MOTOR,
+		G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_ACCELERATION_ANGULAR,
+		G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_VELOCITY_ANGULAR,
+		G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_ACCELERATION_LINEAR,
+		G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_VELOCITY_LINEAR,
 		G6DOF_JOINT_FLAG_MAX
+	};
+
+	enum G6DOFJointMotorAxis {
+		G6DOF_JOINT_MOTOR_AXIS_LINEAR = 0,
+		G6DOF_JOINT_MOTOR_AXIS_LINEAR_X = 0,
+		G6DOF_JOINT_MOTOR_AXIS_LINEAR_Y = 1,
+		G6DOF_JOINT_MOTOR_AXIS_LINEAR_Z = 2,
+
+		G6DOF_JOINT_MOTOR_AXIS_ANGULAR = 3,
+		G6DOF_JOINT_MOTOR_AXIS_ANGULAR_X = 3,
+		G6DOF_JOINT_MOTOR_AXIS_ANGULAR_Y = 4,
+		G6DOF_JOINT_MOTOR_AXIS_ANGULAR_Z = 5,
+
+		G6DOF_JOINT_MOTOR_AXIS_MAX
 	};
 
 	virtual void joint_make_generic_6dof(RID p_joint, RID p_body_A, const Transform3D &p_local_frame_A, RID p_body_B, const Transform3D &p_local_frame_B) = 0; //reference frame is A
@@ -810,6 +828,9 @@ public:
 
 	virtual void generic_6dof_joint_set_angular_target_rotation(RID p_joint, const Quaternion &p_target_rotation) = 0;
 	virtual Quaternion generic_6dof_joint_get_angular_target_rotation(RID p_joint) const = 0;
+
+	virtual void generic_6dof_joint_set_motor_pid(RID p_joint, int p_type, G6DOFJointMotorAxis p_axis, real_t p_proportional, real_t p_integral, real_t p_derivative) = 0;
+	virtual Vector3 generic_6dof_joint_get_motor_pid(RID p_joint, int p_type, G6DOFJointMotorAxis p_axis) const = 0;
 
 	virtual float generic_6dof_joint_get_applied_force(RID p_joint) const = 0;
 	virtual float generic_6dof_joint_get_applied_torque(RID p_joint) const = 0;
@@ -1106,6 +1127,7 @@ VARIANT_ENUM_CAST(PhysicsServer3D::SliderJointParam);
 VARIANT_ENUM_CAST(PhysicsServer3D::ConeTwistJointParam);
 VARIANT_ENUM_CAST(PhysicsServer3D::G6DOFJointAxisParam);
 VARIANT_ENUM_CAST(PhysicsServer3D::G6DOFJointAxisFlag);
+VARIANT_ENUM_CAST(PhysicsServer3D::G6DOFJointMotorAxis);
 VARIANT_ENUM_CAST(PhysicsServer3D::DistanceJointParam);
 VARIANT_ENUM_CAST(PhysicsServer3D::AreaBodyStatus);
 VARIANT_ENUM_CAST(PhysicsServer3D::ProcessInfo);

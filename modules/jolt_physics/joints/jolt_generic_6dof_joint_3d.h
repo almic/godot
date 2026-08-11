@@ -37,6 +37,8 @@
 
 #include <Jolt/Physics/Constraints/SixDOFConstraint.h>
 
+#include <cstdint>
+
 class JoltGeneric6DOFJoint3D final : public JoltJoint3D {
 	typedef Vector3::Axis Axis;
 	typedef JPH::SixDOFConstraintSettings::EAxis JoltAxis;
@@ -76,6 +78,11 @@ class JoltGeneric6DOFJoint3D final : public JoltJoint3D {
 	Quaternion angular_target_rotation;
 	bool has_angular_target_rotation = false;
 
+	Vector3 motor_pid_velocity[AXIS_COUNT] = {};
+	Vector3 motor_pid_acceleration[AXIS_COUNT] = {};
+	uint8_t motor_pid_velocity_active = 0;
+	uint8_t motor_pid_acceleration_active = 0;
+
 	bool limit_enabled[AXIS_COUNT] = {};
 
 	bool limit_spring_enabled[AXIS_COUNT] = {};
@@ -87,6 +94,9 @@ class JoltGeneric6DOFJoint3D final : public JoltJoint3D {
 
 	JPH::Constraint *_build_6dof(JPH::Body *p_jolt_body_a, JPH::Body *p_jolt_body_b, const Transform3D &p_shifted_ref_a, const Transform3D &p_shifted_ref_b) const;
 
+	bool _is_pid_active(uint8_t p_mask, int p_axis) const;
+	void _set_pid_active(uint8_t &p_mask, int p_axis, bool p_active);
+
 	void _update_limit_spring_parameters(int p_axis);
 	void _update_motor_state(int p_axis);
 	void _update_motor_velocity(int p_axis);
@@ -94,6 +104,7 @@ class JoltGeneric6DOFJoint3D final : public JoltJoint3D {
 	void _update_spring_parameters(int p_axis);
 	void _update_spring_equilibrium(int p_axis);
 	void _update_angular_target_rotation();
+	void _update_motor_pid(int p_axis);
 
 	void _limits_changed();
 	void _limit_spring_parameters_changed(int p_axis);
@@ -104,6 +115,7 @@ class JoltGeneric6DOFJoint3D final : public JoltJoint3D {
 	void _spring_parameters_changed(int p_axis);
 	void _spring_equilibrium_changed(int p_axis);
 	void _drive_limit_changed(int p_axis);
+	void _motor_pid_changed(int p_axis);
 
 public:
 	JoltGeneric6DOFJoint3D(const JoltJoint3D &p_old_joint, JoltBody3D *p_body_a, JoltBody3D *p_body_b, const Transform3D &p_local_ref_a, const Transform3D &p_local_ref_b);
@@ -118,6 +130,11 @@ public:
 
 	void set_angular_target_rotation(const Quaternion &p_target_rotation);
 	Quaternion get_angular_target_rotation() const;
+
+	Vector3 get_motor_pid_velocity_settings(int p_axis) const;
+	void set_motor_pid_velocity_settings(int p_axis, float p_proportional, float p_integral, float p_derivative);
+	Vector3 get_motor_pid_acceleration_settings(int p_axis) const;
+	void set_motor_pid_acceleration_settings(int p_axis, float p_proportional, float p_integral, float p_derivative);
 
 	double get_jolt_param(Axis p_axis, JoltParam p_param) const;
 	void set_jolt_param(Axis p_axis, JoltParam p_param, double p_value);

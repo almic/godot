@@ -653,6 +653,12 @@ void GodotGeneric6DOFJoint3D::set_flag(Vector3::Axis p_axis, PhysicsServer3D::G6
 		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_ANGULAR_SPRING: {
 			// Not implemented in GodotPhysics3D backend
 		} break;
+		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_ACCELERATION_ANGULAR:
+		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_VELOCITY_ANGULAR:
+		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_ACCELERATION_LINEAR:
+		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_VELOCITY_LINEAR: {
+			// Not implemented in GodotPhysics3D backend
+		} break;
 		case PhysicsServer3D::G6DOF_JOINT_FLAG_MAX:
 			break; // Can't happen, but silences warning
 	}
@@ -677,6 +683,12 @@ bool GodotGeneric6DOFJoint3D::get_flag(Vector3::Axis p_axis, PhysicsServer3D::G6
 			// Not implemented in GodotPhysics3D backend
 		} break;
 		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_ANGULAR_SPRING: {
+			// Not implemented in GodotPhysics3D backend
+		} break;
+		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_ACCELERATION_ANGULAR:
+		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_VELOCITY_ANGULAR:
+		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_ACCELERATION_LINEAR:
+		case PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_VELOCITY_LINEAR: {
 			// Not implemented in GodotPhysics3D backend
 		} break;
 		case PhysicsServer3D::G6DOF_JOINT_FLAG_MAX:

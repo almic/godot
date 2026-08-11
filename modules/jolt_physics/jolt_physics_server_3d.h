@@ -417,6 +417,9 @@ public:
 	virtual void generic_6dof_joint_set_angular_target_rotation(RID p_joint, const Quaternion &p_target_rotation) override;
 	virtual Quaternion generic_6dof_joint_get_angular_target_rotation(RID p_joint) const override;
 
+	void generic_6dof_joint_set_motor_pid(RID p_joint, int p_type, PhysicsServer3D::G6DOFJointMotorAxis p_axis, real_t p_proportional, real_t p_integral, real_t p_derivative) override;
+	Vector3 generic_6dof_joint_get_motor_pid(RID p_joint, int p_type, PhysicsServer3D::G6DOFJointMotorAxis p_axis) const override;
+
 	virtual float generic_6dof_joint_get_applied_force(RID p_joint) const override;
 	virtual float generic_6dof_joint_get_applied_torque(RID p_joint) const override;
 

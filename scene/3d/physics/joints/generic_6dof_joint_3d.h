@@ -31,6 +31,7 @@
 #pragma once
 
 #include "scene/3d/physics/joints/joint_3d.h"
+#include "servers/physics_3d/physics_server_3d.h"
 
 class Generic6DOFJoint3D : public Joint3D {
 	GDCLASS(Generic6DOFJoint3D, Joint3D);
@@ -71,7 +72,25 @@ public:
 		FLAG_ENABLE_ANGULAR_SPRING = PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_ANGULAR_SPRING,
 		FLAG_ENABLE_MOTOR = PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR,
 		FLAG_ENABLE_LINEAR_MOTOR = PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_LINEAR_MOTOR,
+		FLAG_ENABLE_MOTOR_PID_ACCELERATION_ANGULAR = PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_ACCELERATION_ANGULAR,
+		FLAG_ENABLE_MOTOR_PID_VELOCITY_ANGULAR = PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_VELOCITY_ANGULAR,
+		FLAG_ENABLE_MOTOR_PID_ACCELERATION_LINEAR = PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_ACCELERATION_LINEAR,
+		FLAG_ENABLE_MOTOR_PID_VELOCITY_LINEAR = PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_VELOCITY_LINEAR,
 		FLAG_MAX = PhysicsServer3D::G6DOF_JOINT_FLAG_MAX
+	};
+
+	enum MotorAxis {
+		MOTOR_AXIS_LINEAR = PhysicsServer3D::G6DOF_JOINT_MOTOR_AXIS_LINEAR,
+		MOTOR_AXIS_LINEAR_X = PhysicsServer3D::G6DOF_JOINT_MOTOR_AXIS_LINEAR_X,
+		MOTOR_AXIS_LINEAR_Y = PhysicsServer3D::G6DOF_JOINT_MOTOR_AXIS_LINEAR_Y,
+		MOTOR_AXIS_LINEAR_Z = PhysicsServer3D::G6DOF_JOINT_MOTOR_AXIS_LINEAR_Z,
+
+		MOTOR_AXIS_ANGULAR = PhysicsServer3D::G6DOF_JOINT_MOTOR_AXIS_ANGULAR,
+		MOTOR_AXIS_ANGULAR_X = PhysicsServer3D::G6DOF_JOINT_MOTOR_AXIS_ANGULAR_X,
+		MOTOR_AXIS_ANGULAR_Y = PhysicsServer3D::G6DOF_JOINT_MOTOR_AXIS_ANGULAR_Y,
+		MOTOR_AXIS_ANGULAR_Z = PhysicsServer3D::G6DOF_JOINT_MOTOR_AXIS_ANGULAR_Z,
+
+		MOTOR_AXIS_MAX = PhysicsServer3D::G6DOF_JOINT_MOTOR_AXIS_MAX
 	};
 
 protected:
@@ -81,11 +100,14 @@ protected:
 	bool flags_y[FLAG_MAX];
 	real_t params_z[PARAM_MAX];
 	bool flags_z[FLAG_MAX];
+
 	bool linear_drive_force_limit_set[3] = {};
 	bool angular_drive_torque_limit_set[3] = {};
 	bool setting_default_params = true;
 	Quaternion angular_target_rotation;
 	bool has_angular_target_rotation = false;
+
+	Vector3 motor_pid_params[12] = {};
 
 	virtual void _configure_joint(RID p_joint, PhysicsBody3D *body_a, PhysicsBody3D *body_b) override;
 	static void _bind_methods();
@@ -120,6 +142,12 @@ public:
 	bool has_target_rotation() const;
 	void clear_angular_target_rotation();
 
+	void set_motor_pid_acceleration(MotorAxis p_axis, real_t p_proportional, real_t p_integral, real_t p_derivative);
+	Vector3 get_motor_pid_acceleration(MotorAxis p_axis) const;
+
+	void set_motor_pid_velocity(MotorAxis p_axis, real_t p_proportional, real_t p_integral, real_t p_derivative);
+	Vector3 get_motor_pid_velocity(MotorAxis p_axis) const;
+
 	void set_linear_limit(const Vector3 &p_lower, const Vector3 &p_upper);
 	PackedVector3Array get_linear_limit() const;
 
@@ -135,3 +163,4 @@ public:
 
 VARIANT_ENUM_CAST(Generic6DOFJoint3D::Param);
 VARIANT_ENUM_CAST(Generic6DOFJoint3D::Flag);
+VARIANT_ENUM_CAST(Generic6DOFJoint3D::MotorAxis);

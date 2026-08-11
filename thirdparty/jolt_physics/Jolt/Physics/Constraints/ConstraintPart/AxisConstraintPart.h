@@ -645,6 +645,12 @@ public:
 		return false;
 	}
 
+	/// Override spring bias, used for simple constraints with a flat bias
+	inline void					SetBias(float inBias)
+	{
+		mSpringPart.CalculateSpringPropertiesWithBias(inBias);
+	}
+
 	/// Override total lagrange multiplier, can be used to set the initial value for warm starting
 	inline void					SetTotalLambda(float inLambda)
 	{

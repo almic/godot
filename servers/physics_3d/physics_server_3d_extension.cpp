@@ -432,6 +432,9 @@ void PhysicsServer3DExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_generic_6dof_joint_set_angular_target_rotation, "joint", "target_rotation");
 	GDVIRTUAL_BIND(_generic_6dof_joint_get_angular_target_rotation, "joint");
 
+	GDVIRTUAL_BIND(_generic_6dof_joint_set_motor_pid, "joint", "type", "axis", "proportional", "integral", "derivative");
+	GDVIRTUAL_BIND(_generic_6dof_joint_get_motor_pid, "joint", "type", "axis");
+
 	GDVIRTUAL_BIND(_generic_6dof_joint_get_applied_force, "joint");
 	GDVIRTUAL_BIND(_generic_6dof_joint_get_applied_torque, "joint");
 

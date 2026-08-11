@@ -234,6 +234,12 @@ public:
 		return false;
 	}
 
+	/// Override spring bias, used for simple constraints with a flat bias
+	inline void					SetBias(float inBias)
+	{
+		mSpringPart.CalculateSpringPropertiesWithBias(inBias);
+	}
+
 	/// Save state of this constraint part
 	void						SaveState(StateRecorder &inStream) const
 	{

@@ -1037,9 +1037,9 @@ bool JoltBody3D::has_collision_exception(const RID &p_excepted_body) const {
 		return true;
 	}
 
-	const JoltBody3D* a;
-	const JoltBody3D* b;
-	for (JoltJoint3D* joint : joints) {
+	const JoltBody3D *a;
+	const JoltBody3D *b;
+	for (JoltJoint3D *joint : joints) {
 		if (!joint->is_collision_disabled()) {
 			continue;
 		}
@@ -1048,9 +1048,7 @@ bool JoltBody3D::has_collision_exception(const RID &p_excepted_body) const {
 		b = joint->get_body_b();
 
 		if (
-				   (a != nullptr && a->get_rid() == p_excepted_body)
-				|| (b != nullptr && b->get_rid() == p_excepted_body)
-		) {
+				(a != nullptr && a->get_rid() == p_excepted_body) || (b != nullptr && b->get_rid() == p_excepted_body)) {
 			return true;
 		}
 	}
@@ -1063,9 +1061,9 @@ bool JoltBody3D::has_any_collision_exception() const {
 		return true;
 	}
 
-	const JoltBody3D* a;
-	const JoltBody3D* b;
-	for (JoltJoint3D* joint : joints) {
+	const JoltBody3D *a;
+	const JoltBody3D *b;
+	for (JoltJoint3D *joint : joints) {
 		if (!joint->is_collision_disabled()) {
 			continue;
 		}

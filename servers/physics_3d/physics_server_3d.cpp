@@ -1064,6 +1064,10 @@ void PhysicsServer3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("generic_6dof_joint_get_applied_force", "joint"), &PhysicsServer3D::generic_6dof_joint_get_applied_force);
 	ClassDB::bind_method(D_METHOD("generic_6dof_joint_get_applied_torque", "joint"), &PhysicsServer3D::generic_6dof_joint_get_applied_torque);
 
+	ClassDB::bind_method(D_METHOD("generic_6dof_joint_get_angular_lambda", "joint"), &PhysicsServer3D::generic_6dof_joint_get_angular_lambda);
+	ClassDB::bind_method(D_METHOD("generic_6dof_joint_get_linear_lambda", "joint"), &PhysicsServer3D::generic_6dof_joint_get_linear_lambda);
+	ClassDB::bind_method(D_METHOD("generic_6dof_joint_get_motor_angular_lambda", "joint"), &PhysicsServer3D::generic_6dof_joint_get_motor_angular_lambda);
+
 	BIND_ENUM_CONSTANT(DISTANCE_JOINT_LIMITS_SPRING_STIFFNESS);
 	BIND_ENUM_CONSTANT(DISTANCE_JOINT_LIMITS_SPRING_DAMPING);
 	BIND_ENUM_CONSTANT(DISTANCE_JOINT_DISTANCE_MIN);

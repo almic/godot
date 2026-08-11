@@ -420,6 +420,10 @@ public:
 	virtual float generic_6dof_joint_get_applied_force(RID p_joint) const override;
 	virtual float generic_6dof_joint_get_applied_torque(RID p_joint) const override;
 
+	virtual Vector3 generic_6dof_joint_get_angular_lambda(RID p_joint) const override;
+	virtual Vector3 generic_6dof_joint_get_linear_lambda(RID p_joint) const override;
+	virtual Vector3 generic_6dof_joint_get_motor_angular_lambda(RID p_joint) const override;
+
 	virtual void joint_make_distance(RID p_joint, RID p_body_a, const Vector3 &p_local_a, RID p_body_b, const Vector3 &p_local_b) override;
 
 	virtual void distance_joint_set_param(RID p_joint, DistanceJointParam p_param, real_t p_value) override;

@@ -539,6 +539,10 @@ public:
 	EXBIND1RC(float, generic_6dof_joint_get_applied_force, RID)
 	EXBIND1RC(float, generic_6dof_joint_get_applied_torque, RID)
 
+	EXBIND1RC(Vector3, generic_6dof_joint_get_angular_lambda, RID)
+	EXBIND1RC(Vector3, generic_6dof_joint_get_linear_lambda, RID)
+	EXBIND1RC(Vector3, generic_6dof_joint_get_motor_angular_lambda, RID)
+
 	EXBIND5(joint_make_distance, RID, RID, const Vector3 &, RID, const Vector3 &)
 
 	EXBIND3(distance_joint_set_param, RID, DistanceJointParam, real_t)

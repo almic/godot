@@ -400,6 +400,10 @@ public:
 	FUNC1RC(float, generic_6dof_joint_get_applied_force, RID)
 	FUNC1RC(float, generic_6dof_joint_get_applied_torque, RID)
 
+	FUNC1RC(Vector3, generic_6dof_joint_get_angular_lambda, RID)
+	FUNC1RC(Vector3, generic_6dof_joint_get_linear_lambda, RID)
+	FUNC1RC(Vector3, generic_6dof_joint_get_motor_angular_lambda, RID)
+
 	FUNC5(joint_make_distance, RID, RID, const Vector3 &, RID, const Vector3 &)
 
 	FUNC3(distance_joint_set_param, RID, DistanceJointParam, real_t)

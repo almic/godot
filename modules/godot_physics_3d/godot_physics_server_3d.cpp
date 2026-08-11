@@ -1687,6 +1687,30 @@ float GodotPhysicsServer3D::generic_6dof_joint_get_applied_torque(RID p_joint) c
 	return generic_6dof_joint->get_applied_torque();
 }
 
+Vector3 GodotPhysicsServer3D::generic_6dof_joint_get_angular_lambda(RID p_joint) const {
+	GodotJoint3D *joint = joint_owner.get_or_null(p_joint);
+	ERR_FAIL_NULL_V(joint, Vector3());
+	ERR_FAIL_COND_V(joint->get_type() != JOINT_TYPE_6DOF, Vector3());
+	GodotGeneric6DOFJoint3D *generic_6dof_joint = static_cast<GodotGeneric6DOFJoint3D *>(joint);
+	return generic_6dof_joint->get_angular_lambda();
+}
+
+Vector3 GodotPhysicsServer3D::generic_6dof_joint_get_linear_lambda(RID p_joint) const {
+	GodotJoint3D *joint = joint_owner.get_or_null(p_joint);
+	ERR_FAIL_NULL_V(joint, Vector3());
+	ERR_FAIL_COND_V(joint->get_type() != JOINT_TYPE_6DOF, Vector3());
+	GodotGeneric6DOFJoint3D *generic_6dof_joint = static_cast<GodotGeneric6DOFJoint3D *>(joint);
+	return generic_6dof_joint->get_linear_lambda();
+}
+
+Vector3 GodotPhysicsServer3D::generic_6dof_joint_get_motor_angular_lambda(RID p_joint) const {
+	GodotJoint3D *joint = joint_owner.get_or_null(p_joint);
+	ERR_FAIL_NULL_V(joint, Vector3());
+	ERR_FAIL_COND_V(joint->get_type() != JOINT_TYPE_6DOF, Vector3());
+	GodotGeneric6DOFJoint3D *generic_6dof_joint = static_cast<GodotGeneric6DOFJoint3D *>(joint);
+	return generic_6dof_joint->get_motor_angular_lambda();
+}
+
 void GodotPhysicsServer3D::joint_make_distance(RID p_joint, RID p_body_a, const Vector3 &p_local_a, RID p_body_b, const Vector3 &p_local_b) {
 	ERR_FAIL_MSG("GodotPhysicsServer3D does not support distance constraint.");
 }

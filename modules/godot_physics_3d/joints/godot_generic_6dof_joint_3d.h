@@ -323,4 +323,8 @@ public:
 
 	float get_applied_force() const;
 	float get_applied_torque() const;
+
+	Vector3 get_angular_lambda() const;
+	Vector3 get_linear_lambda() const;
+	Vector3 get_motor_angular_lambda() const;
 };

@@ -812,6 +812,9 @@ public:
 
 	virtual float generic_6dof_joint_get_applied_force(RID p_joint) const = 0;
 	virtual float generic_6dof_joint_get_applied_torque(RID p_joint) const = 0;
+	virtual Vector3 generic_6dof_joint_get_angular_lambda(RID p_joint) const = 0;
+	virtual Vector3 generic_6dof_joint_get_linear_lambda(RID p_joint) const = 0;
+	virtual Vector3 generic_6dof_joint_get_motor_angular_lambda(RID p_joint) const = 0;
 
 	enum DistanceJointParam {
 		DISTANCE_JOINT_LIMITS_SPRING_STIFFNESS,

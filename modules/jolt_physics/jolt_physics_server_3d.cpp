@@ -2081,6 +2081,36 @@ float JoltPhysicsServer3D::generic_6dof_joint_get_applied_torque(RID p_joint) co
 	return g6dof_joint->get_applied_torque();
 }
 
+Vector3 JoltPhysicsServer3D::generic_6dof_joint_get_angular_lambda(RID p_joint) const {
+	JoltJoint3D *joint = joint_owner.get_or_null(p_joint);
+	ERR_FAIL_NULL_V(joint, Vector3());
+
+	ERR_FAIL_COND_V(joint->get_type() != JOINT_TYPE_6DOF, Vector3());
+	JoltGeneric6DOFJoint3D *g6dof_joint = static_cast<JoltGeneric6DOFJoint3D *>(joint);
+
+	return g6dof_joint->get_angular_lambda();
+}
+
+Vector3 JoltPhysicsServer3D::generic_6dof_joint_get_linear_lambda(RID p_joint) const {
+	JoltJoint3D *joint = joint_owner.get_or_null(p_joint);
+	ERR_FAIL_NULL_V(joint, Vector3());
+
+	ERR_FAIL_COND_V(joint->get_type() != JOINT_TYPE_6DOF, Vector3());
+	JoltGeneric6DOFJoint3D *g6dof_joint = static_cast<JoltGeneric6DOFJoint3D *>(joint);
+
+	return g6dof_joint->get_linear_lambda();
+}
+
+Vector3 JoltPhysicsServer3D::generic_6dof_joint_get_motor_angular_lambda(RID p_joint) const {
+	JoltJoint3D *joint = joint_owner.get_or_null(p_joint);
+	ERR_FAIL_NULL_V(joint, Vector3());
+
+	ERR_FAIL_COND_V(joint->get_type() != JOINT_TYPE_6DOF, Vector3());
+	JoltGeneric6DOFJoint3D *g6dof_joint = static_cast<JoltGeneric6DOFJoint3D *>(joint);
+
+	return g6dof_joint->get_motor_angular_lambda();
+}
+
 float JoltPhysicsServer3D::distance_joint_get_applied_force(RID p_joint) const {
 	JoltJoint3D *joint = joint_owner.get_or_null(p_joint);
 	ERR_FAIL_NULL_V(joint, 0.0f);

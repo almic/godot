@@ -63,6 +63,9 @@ void Generic6DOFJoint3D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_applied_force"), &Generic6DOFJoint3D::get_applied_force);
 	ClassDB::bind_method(D_METHOD("get_applied_torque"), &Generic6DOFJoint3D::get_applied_torque);
+	ClassDB::bind_method(D_METHOD("get_linear_lambda"), &Generic6DOFJoint3D::get_linear_lambda);
+	ClassDB::bind_method(D_METHOD("get_angular_lambda"), &Generic6DOFJoint3D::get_angular_lambda);
+	ClassDB::bind_method(D_METHOD("get_motor_angular_lambda"), &Generic6DOFJoint3D::get_motor_angular_lambda);
 
 	ADD_GROUP("Linear Limit", "linear_limit_");
 
@@ -452,6 +455,18 @@ float Generic6DOFJoint3D::get_applied_force() const {
 
 float Generic6DOFJoint3D::get_applied_torque() const {
 	return PhysicsServer3D::get_singleton()->generic_6dof_joint_get_applied_torque(get_rid());
+}
+
+Vector3 Generic6DOFJoint3D::get_angular_lambda() const {
+	return PhysicsServer3D::get_singleton()->generic_6dof_joint_get_angular_lambda(get_rid());
+}
+
+Vector3 Generic6DOFJoint3D::get_linear_lambda() const {
+	return PhysicsServer3D::get_singleton()->generic_6dof_joint_get_linear_lambda(get_rid());
+}
+
+Vector3 Generic6DOFJoint3D::get_motor_angular_lambda() const {
+	return PhysicsServer3D::get_singleton()->generic_6dof_joint_get_motor_angular_lambda(get_rid());
 }
 
 void Generic6DOFJoint3D::_configure_joint(RID p_joint, PhysicsBody3D *body_a, PhysicsBody3D *body_b) {

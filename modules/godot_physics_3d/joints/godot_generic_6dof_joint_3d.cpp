@@ -695,3 +695,18 @@ float GodotGeneric6DOFJoint3D::get_applied_torque() const {
 	WARN_PRINT_ONCE("Generic6DOFJoint3D->get_applied_torque only works with Jolt Physics.");
 	return 0;
 }
+
+Vector3 GodotGeneric6DOFJoint3D::get_angular_lambda() const {
+	WARN_PRINT_ONCE("Generic6DOFJoint3D->get_angular_lambda only works with Jolt Physics.");
+	return Vector3();
+}
+
+Vector3 GodotGeneric6DOFJoint3D::get_linear_lambda() const {
+	WARN_PRINT_ONCE("Generic6DOFJoint3D->get_linear_lambda only works with Jolt Physics.");
+	return Vector3();
+}
+
+Vector3 GodotGeneric6DOFJoint3D::get_motor_angular_lambda() const {
+	WARN_PRINT_ONCE("Generic6DOFJoint3D->get_motor_angular_lambda only works with Jolt Physics.");
+	return Vector3();
+}

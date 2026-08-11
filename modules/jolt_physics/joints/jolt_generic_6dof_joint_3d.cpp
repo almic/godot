@@ -696,6 +696,27 @@ float JoltGeneric6DOFJoint3D::get_applied_torque() const {
 	return total_lambda.Length() / last_step;
 }
 
+Vector3 JoltGeneric6DOFJoint3D::get_angular_lambda() const {
+	JPH::SixDOFConstraint *constraint = static_cast<JPH::SixDOFConstraint *>(jolt_ref.GetPtr());
+	ERR_FAIL_NULL_V(constraint, Vector3());
+
+	return to_godot(constraint->GetTotalLambdaRotation());
+}
+
+Vector3 JoltGeneric6DOFJoint3D::get_linear_lambda() const {
+	JPH::SixDOFConstraint *constraint = static_cast<JPH::SixDOFConstraint *>(jolt_ref.GetPtr());
+	ERR_FAIL_NULL_V(constraint, Vector3());
+
+	return to_godot(constraint->GetTotalLambdaPosition());
+}
+
+Vector3 JoltGeneric6DOFJoint3D::get_motor_angular_lambda() const {
+	JPH::SixDOFConstraint *constraint = static_cast<JPH::SixDOFConstraint *>(jolt_ref.GetPtr());
+	ERR_FAIL_NULL_V(constraint, Vector3());
+
+	return to_godot(constraint->GetTotalLambdaMotorRotation());
+}
+
 void JoltGeneric6DOFJoint3D::rebuild() {
 	destroy();
 

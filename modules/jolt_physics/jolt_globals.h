@@ -30,5 +30,13 @@
 
 #pragma once
 
+#include <Jolt/Jolt.h>
+
+#include <Jolt/Physics/Constraints/SpringCastConstraint.h>
+
 void jolt_initialize();
 void jolt_deinitialize();
+
+// AHAOHHAEHOHTAHTOHE
+
+JPH::SpringCastCollisionTesterCastSphere *spring_collision_tester_sphere() __attribute__((used));

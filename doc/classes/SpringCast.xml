@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SpringCast" inherits="Node3D" api_type="core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Simulates a spring physically connected to a main body, using a sphere shape cast.
+	</brief_description>
+	<description>
+		[SpringCast] is intended to simulate things like legs, which will push off generally any surface and includes friction forces, for a single main body.
+		[b]Note:[/b] SpringCast only collides with [PhysicsBody3D] objects, it will ignore [Area3D].
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="add_constraint">
+			<return type="bool" />
+			<description>
+				Adds the constraint to the physics simulation. The spring must also be [member enabled] to actually do anything.
+			</description>
+		</method>
+		<method name="add_exception">
+			<return type="void" />
+			<param index="0" name="physics_body" type="PhysicsBody3D" />
+			<description>
+				Add a collision exception with the given body.
+			</description>
+		</method>
+		<method name="add_exception_rid">
+			<return type="void" />
+			<param index="0" name="rid" type="RID" />
+			<description>
+				Add a collision exception with the given RID.
+			</description>
+		</method>
+		<method name="clear_exceptions">
+			<return type="void" />
+			<description>
+				Clear all collision exceptions. Note that SpringCast always ignores the main body no matter what.
+			</description>
+		</method>
+		<method name="get_angular_lambda" qualifiers="const">
+			<return type="float" />
+			<description>
+				Get the total angular impulse force (N m s) applied as rotational friction. This only applies to body collisions that have multiple contact points.
+			</description>
+		</method>
+		<method name="get_collision_mask_value" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="layer" type="int" />
+			<description>
+				Get the value of a specific collision mask layer.
+			</description>
+		</method>
+		<method name="get_contact_average_point" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="body_index" type="int" />
+			<description>
+				Get the average contact point of a body. There must be collisions to call this method.
+			</description>
+		</method>
+		<method name="get_contact_body" qualifiers="const">
+			<return type="PhysicsBody3D" />
+			<param index="0" name="body_index" type="int" />
+			<description>
+				Get a contact body. There must be collisions to call this method.
+			</description>
+		</method>
+		<method name="get_contact_body_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Get the number of contact bodies.
+			</description>
+		</method>
+		<method name="get_contact_body_rid" qualifiers="const">
+			<return type="RID" />
+			<param index="0" name="body_index" type="int" />
+			<description>
+				Get a contact body RID. There must be collisions to call this method.
+			</description>
+		</method>
+		<method name="get_contact_normal" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="body_index" type="int" />
+			<description>
+				Get the contact normal of a body. There must be collisions to call this method.
+			</description>
+		</method>
+		<method name="get_contact_point" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="point_index" type="int" />
+			<param index="1" name="body_index" type="int" default="-1" />
+			<param index="2" name="shape_index" type="int" default="-1" />
+			<description>
+				Get a contact point by index. When providing only the point index, it indexes all contact points.
+				When also providing a body index, it indexes contact points only on that body.
+				When also providing a shape index, it indexes contact points only on that body's shape.
+				There must be collisions to call this method.
+			</description>
+		</method>
+		<method name="get_contact_point_count" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="body_index" type="int" default="-1" />
+			<param index="1" name="shape_index" type="int" default="-1" />
+			<description>
+				Get the total number of contact points.
+				When providing a body index, it counts contact points only on that body.
+				When also providing a shape index, it counts contact points only on that body's shape.
+				There must be collisions to call this method.
+			</description>
+		</method>
+		<method name="get_contact_shape" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="body_index" type="int" />
+			<param index="1" name="shape_index" type="int" />
+			<description>
+				Get the contact shape of a specific body. There must be collisions to call this method.
+			</description>
+		</method>
+		<method name="get_contact_shape_count" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="body_index" type="int" />
+			<description>
+				Get the number of contact shapes for a specific body. There must be collisions to call this method.
+			</description>
+		</method>
+		<method name="get_friction_lambda" qualifiers="const">
+			<return type="float" />
+			<description>
+				Get the total impulse force (N s) applied as planar friction.
+			</description>
+		</method>
+		<method name="get_spring_lambda" qualifiers="const">
+			<return type="float" />
+			<description>
+				Get the total impulse force (N s) applied by the spring.
+			</description>
+		</method>
+		<method name="get_spring_length" qualifiers="const">
+			<return type="float" />
+			<description>
+				Get the current length of the spring. This will always be between 0.0 and the max length specified in settings.
+			</description>
+		</method>
+		<method name="has_hit_hard_point" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns true if the spring has been compressed to its minimum length and applied rigid collision forces.
+			</description>
+		</method>
+		<method name="is_colliding" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns true if the spring is touching another body.
+			</description>
+		</method>
+		<method name="is_constraint_added" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns true if the spring is currently in the physics simulation. Also check [method is_enabled] to test if the spring is actually able to apply forces.
+			</description>
+		</method>
+		<method name="remove_constraint">
+			<return type="bool" />
+			<description>
+				Remove the constraint from the physics simulation.
+				This can be slower than setting [member enabled] to [code]false[/code] for short durations. If the spring will be disabled for a while, this can improve performance over just setting [member enabled] to [code]false[/code].
+			</description>
+		</method>
+		<method name="remove_exception">
+			<return type="void" />
+			<param index="0" name="physics_body" type="PhysicsBody3D" />
+			<description>
+				Remove a collision exception with the given body.
+			</description>
+		</method>
+		<method name="remove_exception_rid">
+			<return type="void" />
+			<param index="0" name="rid" type="RID" />
+			<description>
+				Remove a collision exception with the given RID.
+			</description>
+		</method>
+		<method name="set_collision_mask_value">
+			<return type="void" />
+			<param index="0" name="layer" type="int" />
+			<param index="1" name="value" type="bool" />
+			<description>
+				Set the value of a specific collision mask layer.
+			</description>
+		</method>
+		<method name="set_enabled">
+			<return type="bool" />
+			<param index="0" name="enabled" type="bool" />
+			<description>
+				Set the spring's active status. Active spring casts will collide and apply forces to bodies while they are in the physics simulation (see [method is_constraint_added]).
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="auto_add_enabled" type="bool" setter="set_auto_add_enabled" getter="is_auto_add_enabled" default="true">
+			Whether the spring cast should automatically add itself to the physics simulation (see [method add_constraint]) when entering the scene tree, and automatically remove itself when exiting the scene tree.
+			If this is [code]false[/code] before it enters the scene tree, then it will not be added to the physics simulation, and you must eventually call [method add_constraint] for it to do anything.
+		</member>
+		<member name="collision_mask" type="int" setter="set_collision_mask" getter="get_collision_mask" default="0">
+			The collision mask of this spring cast, will only collide with bodies on these layers.
+		</member>
+		<member name="debug_custom_color" type="Color" setter="set_debug_custom_color" getter="get_debug_custom_color" default="Color(0, 0, 0, 0)">
+			Color of the debug shape in game, used when the spring is not colliding with anything. The default color, transparent black [code]Color(0.0, 0.0, 0.0)[/code], causes the debug shape to be rendered using the color from [member ProjectSettings.debug/shapes/collision/shape_color].
+		</member>
+		<member name="enabled" type="bool" setter="set_enabled" getter="is_enabled" default="false">
+			The active status of the spring. When enabled and added to the physics simulation (see [method is_constraint_added]), it will collide and apply forces.
+		</member>
+		<member name="main_body" type="NodePath" setter="set_main_body" getter="get_main_body" default="NodePath(&quot;&quot;)">
+			Path to the main body, this is the body that the spring is physically attached to and will receive impulse and friction forces from bodies that the spring collides with.
+			[b]Note:[/b] The main body is ALWAYS ignored for collision shape cast. If for some reason you need it to intersect a part of the main body, you must break it into two parts and use joints to connect them.
+		</member>
+		<member name="pick_collisions_function" type="Callable" setter="set_pick_collisions_function" getter="get_pick_collisions_function">
+			A [Callable] that can be used to restrict which collisions are possible during spring cast collision testing.
+			The spring first collides with all possible bodies within its range, selecting the nearest set of collision points for each body. The results are then passed to this user function to limit which bodies are kept during finalization. From that set, the collisions are pruned to only include collisions near the closest spring fraction. This means some bodies you return may not collide if their collisions are not within some distance of the closest spring fraction.
+			[b]Note:[/b] Earlier RIDs in the returned list are not guaranteed to be kept over later RIDs according to the [SpringCastSettings.max_bodies] limit. You should therefore limit the size of the returned RIDs to that limit if you must ensure all bodies are collision candidates.
+			This method is only provided to drop specific bodies before a finalization phase which selects the nearest set of collisions across all bodies. As an example, it can be used to ignore collisions that have extreme angles, potentially on closer bodies, in favor of collisions that have better angles, potentially on further bodies:
+			[codeblocks]
+			[gdscript]
+			@export var max_preferred_slope: float = deg_to_rad(45.0)
+
+			func pick_collisions(
+					rid_list: Array[RID],
+					spring_fraction_list: PackedFloat32Array,
+					average_contact_point_list: PackedVector3Array,
+					average_normal_list: PackedVector3Array
+			) -> Array[RID]:
+				# As a simple case, drop RIDs that exceed a preferred slope angle if any normal is within that angle
+				# NOTE: you may set a higher maximum angle on the spring settings and use a lower angle here
+
+				var cos_preferred: float = cos(max_preferred_slope)
+				var global_up: Vector3 = global_basis.y
+
+				var preferred: Array[RID] = Array()
+				for i in range(average_normal_list.size()):
+					var normal: Vector3 = average_normal_list[i]
+					if normal.dot(global_up) >= cos_preferred:
+						preferred.append(rid_list[i])
+
+				if preferred.size() > 0:
+					return preferred
+
+				return rid_list
+			[/gdscript]
+			[/codeblocks]
+		</member>
+		<member name="settings" type="SpringCastSettings" setter="set_settings" getter="get_settings">
+			The spring settings for this spring cast.
+		</member>
+	</members>
+</class>

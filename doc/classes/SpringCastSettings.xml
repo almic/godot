@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SpringCastSettings" inherits="Resource" api_type="core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Settings for a [SpringCast].
+	</brief_description>
+	<description>
+		[SpringCastSettings] can be used to share the same parameters across multiple [SpringCast], and have them all update when settings are changed.
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="damping" type="float" setter="set_spring_damping" getter="get_spring_damping" default="0.5">
+			When [member spring_mode] is in frequency, this is a damping ratio where 0 is "no damping" (there will always be some damping), and 1 is critical damping.
+			When [member spring_mode] is in stiffness, this is in newtons (kg * m / s^2), and represents the real measured value of a spring-mass-damper system.
+			When [member spring_mode] is in mass normalized, this is effectively the counteracting acceleration (m / s^2) force of the spring per unit of velocity (m/s).
+		</member>
+		<member name="direction" type="Vector3" setter="set_direction" getter="get_direction" default="Vector3(0, -1, 0)">
+			Local direction of the spring cast on the main body. Note that the orientation of the [SpringCast] node is irrelevant.
+		</member>
+		<member name="enable_force_point" type="bool" setter="set_enable_force_point" getter="is_enable_force_point" default="false">
+			If the position of [member force_point] is used instead of the actual global contact position to apply collision forces.
+		</member>
+		<member name="force_point" type="Vector3" setter="set_force_point" getter="get_force_point" default="Vector3(0, 0, 0)">
+			Local point on the main body to apply forces to, also affects where forces are applied on colliding bodies. Not sure why you would want to use this but you can! Must set [member enable_force_point] to [code]true[/code] for this to have any effect.
+		</member>
+		<member name="max_angle" type="float" setter="set_max_angle" getter="get_max_angle" default="1.4835298">
+			Maximum allowed collision angle of the spring, compared to the direction of the cast. Contacts points with normals exceeding this angle are dropped.
+		</member>
+		<member name="max_bodies" type="int" setter="set_max_bodies" getter="get_max_bodies" default="4">
+			Maximum number of simultaneous body interactions of the spring. Note that this limit is applied after the custom [SpringCast.pick_collisions_function] is run.
+		</member>
+		<member name="max_length" type="float" setter="set_max_length" getter="get_max_length" default="0.5">
+			Maximum length, or expansion limit, of the spring. This is also the preferred length of the spring at rest.
+		</member>
+		<member name="min_length" type="float" setter="set_min_length" getter="get_min_length" default="0.3">
+			Minimum length, or compression limit, of the spring. When the spring reaches this length, it will behave like a rigid rod.
+		</member>
+		<member name="position" type="Vector3" setter="set_position" getter="get_position" default="Vector3(0, 0, 0)">
+			Local connection point of the spring to the main body. Note that the position of the [SpringCast] node is irrelevant, but when moved in the editor, it will update this value.
+		</member>
+		<member name="radius" type="float" setter="set_radius" getter="get_radius" default="0.3">
+			Radius of the sphere cast for collisions.
+		</member>
+		<member name="spring_mode" type="int" setter="set_spring_mode" getter="get_spring_mode" enum="SpringCastSettings.SpringMode" default="0">
+			Mode of the spring.
+		</member>
+		<member name="stiffness" type="float" setter="set_spring_stiffness" getter="get_spring_stiffness" default="1.5">
+			When [member spring_mode] is in frequency, this is oscillation rate, or response rate, of the spring. Higher values make the spring more resistant to displacement.
+			When [member spring_mode] is in stiffness, this is in newtons (kg * m / s^2), and represents the real measured value of a spring-mass-damper system.
+			When [member spring_mode] is in mass normalized, this is effectively the acceleration (m / s^2) force of the spring per meter of compression.
+		</member>
+	</members>
+	<constants>
+		<constant name="SPRING_MODE_FREQUENCY" value="0" enum="SpringMode">
+			Specifies an oscillation frequency in Hz and a damping ratio. This is the easiest way to configure a consistent spring response regardless of the mass of the main body.
+		</constant>
+		<constant name="SPRING_MODE_STIFFNESS" value="1" enum="SpringMode">
+			Specifies a specific stiffness and damping force, in kg m / s^2 (N). These are the real values that spring-mass-damper systems are measured with.
+		</constant>
+		<constant name="SPRING_MODE_MASS_NORMALIZED" value="2" enum="SpringMode">
+			Specifies a specific stiffness and damping force, which is then scaled by the effective mass of the interaction. This is effectively an acceleration in m/s^2.
+		</constant>
+	</constants>
+</class>

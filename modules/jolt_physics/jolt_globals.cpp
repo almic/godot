@@ -129,3 +129,7 @@ void jolt_deinitialize() {
 		JPH::Factory::sInstance = nullptr;
 	}
 }
+
+JPH::SpringCastCollisionTesterCastSphere *spring_collision_tester_sphere() {
+	return new JPH::SpringCastCollisionTesterCastSphere();
+}

@@ -36,7 +36,11 @@
 #include "jolt_space_3d.h"
 
 JoltQueryFilter3D::JoltQueryFilter3D(const JoltPhysicsDirectSpaceState3D &p_space_state, uint32_t p_collision_mask, bool p_collide_with_bodies, bool p_collide_with_areas, const HashSet<RID> &p_excluded, bool p_picking) :
-		space(p_space_state.get_space()),
+		JoltQueryFilter3D(p_space_state.get_space(), p_collision_mask, p_collide_with_bodies, p_collide_with_areas, p_excluded, p_picking) {
+}
+
+JoltQueryFilter3D::JoltQueryFilter3D(const JoltSpace3D &p_space, uint32_t p_collision_mask, bool p_collide_with_bodies, bool p_collide_with_areas, const HashSet<RID> &p_excluded, bool p_picking) :
+		space(p_space),
 		excluded(p_excluded),
 		collision_mask(p_collision_mask),
 		collide_with_bodies(p_collide_with_bodies),

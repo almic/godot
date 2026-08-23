@@ -123,8 +123,10 @@ void NarrowPhaseQuery::CastRay(const RRayCast &inRay, const RayCastSettings &inR
 						// Release the lock now, we have all the info we need in the transformed shape
 						lock.ReleaseLock();
 
-						// Do narrow phase collision check
-						ts.CastRay(mRay, mRayCastSettings, mCollector, mShapeFilter);
+						// Collector could decide to completely ignore the body
+						if (!mCollector.ShouldEarlyOut())
+							// Do narrow phase collision check
+							ts.CastRay(mRay, mRayCastSettings, mCollector, mShapeFilter);
 
 						// Notify collector of the end of this body
 						// We do this before updating the early out fraction so that the collector can still modify it
@@ -190,8 +192,10 @@ void NarrowPhaseQuery::CollidePoint(RVec3Arg inPoint, CollidePointCollector &ioC
 						// Release the lock now, we have all the info we need in the transformed shape
 						lock.ReleaseLock();
 
-						// Do narrow phase collision check
-						ts.CollidePoint(mPoint, mCollector, mShapeFilter);
+						// Collector could decide to completely ignore the body
+						if (!mCollector.ShouldEarlyOut())
+							// Do narrow phase collision check
+							ts.CollidePoint(mPoint, mCollector, mShapeFilter);
 
 						// Notify collector of the end of this body
 						// We do this before updating the early out fraction so that the collector can still modify it
@@ -260,8 +264,10 @@ void NarrowPhaseQuery::CollideShape(const Shape *inShape, Vec3Arg inShapeScale, 
 						// Release the lock now, we have all the info we need in the transformed shape
 						lock.ReleaseLock();
 
-						// Do narrow phase collision check
-						ts.CollideShape(mShape, mShapeScale, mCenterOfMassTransform, mCollideShapeSettings, mBaseOffset, mCollector, mShapeFilter);
+						// Collector could decide to completely ignore the body
+						if (!mCollector.ShouldEarlyOut())
+							// Do narrow phase collision check
+							ts.CollideShape(mShape, mShapeScale, mCenterOfMassTransform, mCollideShapeSettings, mBaseOffset, mCollector, mShapeFilter);
 
 						// Notify collector of the end of this body
 						// We do this before updating the early out fraction so that the collector can still modify it
@@ -353,8 +359,10 @@ void NarrowPhaseQuery::CastShape(const RShapeCast &inShapeCast, const ShapeCastS
 						// Release the lock now, we have all the info we need in the transformed shape
 						lock.ReleaseLock();
 
-						// Do narrow phase collision check
-						ts.CastShape(mShapeCast, mShapeCastSettings, mBaseOffset, mCollector, mShapeFilter);
+						// Collector could decide to completely ignore the body
+						if (!mCollector.ShouldEarlyOut())
+							// Do narrow phase collision check
+							ts.CastShape(mShapeCast, mShapeCastSettings, mBaseOffset, mCollector, mShapeFilter);
 
 						// Notify collector of the end of this body
 						// We do this before updating the early out fraction so that the collector can still modify it
@@ -423,8 +431,10 @@ void NarrowPhaseQuery::CollectTransformedShapes(const AABox &inBox, TransformedS
 						// Release the lock now, we have all the info we need in the transformed shape
 						lock.ReleaseLock();
 
-						// Do narrow phase collision check
-						ts.CollectTransformedShapes(mBox, mCollector, mShapeFilter);
+						// Collector could decide to completely ignore the body
+						if (!mCollector.ShouldEarlyOut())
+							// Do narrow phase collision check
+							ts.CollectTransformedShapes(mBox, mCollector, mShapeFilter);
 
 						// Notify collector of the end of this body
 						// We do this before updating the early out fraction so that the collector can still modify it

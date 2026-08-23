@@ -49,13 +49,14 @@ class JoltQueryFilter3D final
 		  public JPH::BodyFilter {
 	const JoltSpace3D &space;
 	const HashSet<RID> &excluded;
-	uint32_t collision_mask = 0;
 	bool collide_with_bodies = false;
 	bool collide_with_areas = false;
 	bool picking = false;
 
 public:
 	JoltQueryFilter3D(const JoltPhysicsDirectSpaceState3D &p_space_state, uint32_t p_collision_mask, bool p_collide_with_bodies, bool p_collide_with_areas, const HashSet<RID> &p_excluded, bool p_picking = false);
+
+	uint32_t collision_mask = 0;
 
 	virtual bool ShouldCollide(JPH::BroadPhaseLayer p_broad_phase_layer) const override;
 	virtual bool ShouldCollide(JPH::ObjectLayer p_object_layer) const override;

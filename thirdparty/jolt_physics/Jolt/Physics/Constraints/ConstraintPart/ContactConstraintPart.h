@@ -5,6 +5,7 @@
 #pragma once
 
 #include <Jolt/Physics/Body/Body.h>
+#include <Jolt/Physics/StateRecorder.h>
 
 JPH_NAMESPACE_BEGIN
 
@@ -36,6 +37,18 @@ public:
 	inline float				GetTotalLambda() const
 	{
 		return mTotalLambda;
+	}
+
+	/// Save state of this constraint part
+	void						SaveState(StateRecorder &inStream) const
+	{
+		inStream.Write(mTotalLambda);
+	}
+
+	/// Restore state of this constraint part
+	void						RestoreState(StateRecorder &inStream)
+	{
+		inStream.Read(mTotalLambda);
 	}
 
 protected:

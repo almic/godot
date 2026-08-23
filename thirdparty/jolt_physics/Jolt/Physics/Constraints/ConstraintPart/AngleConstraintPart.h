@@ -218,6 +218,12 @@ public:
 		return mTotalLambda;
 	}
 
+	/// Override total lagrange multiplier, can be used to set the initial value for warm starting
+	inline void					SetTotalLambda(float inLambda)
+	{
+		mTotalLambda = inLambda;
+	}
+
 	/// Iteratively update the position constraint. Makes sure C(...) == 0.
 	/// @param ioBody1 The first body that this constraint is attached to
 	/// @param ioBody2 The second body that this constraint is attached to

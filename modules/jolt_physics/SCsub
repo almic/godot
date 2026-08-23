@@ -110,6 +110,7 @@ thirdparty_sources = [
     "Jolt/Physics/Constraints/RackAndPinionConstraint.cpp",
     "Jolt/Physics/Constraints/SixDOFConstraint.cpp",
     "Jolt/Physics/Constraints/SliderConstraint.cpp",
+    "Jolt/Physics/Constraints/SpringCastConstraint.cpp",
     "Jolt/Physics/Constraints/SpringSettings.cpp",
     "Jolt/Physics/Constraints/SwingTwistConstraint.cpp",
     "Jolt/Physics/Constraints/TwoBodyConstraint.cpp",

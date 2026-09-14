@@ -48,6 +48,12 @@ void SpringCast::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_main_body_object"), &SpringCast::get_main_body_object);
 
+	ClassDB::bind_method(D_METHOD("get_forward_input"), &SpringCast::get_forward_input);
+	ClassDB::bind_method(D_METHOD("set_forward_input", "forward_input"), &SpringCast::set_forward_input);
+
+	ClassDB::bind_method(D_METHOD("get_forward_max_speed"), &SpringCast::get_forward_max_speed);
+	ClassDB::bind_method(D_METHOD("set_forward_max_speed", "forward_max_speed"), &SpringCast::set_forward_max_speed);
+
 	ClassDB::bind_method(D_METHOD("get_rest_offset"), &SpringCast::get_rest_offset);
 	ClassDB::bind_method(D_METHOD("set_rest_offset", "rest_offset"), &SpringCast::set_rest_offset);
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "rest_offset", PROPERTY_HINT_RANGE, "-1,1,0.0001,or_less,or_greater,suffix:m"), "set_rest_offset", "get_rest_offset");
@@ -556,6 +562,38 @@ void SpringCast::set_main_body(const NodePath &p_body) {
 	if (spring_cast != nullptr) {
 		_build_constraint();
 	}
+}
+
+Vector3 SpringCast::get_forward_input() const {
+	if (spring_cast == nullptr) {
+		return Vector3();
+	}
+
+	return to_godot(spring_cast->GetForwardInput());
+}
+
+void SpringCast::set_forward_input(const Vector3 &p_forward_input) {
+	if (spring_cast == nullptr) {
+		return;
+	}
+
+	spring_cast->SetForwardInput(to_jolt(p_forward_input));
+}
+
+float SpringCast::get_forward_max_speed() const {
+	if (spring_cast == nullptr) {
+		return 0.0;
+	}
+
+	return spring_cast->GetForwardMaxSpeed();
+}
+
+void SpringCast::set_forward_max_speed(float p_forward_max_speed) {
+	if (spring_cast == nullptr) {
+		return;
+	}
+
+	spring_cast->SetForwardMaxSpeed(p_forward_max_speed);
 }
 
 void SpringCast::set_settings(const Ref<SpringCastSettings> &p_settings) {

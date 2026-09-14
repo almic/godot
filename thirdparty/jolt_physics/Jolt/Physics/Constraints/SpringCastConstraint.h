@@ -209,6 +209,12 @@ public:
 	/// Returns the contact normal in world space
 	Vec3						GetContactNormal(uint inBodyIndex) const	{ CheckBodyIndex(inBodyIndex); return mContactNormal[inBodyIndex]; }
 
+	const Vec3					GetForwardInput() const						{ return mForwardInput; }
+	void						SetForwardInput(const Vec3 &inForwardInput)	{ mForwardInput = inForwardInput; }
+
+	const float					GetForwardMaxSpeed() const					{ return mForwardMaxSpeed; }
+	void						SetForwardMaxSpeed(float inForwardMaxSpeed)	{ mForwardMaxSpeed = inForwardMaxSpeed; }
+
 	/// Get the length of the spring (m)
 	float						GetSpringLength() const						{ return mSpringLength; }
 
@@ -320,6 +326,8 @@ private:
 
 	void						CalculateSpringForcePoint(size_t inContactIndex, Vec3 &outR1PlusU, Vec3 &outR2) const;
 
+	void						CalculateFrictionTangents(const Vec3 &inContactNormal, Vec3 &outTangent1, Vec3 &outTangent2) const;
+
 	// Simulation information
 	Body *						mBody;								///< Body of the spring constraint
 	RefConst<SpringCastConstraintSettings> mSettings;				///< Configuration settings for this spring cast
@@ -344,6 +352,9 @@ protected:
 	Array<float>				mContactFrictionDistance;			///< Average distance from the average friction point (which is just the point average)
 	Array<Vec3>					mContactNormal;						///< Average contact world normal between the spring body and contact body, generally points away from the body
 	Array<Real>					mPlaneConstant;						///< Constant for the contact plane of the spring, defined as ContactNormal . (WorldSpaceSpringPoint + SpringLength * WorldSpaceSpringDirection)
+	Vec3						mForwardInput;						///< Forward input direction, alters friction in this direction when non-zero
+	Vec3						mCurrentForwardInput;				///< Current forward input, updated on velocity setup phase, to prevent friction reports being wrong
+	float						mForwardMaxSpeed = 0.0f;			///< Maximum forward speed, alters friction in the mForwardInput direction
 	float						mSpringLength;						///< Current length of the spring
 	float						mSpringRestOffset = 0.0f;			///< Offset for the rest length of the spring, which is the max length (m)
 

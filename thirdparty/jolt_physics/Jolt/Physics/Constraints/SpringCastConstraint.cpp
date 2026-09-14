@@ -684,6 +684,7 @@ SpringCastConstraint::SpringCastConstraint(Body &inBody, const SpringCastConstra
 	mBody(&inBody),
 	mSettings(&inSettings)
 {
+	mForwardInput = Vec3::sZero();
 	mCurrentStep = uint32(Hash64(inBody.GetID().GetIndex()));
 }
 
@@ -777,8 +778,24 @@ void SpringCastConstraint::CalculateSpringForcePoint(size_t inContactIndex, Vec3
 	outR2 = Vec3(force_point - mContactBody[inContactIndex]->GetCenterOfMassPosition());
 }
 
+void SpringCastConstraint::CalculateFrictionTangents(const Vec3 &inContactNormal, Vec3 &outTangent1, Vec3 &outTangent2) const
+{
+	if (mCurrentForwardInput != Vec3::sZero())
+	{
+		outTangent1 = inContactNormal.Cross(mCurrentForwardInput.Cross(inContactNormal)).NormalizedOr(inContactNormal.GetNormalizedPerpendicular());
+		outTangent2 = inContactNormal.Cross(outTangent1).Normalized();
+	}
+	else
+	{
+		outTangent1 = inContactNormal.GetNormalizedPerpendicular();
+		outTangent2 = inContactNormal.Cross(outTangent1);
+	}
+}
+
 void SpringCastConstraint::SetupVelocityConstraint(float inDeltaTime)
 {
+	mCurrentForwardInput = mForwardInput;
+
 	// TODO: memory leak: must occasionally do shrink_to_fit() on contact arrays. For now I just call it every 500 steps. In the future it could be done less often with some heuristic.
 	if (mCurrentStep % 500 == 0)
 	{
@@ -896,8 +913,8 @@ void SpringCastConstraint::SetupVelocityConstraint(float inDeltaTime)
 		else
 			spring_hard_part.Deactivate();
 
-		const Vec3 t1 = contact_normal.GetNormalizedPerpendicular();
-		const Vec3 t2 = contact_normal.Cross(t1);
+		Vec3 t1, t2;
+		CalculateFrictionTangents(contact_normal, t1, t2);
 		const float combined_friction = mCombineFriction(*mBody, SubShapeID(), *contact_body, SubShapeID());
 
 		if (combined_friction > 0.0f)
@@ -998,8 +1015,8 @@ void SpringCastConstraint::WarmStartVelocityConstraint(float inWarmStartImpulseR
 			}
 		}
 
-		const Vec3 t1 = contact_normal.GetNormalizedPerpendicular();
-		const Vec3 t2 = contact_normal.Cross(t1);
+		Vec3 t1, t2;
+		CalculateFrictionTangents(contact_normal, t1, t2);
 
 		bool any_impulse_applied = false;
 		const EMotionType motion_type2 = contact_body->GetMotionType();
@@ -1055,6 +1072,7 @@ bool SpringCastConstraint::SolveVelocityConstraint(float inDeltaTime)
 {
 	const EMotionType motion_type1 = mBody->GetMotionType();
 	const bool has_body_velocity = motion_type1 != EMotionType::Static;
+	const bool has_forward = mCurrentForwardInput != Vec3::sZero();
 	MotionProperties *motion_properties1 = mBody->GetMotionPropertiesUnchecked();
 	Vec3 linear_velocity1, angular_velocity1;
 	if (has_body_velocity)
@@ -1083,8 +1101,8 @@ bool SpringCastConstraint::SolveVelocityConstraint(float inDeltaTime)
 			continue;
 
 		const Vec3 contact_normal = mContactNormal[body_index];
-		const Vec3 t1 = contact_normal.GetNormalizedPerpendicular();
-		const Vec3 t2 = contact_normal.Cross(t1);
+		Vec3 t1, t2;
+		CalculateFrictionTangents(contact_normal, t1, t2);
 
 		const EMotionType motion_type2 = contact_body->GetMotionType();
 		MotionProperties *motion_properties2 = contact_body->GetMotionPropertiesUnchecked();
@@ -1135,7 +1153,51 @@ bool SpringCastConstraint::SolveVelocityConstraint(float inDeltaTime)
 
 		if (linear_friction_active)
 		{
-			float lambda1 = friction1.SolveVelocityConstraintGetTotalLambda(linear_velocity1, angular_velocity1, linear_velocity2, angular_velocity2, t1);
+
+			// Reduce effective velocity delta in the mCurrentForwardInput direction by up to mForwardMaxSpeed
+			Vec3 forward_linear_velocity1, forward_angular_velocity1;
+			if (has_forward)
+			{
+				// TODO: Just manually calculate lambda, jv is the delta velocity, so just move it
+				// to zero, up to max speed amount, in the proper direction.
+				float linear = Clamp(mCurrentForwardInput.Dot(linear_velocity1 - linear_velocity2), 0.0f, mForwardMaxSpeed);
+
+				// Angular is a bit more work...
+				Vec3 r1_plus_u, r2;
+				CalculateSpringForcePoint(body_index, r1_plus_u, r2);
+
+				const Vec3 r1_x_axis = r1_plus_u.Cross(mCurrentForwardInput);
+				const Vec3 r2_x_axis = r2.Cross(mCurrentForwardInput);
+				float angular = Clamp(r1_x_axis.Dot(angular_velocity1) - r2_x_axis.Dot(angular_velocity2), 0.0f, mForwardMaxSpeed);
+
+				float total = linear + angular;
+				if (total > mForwardMaxSpeed)
+				{
+					float scale = mForwardMaxSpeed / total;
+					linear *= scale;
+					angular *= scale;
+				}
+
+				forward_linear_velocity1 = linear_velocity1 - mCurrentForwardInput * linear;
+				forward_angular_velocity1 = angular_velocity1 - r1_x_axis * angular;
+			}
+			else
+			{
+				forward_linear_velocity1 = linear_velocity1;
+				forward_angular_velocity1 = angular_velocity1;
+			}
+
+			float lambda1 = friction1.SolveVelocityConstraintGetTotalLambda(forward_linear_velocity1, forward_angular_velocity1, linear_velocity2, angular_velocity2, t1);
+
+			/*
+			// Prevent the addition of friction to the lateral axis when forward no longer uses it
+			float true_lambda1;
+			if (has_forward)
+				true_lambda1 = friction1.SolveVelocityConstraintGetTotalLambda(linear_velocity1, angular_velocity1, linear_velocity2, angular_velocity2, t1)
+			else
+				true_lambda1 = lambda1;
+			*/
+
 			float lambda2 = friction2.SolveVelocityConstraintGetTotalLambda(linear_velocity1, angular_velocity1, linear_velocity2, angular_velocity2, t2);
 
 			float total_lambda_sq = Square(lambda1) + Square(lambda2);
@@ -1234,8 +1296,8 @@ Vec3 SpringCastConstraint::GetFrictionForce(uint inBodyIndex) const {
 	Vec3 friction_force = Vec3::sZero();
 
 	const Vec3 contact_normal = mContactNormal[inBodyIndex];
-	const Vec3 t1 = contact_normal.GetNormalizedPerpendicular();
-	const Vec3 t2 = contact_normal.Cross(t1);
+	Vec3 t1, t2;
+	CalculateFrictionTangents(contact_normal, t1, t2);
 
 	const FrictionPart &friction1 = mFrictionConstraint[inBodyIndex * 2];
 	const FrictionPart &friction2 = mFrictionConstraint[inBodyIndex * 2 + 1];

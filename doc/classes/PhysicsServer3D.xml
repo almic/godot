@@ -782,6 +782,12 @@
 				Destroys any of the objects created by PhysicsServer3D. If the [RID] passed is not one of the objects that can be created by PhysicsServer3D, an error will be sent to the console.
 			</description>
 		</method>
+		<method name="generic_6dof_joint_get_angular_lambda" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="joint" type="RID" />
+			<description>
+			</description>
+		</method>
 		<method name="generic_6dof_joint_get_angular_target_rotation" qualifiers="const">
 			<return type="Quaternion" />
 			<param index="0" name="joint" type="RID" />
@@ -813,6 +819,26 @@
 				Returns the value of a generic 6DOF joint flag.
 			</description>
 		</method>
+		<method name="generic_6dof_joint_get_linear_lambda" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="joint" type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="generic_6dof_joint_get_motor_angular_lambda" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="joint" type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="generic_6dof_joint_get_motor_pid" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="joint" type="RID" />
+			<param index="1" name="type" type="int" />
+			<param index="2" name="axis" type="int" enum="PhysicsServer3D.G6DOFJointMotorAxis" />
+			<description>
+			</description>
+		</method>
 		<method name="generic_6dof_joint_get_param" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="joint" type="RID" />
@@ -839,6 +865,17 @@
 			<param index="3" name="enable" type="bool" />
 			<description>
 				Sets the value of a given generic 6DOF joint flag.
+			</description>
+		</method>
+		<method name="generic_6dof_joint_set_motor_pid">
+			<return type="void" />
+			<param index="0" name="joint" type="RID" />
+			<param index="1" name="type" type="int" />
+			<param index="2" name="axis" type="int" enum="PhysicsServer3D.G6DOFJointMotorAxis" />
+			<param index="3" name="proportional" type="float" />
+			<param index="4" name="integral" type="float" />
+			<param index="5" name="derivative" type="float" />
+			<description>
 			</description>
 		</method>
 		<method name="generic_6dof_joint_set_param">
@@ -1811,8 +1848,34 @@
 		<constant name="G6DOF_JOINT_FLAG_ENABLE_LINEAR_MOTOR" value="5" enum="G6DOFJointAxisFlag">
 			If set, there is a linear motor on this axis that targets a specific velocity.
 		</constant>
-		<constant name="G6DOF_JOINT_FLAG_MAX" value="6" enum="G6DOFJointAxisFlag">
+		<constant name="G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_ACCELERATION_ANGULAR" value="6" enum="G6DOFJointAxisFlag">
+		</constant>
+		<constant name="G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_VELOCITY_ANGULAR" value="7" enum="G6DOFJointAxisFlag">
+		</constant>
+		<constant name="G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_ACCELERATION_LINEAR" value="8" enum="G6DOFJointAxisFlag">
+		</constant>
+		<constant name="G6DOF_JOINT_FLAG_ENABLE_MOTOR_PID_VELOCITY_LINEAR" value="9" enum="G6DOFJointAxisFlag">
+		</constant>
+		<constant name="G6DOF_JOINT_FLAG_MAX" value="10" enum="G6DOFJointAxisFlag">
 			Represents the size of the [enum G6DOFJointAxisFlag] enum.
+		</constant>
+		<constant name="G6DOF_JOINT_MOTOR_AXIS_LINEAR" value="0" enum="G6DOFJointMotorAxis">
+		</constant>
+		<constant name="G6DOF_JOINT_MOTOR_AXIS_LINEAR_X" value="0" enum="G6DOFJointMotorAxis">
+		</constant>
+		<constant name="G6DOF_JOINT_MOTOR_AXIS_LINEAR_Y" value="1" enum="G6DOFJointMotorAxis">
+		</constant>
+		<constant name="G6DOF_JOINT_MOTOR_AXIS_LINEAR_Z" value="2" enum="G6DOFJointMotorAxis">
+		</constant>
+		<constant name="G6DOF_JOINT_MOTOR_AXIS_ANGULAR" value="3" enum="G6DOFJointMotorAxis">
+		</constant>
+		<constant name="G6DOF_JOINT_MOTOR_AXIS_ANGULAR_X" value="3" enum="G6DOFJointMotorAxis">
+		</constant>
+		<constant name="G6DOF_JOINT_MOTOR_AXIS_ANGULAR_Y" value="4" enum="G6DOFJointMotorAxis">
+		</constant>
+		<constant name="G6DOF_JOINT_MOTOR_AXIS_ANGULAR_Z" value="5" enum="G6DOFJointMotorAxis">
+		</constant>
+		<constant name="G6DOF_JOINT_MOTOR_AXIS_MAX" value="6" enum="G6DOFJointMotorAxis">
 		</constant>
 		<constant name="DISTANCE_JOINT_LIMITS_SPRING_STIFFNESS" value="0" enum="DistanceJointParam">
 			The strength of the spring pulling the bodies together. Increase this value to pull the bodies together faster. Set to zero if you don't want to pull the bodies together with a spring.

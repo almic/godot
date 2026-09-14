@@ -16,6 +16,11 @@
 				Clears the quaternion angular target. After clearing, the joint is driven by [constant PARAM_ANGULAR_SPRING_EQUILIBRIUM_POINT] on each axis as configured.
 			</description>
 		</method>
+		<method name="get_angular_lambda" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+			</description>
+		</method>
 		<method name="get_angular_target_rotation" qualifiers="const">
 			<return type="Quaternion" />
 			<description>
@@ -49,6 +54,33 @@
 		<method name="get_flag_z" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="flag" type="int" enum="Generic6DOFJoint3D.Flag" />
+			<description>
+			</description>
+		</method>
+		<method name="get_linear_lambda" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+			</description>
+		</method>
+		<method name="get_linear_limit" qualifiers="const">
+			<return type="PackedVector3Array" />
+			<description>
+			</description>
+		</method>
+		<method name="get_motor_angular_lambda" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+			</description>
+		</method>
+		<method name="get_motor_pid_acceleration" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="axis" type="int" enum="Generic6DOFJoint3D.MotorAxis" />
+			<description>
+			</description>
+		</method>
+		<method name="get_motor_pid_velocity" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="axis" type="int" enum="Generic6DOFJoint3D.MotorAxis" />
 			<description>
 			</description>
 		</method>
@@ -102,6 +134,31 @@
 			<return type="void" />
 			<param index="0" name="flag" type="int" enum="Generic6DOFJoint3D.Flag" />
 			<param index="1" name="value" type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="set_linear_limit">
+			<return type="void" />
+			<param index="0" name="lower_limit" type="Vector3" />
+			<param index="1" name="upper_limit" type="Vector3" />
+			<description>
+			</description>
+		</method>
+		<method name="set_motor_pid_acceleration">
+			<return type="void" />
+			<param index="0" name="axis" type="int" enum="Generic6DOFJoint3D.MotorAxis" />
+			<param index="1" name="proportional" type="float" />
+			<param index="2" name="integral" type="float" />
+			<param index="3" name="derivative" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="set_motor_pid_velocity">
+			<return type="void" />
+			<param index="0" name="axis" type="int" enum="Generic6DOFJoint3D.MotorAxis" />
+			<param index="1" name="proportional" type="float" />
+			<param index="2" name="integral" type="float" />
+			<param index="3" name="derivative" type="float" />
 			<description>
 			</description>
 		</method>
@@ -472,8 +529,34 @@
 		<constant name="FLAG_ENABLE_LINEAR_MOTOR" value="5" enum="Flag">
 			If enabled, there is a linear motor across these axes.
 		</constant>
-		<constant name="FLAG_MAX" value="6" enum="Flag">
+		<constant name="FLAG_ENABLE_MOTOR_PID_ACCELERATION_ANGULAR" value="6" enum="Flag">
+		</constant>
+		<constant name="FLAG_ENABLE_MOTOR_PID_VELOCITY_ANGULAR" value="7" enum="Flag">
+		</constant>
+		<constant name="FLAG_ENABLE_MOTOR_PID_ACCELERATION_LINEAR" value="8" enum="Flag">
+		</constant>
+		<constant name="FLAG_ENABLE_MOTOR_PID_VELOCITY_LINEAR" value="9" enum="Flag">
+		</constant>
+		<constant name="FLAG_MAX" value="10" enum="Flag">
 			Represents the size of the [enum Flag] enum.
+		</constant>
+		<constant name="MOTOR_AXIS_LINEAR" value="0" enum="MotorAxis">
+		</constant>
+		<constant name="MOTOR_AXIS_LINEAR_X" value="0" enum="MotorAxis">
+		</constant>
+		<constant name="MOTOR_AXIS_LINEAR_Y" value="1" enum="MotorAxis">
+		</constant>
+		<constant name="MOTOR_AXIS_LINEAR_Z" value="2" enum="MotorAxis">
+		</constant>
+		<constant name="MOTOR_AXIS_ANGULAR" value="3" enum="MotorAxis">
+		</constant>
+		<constant name="MOTOR_AXIS_ANGULAR_X" value="3" enum="MotorAxis">
+		</constant>
+		<constant name="MOTOR_AXIS_ANGULAR_Y" value="4" enum="MotorAxis">
+		</constant>
+		<constant name="MOTOR_AXIS_ANGULAR_Z" value="5" enum="MotorAxis">
+		</constant>
+		<constant name="MOTOR_AXIS_MAX" value="6" enum="MotorAxis">
 		</constant>
 	</constants>
 </class>

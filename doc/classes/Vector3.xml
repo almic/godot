@@ -369,6 +369,13 @@
 				Returns a new vector with each component set to [code]1.0[/code] if it's positive, [code]-1.0[/code] if it's negative, and [code]0.0[/code] if it's zero. The result is identical to calling [method @GlobalScope.sign] on each component.
 			</description>
 		</method>
+		<method name="signed_angle_2" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="to" type="Vector3" />
+			<param index="1" name="axis" type="Vector3" />
+			<description>
+			</description>
+		</method>
 		<method name="signed_angle_to" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="to" type="Vector3" />

@@ -694,6 +694,12 @@
 			<description>
 			</description>
 		</method>
+		<method name="_generic_6dof_joint_get_angular_lambda" qualifiers="virtual required const">
+			<return type="Vector3" />
+			<param index="0" name="joint" type="RID" />
+			<description>
+			</description>
+		</method>
 		<method name="_generic_6dof_joint_get_angular_target_rotation" qualifiers="virtual required const">
 			<return type="Quaternion" />
 			<param index="0" name="joint" type="RID" />
@@ -722,6 +728,26 @@
 			<description>
 			</description>
 		</method>
+		<method name="_generic_6dof_joint_get_linear_lambda" qualifiers="virtual required const">
+			<return type="Vector3" />
+			<param index="0" name="joint" type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="_generic_6dof_joint_get_motor_angular_lambda" qualifiers="virtual required const">
+			<return type="Vector3" />
+			<param index="0" name="joint" type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="_generic_6dof_joint_get_motor_pid" qualifiers="virtual required const">
+			<return type="Vector3" />
+			<param index="0" name="joint" type="RID" />
+			<param index="1" name="type" type="int" />
+			<param index="2" name="axis" type="int" enum="PhysicsServer3D.G6DOFJointMotorAxis" />
+			<description>
+			</description>
+		</method>
 		<method name="_generic_6dof_joint_get_param" qualifiers="virtual required const">
 			<return type="float" />
 			<param index="0" name="joint" type="RID" />
@@ -743,6 +769,17 @@
 			<param index="1" name="axis" type="int" enum="Vector3.Axis" />
 			<param index="2" name="flag" type="int" enum="PhysicsServer3D.G6DOFJointAxisFlag" />
 			<param index="3" name="enable" type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="_generic_6dof_joint_set_motor_pid" qualifiers="virtual required">
+			<return type="void" />
+			<param index="0" name="joint" type="RID" />
+			<param index="1" name="type" type="int" />
+			<param index="2" name="axis" type="int" enum="PhysicsServer3D.G6DOFJointMotorAxis" />
+			<param index="3" name="proportional" type="float" />
+			<param index="4" name="integral" type="float" />
+			<param index="5" name="derivative" type="float" />
 			<description>
 			</description>
 		</method>

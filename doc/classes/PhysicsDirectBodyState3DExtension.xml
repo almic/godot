@@ -178,6 +178,11 @@
 			<description>
 			</description>
 		</method>
+		<method name="_get_inverse_inertia_diagonal" qualifiers="virtual required const">
+			<return type="Vector3" />
+			<description>
+			</description>
+		</method>
 		<method name="_get_inverse_inertia_tensor" qualifiers="virtual required const">
 			<return type="Basis" />
 			<description>

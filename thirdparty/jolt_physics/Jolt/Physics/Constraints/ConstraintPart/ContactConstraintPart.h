@@ -39,6 +39,11 @@ public:
 		return mTotalLambda;
 	}
 
+	inline float				GetEffectiveMass() const
+	{
+		return mEffectiveMass;
+	}
+
 	/// Save state of this constraint part
 	void						SaveState(StateRecorder &inStream) const
 	{

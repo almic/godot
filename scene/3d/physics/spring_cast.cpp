@@ -48,6 +48,12 @@ void SpringCast::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_main_body_object"), &SpringCast::get_main_body_object);
 
+	ClassDB::bind_method(D_METHOD("get_forward_input"), &SpringCast::get_forward_input);
+	ClassDB::bind_method(D_METHOD("set_forward_input", "forward_input"), &SpringCast::set_forward_input);
+
+	ClassDB::bind_method(D_METHOD("get_forward_max_speed"), &SpringCast::get_forward_max_speed);
+	ClassDB::bind_method(D_METHOD("set_forward_max_speed", "forward_max_speed"), &SpringCast::set_forward_max_speed);
+
 	ClassDB::bind_method(D_METHOD("get_rest_offset"), &SpringCast::get_rest_offset);
 	ClassDB::bind_method(D_METHOD("set_rest_offset", "rest_offset"), &SpringCast::set_rest_offset);
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "rest_offset", PROPERTY_HINT_RANGE, "-1,1,0.0001,or_less,or_greater,suffix:m"), "set_rest_offset", "get_rest_offset");
@@ -429,6 +435,10 @@ void SpringCast::_build_constraint() {
 	}
 
 	const JoltSpace3D *jolt_space = _get_space();
+	if (jolt_space == nullptr) {
+		// TODO: this should be an error, the space must exist by now
+		return;
+	}
 
 	if (physics_system == nullptr) {
 		physics_system = &jolt_space->get_physics_system();
@@ -558,6 +568,38 @@ void SpringCast::set_main_body(const NodePath &p_body) {
 	}
 }
 
+Vector3 SpringCast::get_forward_input() const {
+	if (spring_cast == nullptr) {
+		return Vector3();
+	}
+
+	return to_godot(spring_cast->GetForwardInput());
+}
+
+void SpringCast::set_forward_input(const Vector3 &p_forward_input) {
+	if (spring_cast == nullptr) {
+		return;
+	}
+
+	spring_cast->SetForwardInput(to_jolt(p_forward_input));
+}
+
+float SpringCast::get_forward_max_speed() const {
+	if (spring_cast == nullptr) {
+		return 0.0;
+	}
+
+	return spring_cast->GetForwardMaxSpeed();
+}
+
+void SpringCast::set_forward_max_speed(float p_forward_max_speed) {
+	if (spring_cast == nullptr) {
+		return;
+	}
+
+	spring_cast->SetForwardMaxSpeed(p_forward_max_speed);
+}
+
 void SpringCast::set_settings(const Ref<SpringCastSettings> &p_settings) {
 	if (p_settings == settings) {
 		return;
@@ -637,7 +679,7 @@ int SpringCast::get_contact_body_count() const {
 	return spring_cast->GetNumContactBody();
 }
 
-PhysicsBody3D *SpringCast::get_contact_body(int p_body_index) const {
+Object *SpringCast::get_contact_body(int p_body_index) const {
 	if (spring_cast == nullptr) {
 		// TODO: warn once about spring cast not existing yet
 		return nullptr;
@@ -658,9 +700,8 @@ PhysicsBody3D *SpringCast::get_contact_body(int p_body_index) const {
 		return nullptr;
 	}
 
-	PhysicsBody3D *body = Object::cast_to<PhysicsBody3D>(ObjectDB::get_instance(object->get_instance_id()));
-	// TODO: this should error (?) if the body is nullptr, because we expected to find a
-	// PhysicsBody3D but it either no longer exists or was some other type.
+	Object *body = ObjectDB::get_instance(object->get_instance_id());
+	// TODO: this should error (?) if the body is nullptr, because we expected to find one.
 	return body;
 }
 
@@ -753,6 +794,11 @@ int SpringCast::get_contact_shape(int p_body_index, int p_shape_index) const {
 	}
 
 	const JoltSpace3D *space = _get_space();
+	if (space == nullptr) {
+		// TODO: print an error
+		return -1;
+	}
+
 	const JoltShapedObject3D *object = space->try_get_shaped(spring_cast->GetContactBodyID(p_body_index));
 	if (object == nullptr) {
 		// TODO: when there is an ID validity test added, this should error because the body

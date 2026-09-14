@@ -83,6 +83,12 @@ public:
 
 	PhysicsBody3D *get_main_body_object() const { return _get_body(); }
 
+	Vector3 get_forward_input() const;
+	void set_forward_input(const Vector3 &p_forward_input);
+
+	float get_forward_max_speed() const;
+	void set_forward_max_speed(float p_forward_max_speed);
+
 	float get_rest_offset() const { return rest_offset; }
 	void set_rest_offset(float p_rest_offset) {
 		rest_offset = p_rest_offset;
@@ -114,7 +120,7 @@ public:
 	bool is_colliding() const;
 
 	int get_contact_body_count() const;
-	PhysicsBody3D *get_contact_body(int p_body_index) const;
+	Object *get_contact_body(int p_body_index) const;
 	RID get_contact_body_rid(int p_body_index) const;
 	Vector3 get_contact_normal(int p_body_index) const;
 	Vector3 get_contact_average_point(int p_body_index) const;

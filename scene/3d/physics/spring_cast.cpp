@@ -26,6 +26,11 @@ SpringCast::SpringCast() {
 }
 
 SpringCast::~SpringCast() {
+	if (jolt_body != nullptr) {
+		jolt_body->remove_constraint(this);
+		jolt_body = nullptr;
+	}
+
 	_destroy_constraint();
 }
 
@@ -393,6 +398,10 @@ void SpringCast::_update_body() const {
 	phys_body = nullptr;
 
 	if (main_body.is_empty() || !is_inside_tree()) {
+		if (jolt_body != nullptr) {
+			jolt_body->remove_constraint(this);
+			jolt_body = nullptr;
+		}
 		return;
 	}
 
@@ -415,6 +424,21 @@ void SpringCast::_update_body() const {
 	}
 
 	body_rid = phys_body->get_rid();
+
+	const JoltPhysicsServer3D *jolt_server = JoltPhysicsServer3D::get_singleton();
+	JoltBody3D *new_jolt_body = jolt_server->get_body(body_rid);
+
+	if (new_jolt_body != jolt_body) {
+		if (jolt_body != nullptr) {
+			jolt_body->remove_constraint(this);
+		}
+
+		jolt_body = new_jolt_body;
+
+		if (jolt_body != nullptr) {
+			jolt_body->add_constraint(this);
+		}
+	}
 }
 
 JoltSpace3D *SpringCast::_get_space() const {
@@ -443,9 +467,6 @@ void SpringCast::_build_constraint() {
 	if (physics_system == nullptr) {
 		physics_system = &jolt_space->get_physics_system();
 	}
-
-	const JoltPhysicsServer3D *jolt_server = JoltPhysicsServer3D::get_singleton();
-	JoltBody3D *jolt_body = jolt_server->get_body(body_rid);
 
 	if (jolt_body == nullptr) {
 		return;
@@ -510,6 +531,17 @@ void SpringCast::_remove_constraint() {
 	_is_constraint_added = false;
 }
 
+void SpringCast::build() {
+	_build_constraint();
+	if (_auto_add_remove) {
+		_add_constraint();
+	}
+}
+
+void SpringCast::destroy() {
+	_destroy_constraint();
+}
+
 bool SpringCast::is_enabled() const {
 	return (spring_cast != nullptr) && (spring_cast->IsActive());
 }
@@ -547,6 +579,12 @@ void SpringCast::set_main_body(const NodePath &p_body) {
 	if (p_body.is_empty()) {
 		// NOTE: If the path is empty, the intention is to destroy the constraint
 		_destroy_constraint();
+
+		if (jolt_body != nullptr) {
+			jolt_body->remove_constraint(this);
+			jolt_body = nullptr;
+		}
+
 		body_rid = RID();
 		main_body = NodePath();
 		return;
@@ -562,9 +600,13 @@ void SpringCast::set_main_body(const NodePath &p_body) {
 		return;
 	}
 
-	// Only rebuild if the constraint has already been created, otherwise this should get called later in post tree entered
-	if (spring_cast != nullptr) {
+	// Only rebuild if the constraint has already been created, or we are in the tree with no constraint
+	if (spring_cast != nullptr || (spring_cast == nullptr && is_inside_tree())) {
 		_build_constraint();
+
+		if (_auto_add_remove) {
+			_add_constraint();
+		}
 	}
 }
 

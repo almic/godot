@@ -36,6 +36,7 @@
 class JoltArea3D;
 class JoltJoint3D;
 class JoltSoftBody3D;
+class JoltConstraint;
 
 class JoltBody3D final : public JoltShapedObject3D {
 public:
@@ -64,6 +65,7 @@ private:
 	LocalVector<Contact> contacts;
 	LocalVector<JoltArea3D *> areas;
 	LocalVector<JoltJoint3D *> joints;
+	LocalVector<JoltConstraint *> constraints;
 
 	Variant custom_integration_userdata;
 
@@ -250,6 +252,9 @@ public:
 	void add_joint(JoltJoint3D *p_joint);
 	void remove_joint(JoltJoint3D *p_joint);
 	void joint_changed(JoltJoint3D *p_joint);
+
+	void add_constraint(const JoltConstraint *p_constraint);
+	void remove_constraint(const JoltConstraint *p_constraint);
 
 	void call_queries();
 

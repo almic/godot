@@ -8,6 +8,8 @@
 #include "scene/resources/mesh.h"
 
 #include "modules/jolt_physics/misc/jolt_type_conversions.h"
+#include "modules/jolt_physics/objects/jolt_body_3d.h"
+#include "modules/jolt_physics/objects/jolt_constraint.h"
 
 #include <Jolt/Jolt.h>
 
@@ -20,7 +22,7 @@ class SpringCastSettings;
 class JoltQueryFilter3D;
 class JoltSpace3D;
 
-class SpringCast : public Node3D {
+class SpringCast : public Node3D, public JoltConstraint {
 	GDCLASS(SpringCast, Node3D);
 
 	float rest_offset = 0.0;
@@ -44,6 +46,7 @@ class SpringCast : public Node3D {
 	NodePath main_body;
 	mutable RID body_rid;
 	mutable PhysicsBody3D *phys_body = nullptr;
+	mutable JoltBody3D *jolt_body = nullptr;
 
 	PhysicsBody3D *_get_body() const;
 	JoltSpace3D *_get_space() const;
@@ -67,6 +70,9 @@ protected:
 public:
 	SpringCast();
 	~SpringCast();
+
+	virtual void build() override;
+	virtual void destroy() override;
 
 	bool is_enabled() const;
 	bool set_enabled(bool p_enabled);

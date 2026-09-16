@@ -34,6 +34,7 @@
 #include "../jolt_project_settings.h"
 #include "../misc/jolt_math_funcs.h"
 #include "../misc/jolt_type_conversions.h"
+#include "../objects/jolt_constraint.h"
 #include "../shapes/jolt_shape_3d.h"
 #include "../spaces/jolt_broad_phase_layer.h"
 #include "../spaces/jolt_space_3d.h"
@@ -371,6 +372,9 @@ void JoltBody3D::_update_joint_constraints() {
 	for (JoltJoint3D *joint : joints) {
 		joint->rebuild();
 	}
+	for (JoltConstraint *constraint : constraints) {
+		constraint->build();
+	}
 }
 
 void JoltBody3D::_update_possible_kinematic_contacts() {
@@ -396,6 +400,9 @@ void JoltBody3D::_update_sleep_allowed() {
 void JoltBody3D::_destroy_joint_constraints() {
 	for (JoltJoint3D *joint : joints) {
 		joint->destroy();
+	}
+	for (JoltConstraint *constraint : constraints) {
+		constraint->destroy();
 	}
 }
 
@@ -1137,6 +1144,22 @@ void JoltBody3D::joint_changed(JoltJoint3D *p_joint) {
 	if (!joints.has(p_joint)) {
 		return;
 	}
+
+	_joints_changed();
+}
+
+void JoltBody3D::add_constraint(const JoltConstraint *p_constraint) {
+	JoltConstraint *constraint = const_cast<JoltConstraint *>(p_constraint);
+	if (constraints.has(constraint)) {
+		return;
+	}
+
+	constraints.push_back(constraint);
+	_joints_changed();
+}
+
+void JoltBody3D::remove_constraint(const JoltConstraint *p_constraint) {
+	constraints.erase(const_cast<JoltConstraint *>(p_constraint));
 
 	_joints_changed();
 }

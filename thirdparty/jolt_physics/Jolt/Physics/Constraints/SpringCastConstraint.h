@@ -338,8 +338,8 @@ protected:
 	friend class SpringCastCollisionTester;
 	friend class SpringCastCollisionTesterCastSphere;
 
-	PickCollisionsFunction		mPickCollisionsFunction;			///< Function to exclude certain body contacts after initial collision detection
-	void *						mPickCollisionsContext;				///< Pointer to context data for the pick collisions function
+	PickCollisionsFunction		mPickCollisionsFunction = nullptr;	///< Function to exclude certain body contacts after initial collision detection
+	void *						mPickCollisionsContext = nullptr;	///< Pointer to context data for the pick collisions function
 	uint						mNumContactBody = 0;				///< Current number of contact bodies
 	Array<Body *>				mContactBody;						///< Body objects in contact with the spring
 	Array<BodyID>				mContactBodyID;						///< Body IDs in contact with the spring, used to retain constraint forces across steps

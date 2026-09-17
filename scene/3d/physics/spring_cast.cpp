@@ -199,8 +199,6 @@ void SpringCastSettings::_validate_property(PropertyInfo &p_property) const {
 void SpringCast::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_ENTER_TREE: {
-			_settings_changed(); // Used to ensure the node is positioned from settings on load
-
 			if (get_tree()->is_debugging_collisions_hint() && !Engine::get_singleton()->is_editor_hint()) {
 				set_physics_process_internal(true);
 			}
@@ -214,11 +212,13 @@ void SpringCast::_notification(int p_what) {
 			}
 
 			if (spring_cast == nullptr) {
-				_build_constraint();
-			}
+				build();
+			} else {
+				if (_auto_add_remove) {
+					_add_constraint();
+				}
 
-			if (_auto_add_remove) {
-				_add_constraint();
+				_settings_changed(); // Used to ensure the node is positioned from settings on load
 			}
 		} break;
 
@@ -252,7 +252,7 @@ void SpringCast::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_LOCAL_TRANSFORM_CHANGED: {
-			if (_transform_settings_locked || !settings.is_valid()) {
+			if (!Engine::get_singleton()->is_editor_hint() || _transform_settings_locked || !settings.is_valid()) {
 				return;
 			}
 
@@ -533,9 +533,13 @@ void SpringCast::_remove_constraint() {
 
 void SpringCast::build() {
 	_build_constraint();
+
 	if (_auto_add_remove) {
 		_add_constraint();
 	}
+
+	// Force position update
+	_settings_changed();
 }
 
 void SpringCast::destroy() {
@@ -602,11 +606,7 @@ void SpringCast::set_main_body(const NodePath &p_body) {
 
 	// Only rebuild if the constraint has already been created, or we are in the tree with no constraint
 	if (spring_cast != nullptr || (spring_cast == nullptr && is_inside_tree())) {
-		_build_constraint();
-
-		if (_auto_add_remove) {
-			_add_constraint();
-		}
+		build();
 	}
 }
 
@@ -668,8 +668,7 @@ void SpringCast::_settings_changed() {
 		return;
 	}
 
-	const bool is_editor = Engine::get_singleton()->is_editor_hint();
-	if (!_transform_settings_locked && is_editor && settings.is_valid()) {
+	if (!_transform_settings_locked && settings.is_valid()) {
 		PhysicsBody3D *body = _get_body();
 		if (body != nullptr) {
 			_transform_settings_locked = true;
@@ -678,7 +677,7 @@ void SpringCast::_settings_changed() {
 		}
 	}
 
-	if (is_editor || get_tree()->is_debugging_collisions_hint()) {
+	if (Engine::get_singleton()->is_editor_hint() || get_tree()->is_debugging_collisions_hint()) {
 		_update_debug_shape();
 		update_gizmos();
 	}

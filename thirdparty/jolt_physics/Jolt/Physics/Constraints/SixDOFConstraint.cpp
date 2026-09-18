@@ -336,16 +336,7 @@ void SixDOFConstraint::SetMotorState(EAxis inAxis, EMotorState inState)
 
 void SixDOFConstraint::SetTargetOrientationCS(QuatArg inOrientation)
 {
-	Quat q_swing, q_twist;
-	inOrientation.GetSwingTwist(q_swing, q_twist);
-
-	uint clamped_axis;
-	mSwingTwistConstraintPart.ClampSwingTwist(q_swing, q_twist, clamped_axis);
-
-	if (clamped_axis != 0)
-		mTargetOrientation = q_swing * q_twist;
-	else
-		mTargetOrientation = inOrientation;
+	mTargetOrientation = inOrientation;
 }
 
 void SixDOFConstraint::SetupVelocityConstraint(float inDeltaTime)
@@ -473,7 +464,7 @@ void SixDOFConstraint::SetupVelocityConstraint(float inDeltaTime)
 		if (mRotationMotorActive)
 		{
 			// Calculate rotation motor axis
-			Mat44 ws_axis = Mat44::sRotation(constraint_body2_to_world);
+			Mat44 ws_axis = Mat44::sRotation(constraint_body1_to_world);
 			for (int i = 0; i < 3; ++i)
 				mRotationAxis[i] = ws_axis.GetColumn3(i);
 
@@ -569,19 +560,27 @@ void SixDOFConstraint::SetupVelocityConstraint(float inDeltaTime)
 				case EMotorState::Velocity:
 					if (IsPIDVelocityActive(axis))
 					{
-						Vec3 local_axis = rotation2.Conjugated() * rotation_axis;
-						Quat snapped_diff = (Quat::sFromTo(diff * local_axis, local_axis) * diff).Normalized();
-						snapped_diff.EnsureWPositive();
+						Vec3 local_axis = rotation2.EnsureWPositive().Conjugated() * rotation_axis;
+						Quat snapped_q = (Quat::sFromTo(q * local_axis, local_axis) * q).EnsureWPositive();
 
-						Vec3 diff_axis;
-						float diff_angle;
-						snapped_diff.GetAxisAngle(diff_axis, diff_angle);
+						Vec3 q_axis;
+						float q_angle;
+						snapped_q.GetAxisAngle(q_axis, q_angle);
 
-						if (local_axis.Dot(diff_axis) < 0.0) {
-							diff_angle = -diff_angle;
+						if (local_axis.Dot(q_axis) < 0.0) {
+							q_angle = -q_angle;
 						}
 
-						mTargetAngularVelocity.SetComponent(i, -mMotorPIDVelocity[axis].Update(diff_angle, 0.0, inDeltaTime));
+						Vec3 t_axis;
+						float t_angle;
+						target_orientation.GetAxisAngle(t_axis, t_angle);
+						if (local_axis.Dot(t_axis) < 0.0) {
+							t_angle = -t_angle;
+						}
+
+						float angle_error = t_angle - q_angle;
+
+						mTargetAngularVelocity.SetComponent(i, -mMotorPIDVelocity[axis].Update(angle_error, 0.0, inDeltaTime));
 					}
 					mMotorRotationConstraintPart[i].CalculateConstraintProperties(*mBody1, *mBody2, rotation_axis, -mTargetAngularVelocity[i]);
 					break;
@@ -708,7 +707,6 @@ bool SixDOFConstraint::SolveVelocityConstraint(float inDeltaTime)
 
 				case EMotorState::Velocity:
 				{
-					EAxis axis = EAxis(EAxis::RotationX + i);
 					if (IsPIDAccelerationActive(axis))
 					{
 						float target_velocity = -mTargetAngularVelocity[i];

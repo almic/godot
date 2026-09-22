@@ -32,6 +32,7 @@ class SpringCast : public Node3D, public JoltConstraint {
 	JPH::Ref<JPH::SpringCastConstraint> spring_cast;
 	JPH::Ref<JPH::SpringCastCollisionTester> collision_tester;
 	Ref<SpringCastSettings> settings;
+	bool _is_settings_changed_deferred = false;
 	JPH::PhysicsSystem *physics_system = nullptr;
 	JoltQueryFilter3D *collision_filter = nullptr;
 	Callable pick_collisions_user;

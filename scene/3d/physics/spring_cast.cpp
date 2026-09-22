@@ -494,7 +494,11 @@ void SpringCast::_build_constraint() {
 	}
 
 	// The value of enabled depends on spring_cast existing, so ensure the property list updates to reflect that
-	notify_property_list_changed();
+	if (!Thread::is_main_thread()) {
+		callable_mp((Object *)this, &Object::notify_property_list_changed).call_deferred();
+	} else {
+		notify_property_list_changed();
+	}
 }
 
 void SpringCast::_destroy_constraint() {
@@ -664,6 +668,17 @@ void SpringCast::set_settings(const Ref<SpringCastSettings> &p_settings) {
 }
 
 void SpringCast::_settings_changed() {
+	// NOTE: this can fail in several places due to threading issues, so this must be deferred to main thread
+	if (!Thread::is_main_thread()) {
+		if (!_is_settings_changed_deferred) {
+			callable_mp(this, &SpringCast::_settings_changed).call_deferred();
+			_is_settings_changed_deferred = true;
+		}
+		return;
+	} else {
+		_is_settings_changed_deferred = false;
+	}
+
 	if (!is_inside_tree()) {
 		return;
 	}

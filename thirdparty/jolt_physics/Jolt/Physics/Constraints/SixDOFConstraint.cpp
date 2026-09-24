@@ -560,8 +560,8 @@ void SixDOFConstraint::SetupVelocityConstraint(float inDeltaTime)
 				case EMotorState::Velocity:
 					if (IsPIDVelocityActive(axis))
 					{
-						Vec3 local_axis = rotation2.EnsureWPositive().Conjugated() * rotation_axis;
-						Quat snapped_q = (Quat::sFromTo(q * local_axis, local_axis) * q).EnsureWPositive();
+						Vec3 local_axis = rotation2.Conjugated() * rotation_axis;
+						Quat snapped_q = (Quat::sFromTo(q * local_axis, local_axis) * q);
 
 						Vec3 q_axis;
 						float q_angle;

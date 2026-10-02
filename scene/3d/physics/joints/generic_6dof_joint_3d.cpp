@@ -58,6 +58,9 @@ void Generic6DOFJoint3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("has_target_rotation"), &Generic6DOFJoint3D::has_target_rotation);
 	ClassDB::bind_method(D_METHOD("clear_angular_target_rotation"), &Generic6DOFJoint3D::clear_angular_target_rotation);
 
+	ClassDB::bind_method(D_METHOD("set_angular_target_velocity", "target_velocity"), &Generic6DOFJoint3D::set_angular_target_velocity);
+	ClassDB::bind_method(D_METHOD("get_angular_target_velocity"), &Generic6DOFJoint3D::get_angular_target_velocity);
+
 	ClassDB::bind_method(D_METHOD("set_motor_pid_acceleration", "axis", "proportional", "integral", "derivative"), &Generic6DOFJoint3D::set_motor_pid_acceleration);
 	ClassDB::bind_method(D_METHOD("get_motor_pid_acceleration", "axis"), &Generic6DOFJoint3D::get_motor_pid_acceleration);
 	ClassDB::bind_method(D_METHOD("set_motor_pid_velocity", "axis", "proportional", "integral", "derivative"), &Generic6DOFJoint3D::set_motor_pid_velocity);
@@ -428,6 +431,28 @@ void Generic6DOFJoint3D::clear_angular_target_rotation() {
 	server->generic_6dof_joint_set_param(get_rid(), Vector3::AXIS_X, PhysicsServer3D::G6DOF_JOINT_ANGULAR_SPRING_EQUILIBRIUM_POINT, params_x[PARAM_ANGULAR_SPRING_EQUILIBRIUM_POINT]);
 	server->generic_6dof_joint_set_param(get_rid(), Vector3::AXIS_Y, PhysicsServer3D::G6DOF_JOINT_ANGULAR_SPRING_EQUILIBRIUM_POINT, params_y[PARAM_ANGULAR_SPRING_EQUILIBRIUM_POINT]);
 	server->generic_6dof_joint_set_param(get_rid(), Vector3::AXIS_Z, PhysicsServer3D::G6DOF_JOINT_ANGULAR_SPRING_EQUILIBRIUM_POINT, params_z[PARAM_ANGULAR_SPRING_EQUILIBRIUM_POINT]);
+}
+
+void Generic6DOFJoint3D::set_angular_target_velocity(const Vector3 &p_velocity) {
+	params_x[PARAM_ANGULAR_MOTOR_TARGET_VELOCITY] = p_velocity.x;
+	params_y[PARAM_ANGULAR_MOTOR_TARGET_VELOCITY] = p_velocity.y;
+	params_z[PARAM_ANGULAR_MOTOR_TARGET_VELOCITY] = p_velocity.z;
+
+	if (!is_configured()) {
+		return;
+	}
+
+	PhysicsServer3D *server = PhysicsServer3D::get_singleton();
+	server->generic_6dof_joint_set_param(get_rid(), Vector3::AXIS_X, PhysicsServer3D::G6DOFJointAxisParam(PARAM_ANGULAR_MOTOR_TARGET_VELOCITY), p_velocity.x);
+	server->generic_6dof_joint_set_param(get_rid(), Vector3::AXIS_Y, PhysicsServer3D::G6DOFJointAxisParam(PARAM_ANGULAR_MOTOR_TARGET_VELOCITY), p_velocity.y);
+	server->generic_6dof_joint_set_param(get_rid(), Vector3::AXIS_Z, PhysicsServer3D::G6DOFJointAxisParam(PARAM_ANGULAR_MOTOR_TARGET_VELOCITY), p_velocity.z);
+}
+
+Vector3 Generic6DOFJoint3D::get_angular_target_velocity() const {
+	return Vector3(
+			params_x[PARAM_ANGULAR_MOTOR_TARGET_VELOCITY],
+			params_y[PARAM_ANGULAR_MOTOR_TARGET_VELOCITY],
+			params_z[PARAM_ANGULAR_MOTOR_TARGET_VELOCITY]);
 }
 
 void Generic6DOFJoint3D::set_motor_pid_acceleration(MotorAxis p_axis, real_t p_proportional, real_t p_integral, real_t p_derivative) {

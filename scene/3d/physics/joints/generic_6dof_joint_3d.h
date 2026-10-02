@@ -142,6 +142,9 @@ public:
 	bool has_target_rotation() const;
 	void clear_angular_target_rotation();
 
+	void set_angular_target_velocity(const Vector3 &p_velocity);
+	Vector3 get_angular_target_velocity() const;
+
 	void set_motor_pid_acceleration(MotorAxis p_axis, real_t p_proportional, real_t p_integral, real_t p_derivative);
 	Vector3 get_motor_pid_acceleration(MotorAxis p_axis) const;
 

@@ -129,6 +129,7 @@ private:
 
 	void _on_wake_up();
 
+	void _update_gyroscopic_forces();
 	void _update_mass_properties();
 	bool _needs_update_environmental_properties() const;
 	void _update_environmental_properties();

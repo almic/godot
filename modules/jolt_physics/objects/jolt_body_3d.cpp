@@ -103,6 +103,7 @@ void JoltBody3D::_add_to_space() {
 	jolt_settings->mAllowDynamicOrKinematic = true;
 	jolt_settings->mCollideKinematicVsNonDynamic = reports_all_kinematic_contacts();
 	jolt_settings->mUseManifoldReduction = !reports_contacts();
+	jolt_settings->mApplyGyroscopicForce = is_rigid();
 	jolt_settings->mAllowSleeping = is_sleep_actually_allowed();
 	jolt_settings->mLinearDamping = 0.0f;
 	jolt_settings->mAngularDamping = 0.0f;
@@ -274,6 +275,15 @@ void JoltBody3D::_on_wake_up() {
 	}
 }
 
+void JoltBody3D::_update_gyroscopic_forces() {
+	const bool value = is_rigid();
+	if (!in_space()) {
+		jolt_settings->mApplyGyroscopicForce = value;
+	} else {
+		jolt_body->SetApplyGyroscopicForce(value);
+	}
+}
+
 void JoltBody3D::_update_mass_properties() {
 	if (in_space()) {
 		jolt_body->GetMotionPropertiesUnchecked()->SetMassProperties(_calculate_allowed_dofs(), _calculate_mass_properties());
@@ -426,6 +436,7 @@ void JoltBody3D::_update_group_filter() {
 }
 
 void JoltBody3D::_mode_changed() {
+	_update_gyroscopic_forces();
 	_update_object_layer();
 	_update_kinematic_transform();
 	_update_mass_properties();

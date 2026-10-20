@@ -35,6 +35,7 @@ JPH_DECLARE_RTTI_WITH_NAMESPACE_FOR_FACTORY(JPH_EXPORT, JPH, RagdollSettings)
 JPH_DECLARE_RTTI_WITH_NAMESPACE_FOR_FACTORY(JPH_EXPORT, JPH, PointConstraintSettings)
 JPH_DECLARE_RTTI_WITH_NAMESPACE_FOR_FACTORY(JPH_EXPORT, JPH, SixDOFConstraintSettings)
 JPH_DECLARE_RTTI_WITH_NAMESPACE_FOR_FACTORY(JPH_EXPORT, JPH, SliderConstraintSettings)
+JPH_DECLARE_RTTI_WITH_NAMESPACE_FOR_FACTORY(JPH_EXPORT, JPH, SpringCastConstraintSettings)
 JPH_DECLARE_RTTI_WITH_NAMESPACE_FOR_FACTORY(JPH_EXPORT, JPH, SwingTwistConstraintSettings)
 JPH_DECLARE_RTTI_WITH_NAMESPACE_FOR_FACTORY(JPH_EXPORT, JPH, DistanceConstraintSettings)
 JPH_DECLARE_RTTI_WITH_NAMESPACE_FOR_FACTORY(JPH_EXPORT, JPH, HingeConstraintSettings)
@@ -157,6 +158,7 @@ void RegisterTypesInternal(uint64 inVersionID)
 		JPH_RTTI(PointConstraintSettings),
 		JPH_RTTI(SixDOFConstraintSettings),
 		JPH_RTTI(SliderConstraintSettings),
+		JPH_RTTI(SpringCastConstraintSettings),
 		JPH_RTTI(SwingTwistConstraintSettings),
 		JPH_RTTI(DistanceConstraintSettings),
 		JPH_RTTI(HingeConstraintSettings),

@@ -75,6 +75,8 @@ public:
 	virtual void build() override;
 	virtual void destroy() override;
 
+	bool is_active() const;
+
 	bool is_enabled() const;
 	bool set_enabled(bool p_enabled);
 

@@ -7,8 +7,8 @@
 #include "core/math/math_defs.h"
 #include "core/object/callable_mp.h"
 #include "core/object/class_db.h"
+#include "core/object/property_info.h"
 #include "core/variant/variant_utility.h"
-#include "scene/3d/node_3d.h"
 #include "scene/3d/physics/physics_body_3d.h"
 #include "scene/main/scene_tree.h"
 #include "scene/resources/3d/convex_polygon_shape_3d.h"
@@ -35,9 +35,11 @@ SpringCast::~SpringCast() {
 }
 
 void SpringCast::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("is_active"), &SpringCast::is_active);
+
 	ClassDB::bind_method(D_METHOD("is_enabled"), &SpringCast::is_enabled);
 	ClassDB::bind_method(D_METHOD("set_enabled", "enabled"), &SpringCast::set_enabled);
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "enabled"), "set_enabled", "is_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "enabled", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NONE), "set_enabled", "is_enabled");
 
 	ClassDB::bind_method(D_METHOD("is_auto_add_enabled"), &SpringCast::is_auto_add_enabled);
 	ClassDB::bind_method(D_METHOD("set_auto_add_enabled", "enabled"), &SpringCast::set_auto_add_enabled);
@@ -550,8 +552,12 @@ void SpringCast::destroy() {
 	_destroy_constraint();
 }
 
-bool SpringCast::is_enabled() const {
+bool SpringCast::is_active() const {
 	return (spring_cast != nullptr) && (spring_cast->IsActive());
+}
+
+bool SpringCast::is_enabled() const {
+	return (spring_cast != nullptr) && (spring_cast->GetEnabled());
 }
 
 bool SpringCast::set_enabled(bool p_enabled) {

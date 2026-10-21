@@ -33,6 +33,7 @@
 #include <Jolt/Jolt.h>
 
 #include <Jolt/Physics/Constraints/SpringCastConstraint.h>
+#include <Jolt/Physics/Vehicle/VehicleCollisionTester.h>
 
 void jolt_initialize();
 void jolt_deinitialize();
@@ -40,3 +41,7 @@ void jolt_deinitialize();
 // AHAOHHAEHOHTAHTOHE
 
 JPH::SpringCastCollisionTesterCastSphere *spring_collision_tester_sphere() __attribute__((used));
+
+JPH::VehicleCollisionTesterRay *vehicle_collision_tester_ray(const JPH::ObjectLayer &layer) __attribute__((used));
+JPH::VehicleCollisionTesterCastSphere *vehicle_collision_tester_sphere(const JPH::ObjectLayer &layer, float radius) __attribute__((used));
+JPH::VehicleCollisionTesterCastCylinder *vehicle_collision_tester_cylinder(const JPH::ObjectLayer &layer) __attribute__((used));

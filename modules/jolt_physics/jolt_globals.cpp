@@ -133,3 +133,15 @@ void jolt_deinitialize() {
 JPH::SpringCastCollisionTesterCastSphere *spring_collision_tester_sphere() {
 	return new JPH::SpringCastCollisionTesterCastSphere();
 }
+
+JPH::VehicleCollisionTesterRay *vehicle_collision_tester_ray(const JPH::ObjectLayer &layer) {
+	return new JPH::VehicleCollisionTesterRay(layer);
+}
+
+JPH::VehicleCollisionTesterCastSphere *vehicle_collision_tester_sphere(const JPH::ObjectLayer &layer, float radius) {
+	return new JPH::VehicleCollisionTesterCastSphere(layer, radius);
+}
+
+JPH::VehicleCollisionTesterCastCylinder *vehicle_collision_tester_cylinder(const JPH::ObjectLayer &layer) {
+	return new JPH::VehicleCollisionTesterCastCylinder(layer);
+}

@@ -342,6 +342,13 @@
 #include "scene/3d/physics/character_body_3d.h"
 #include "scene/3d/physics/collision_polygon_3d.h"
 #include "scene/3d/physics/collision_shape_3d.h"
+#include "scene/3d/physics/constraint/vehicle/anti_roll_bar_settings.h"
+#include "scene/3d/physics/constraint/vehicle/controller.h"
+#include "scene/3d/physics/constraint/vehicle/differential_settings.h"
+#include "scene/3d/physics/constraint/vehicle/engine_settings.h"
+#include "scene/3d/physics/constraint/vehicle/transmission_settings.h"
+#include "scene/3d/physics/constraint/vehicle/vehicle.h"
+#include "scene/3d/physics/constraint/vehicle/wheel_settings.h"
 #include "scene/3d/physics/joints/cone_twist_joint_3d.h"
 #include "scene/3d/physics/joints/distance_joint_3d.h"
 #include "scene/3d/physics/joints/generic_6dof_joint_3d.h"
@@ -745,6 +752,27 @@ void register_scene_types() {
 	GDREGISTER_CLASS(ShapeCast3D);
 	GDREGISTER_CLASS(SpringCast);
 	GDREGISTER_CLASS(SpringCastSettings);
+
+	// Jolt Vehicle classes
+	GDREGISTER_CLASS(AntiRollBarSettings);
+
+	GDREGISTER_CLASS(Vehicle);
+	GDREGISTER_CLASS(VehicleSettings);
+
+	GDREGISTER_ABSTRACT_CLASS(VehicleController);
+	GDREGISTER_CLASS(WheeledVehicleController);
+
+	GDREGISTER_ABSTRACT_CLASS(VehicleControllerSettings);
+	GDREGISTER_CLASS(WheeledVehicleControllerSettings);
+
+	GDREGISTER_CLASS(VehicleDifferentialSettings);
+	GDREGISTER_CLASS(VehicleEngineSettings);
+	GDREGISTER_CLASS(VehicleTransmissionSettings);
+
+	GDREGISTER_ABSTRACT_CLASS(WheelBaseSettings);
+	GDREGISTER_CLASS(WheelSettings);
+	// end Jolt Vehicle classes
+
 #endif // PHYSICS_3D_DISABLED
 	GDREGISTER_CLASS(MultiMeshInstance3D);
 

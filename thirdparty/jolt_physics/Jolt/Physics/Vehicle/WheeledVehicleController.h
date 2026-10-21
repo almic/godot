@@ -145,6 +145,9 @@ public:
 	/// Get the average wheel speed of all driven wheels (measured at the clutch)
 	float						GetWheelSpeedAtClutch() const;
 
+	/// Returns if any wheels are slipping
+	bool						IsAnyDrivenWheelSlipping() const			{ return mAnyDrivenWheelSlipping; }
+
 	/// Calculate max tire impulses by combining friction, slip, and suspension impulse. Note that the actual applied impulse may be lower (e.g. when the vehicle is stationary on a horizontal surface the actual impulse applied will be 0).
 	using TireMaxImpulseCallback = function<void(uint inWheelIndex, float &outLongitudinalImpulse, float &outLateralImpulse, float inSuspensionImpulse, float inLongitudinalFriction, float inLateralFriction, float inLongitudinalSlip, float inLateralSlip, float inDeltaTime)>;
 	const TireMaxImpulseCallback&GetTireMaxImpulseCallback() const			{ return mTireMaxImpulseCallback; }
@@ -186,6 +189,7 @@ protected:
 	Differentials				mDifferentials;								///< Differential states of the vehicle
 	float						mDifferentialLimitedSlipRatio;				///< Ratio max / min average wheel speed of each differential (measured at the clutch).
 	float						mPreviousDeltaTime = 0.0f;					///< Delta time of the last step
+	bool						mAnyDrivenWheelSlipping;					///< True when any driven wheels are slipping, preventing automatic shifting up
 
 	// Callback that calculates the max impulse that the tire can apply to the ground
 	TireMaxImpulseCallback		mTireMaxImpulseCallback =

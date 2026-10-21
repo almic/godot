@@ -1180,6 +1180,10 @@ Vector<Vector3> Geometry3D::compute_convex_mesh_points(const TypedArray<Plane> &
 	return ret;
 }
 
+real_t Geometry3D::compute_triangle_area(const Vector3 &p_point_a, const Vector3 &p_point_b, const Vector3 &p_point_c) {
+	return ::Geometry3D::compute_triangle_area(p_point_a, p_point_b, p_point_c);
+}
+
 TypedArray<Plane> Geometry3D::build_box_planes(const Vector3 &p_extents) {
 	Variant ret = ::Geometry3D::build_box_planes(p_extents);
 	return ret;
@@ -1283,6 +1287,7 @@ Vector<int32_t> Geometry3D::tetrahedralize_delaunay(const Vector<Vector3> &p_poi
 
 void Geometry3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("compute_convex_mesh_points", "planes"), &Geometry3D::compute_convex_mesh_points);
+	ClassDB::bind_method(D_METHOD("compute_triangle_area", "point_a", "point_b", "point_c"), &Geometry3D::compute_triangle_area);
 	ClassDB::bind_method(D_METHOD("build_box_planes", "extents"), &Geometry3D::build_box_planes);
 	ClassDB::bind_method(D_METHOD("build_cylinder_planes", "radius", "height", "sides", "axis"), &Geometry3D::build_cylinder_planes, DEFVAL(Vector3::AXIS_Z));
 	ClassDB::bind_method(D_METHOD("build_capsule_planes", "radius", "height", "sides", "lats", "axis"), &Geometry3D::build_capsule_planes, DEFVAL(Vector3::AXIS_Z));

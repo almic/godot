@@ -599,6 +599,7 @@ Vector<Plane> build_cylinder_planes(real_t p_radius, real_t p_height, int p_side
 Vector<Plane> build_capsule_planes(real_t p_radius, real_t p_height, int p_sides, int p_lats, Vector3::Axis p_axis = Vector3::AXIS_Z);
 
 Vector<Vector3> compute_convex_mesh_points(const Plane *p_planes, int p_plane_count);
+real_t compute_triangle_area(const Vector3 &p_point_a, const Vector3 &p_point_b, const Vector3 &p_point_c);
 
 #define FINDMINMAX(x0, x1, x2, min, max) \
 	min = max = x0; \

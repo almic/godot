@@ -859,6 +859,10 @@ Vector<Vector3> Geometry3D::compute_convex_mesh_points(const Plane *p_planes, in
 	return points;
 }
 
+real_t Geometry3D::compute_triangle_area(const Vector3 &p_point_a, const Vector3 &p_point_b, const Vector3 &p_point_c) {
+	return vec3_cross(p_point_a - p_point_b, p_point_a - p_point_c).length() * 0.5f;
+}
+
 #define square(m_s) ((m_s) * (m_s))
 #define BIG_VAL 1e20
 

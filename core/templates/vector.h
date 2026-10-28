@@ -66,6 +66,8 @@ public:
 	typedef typename CowData<T>::Size Size;
 	typedef typename CowData<T>::USize USize;
 
+	using Type = T;
+
 private:
 	CowData<T> _cowdata;
 

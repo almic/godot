@@ -48,6 +48,12 @@
 				Appends a [PackedFloat32Array] at the end of this array.
 			</description>
 		</method>
+		<method name="average" qualifiers="const">
+			<return type="float" />
+			<description>
+				Computes the average value contained in this array.
+			</description>
+		</method>
 		<method name="bsearch" qualifiers="const">
 			<return type="int" />
 			<param index="0" name="value" type="float" />
@@ -198,6 +204,12 @@
 			<description>
 				Sorts the elements of the array in ascending order.
 				[b]Note:[/b] [constant @GDScript.NAN] doesn't behave the same as other numbers. Therefore, the results from this method may not be accurate if NaNs are included.
+			</description>
+		</method>
+		<method name="sum" qualifiers="const">
+			<return type="float" />
+			<description>
+				Computes the sum of all values in this array.
 			</description>
 		</method>
 		<method name="to_byte_array" qualifiers="const">

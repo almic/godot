@@ -49,6 +49,12 @@
 				Appends a [PackedInt64Array] at the end of this array.
 			</description>
 		</method>
+		<method name="average" qualifiers="const">
+			<return type="int" />
+			<description>
+				Computes the average value contained in this array.
+			</description>
+		</method>
 		<method name="bsearch" qualifiers="const">
 			<return type="int" />
 			<param index="0" name="value" type="int" />
@@ -192,6 +198,12 @@
 			<return type="void" />
 			<description>
 				Sorts the elements of the array in ascending order.
+			</description>
+		</method>
+		<method name="sum" qualifiers="const">
+			<return type="int" />
+			<description>
+				Computes the sum of all values in this array.
 			</description>
 		</method>
 		<method name="to_byte_array" qualifiers="const">

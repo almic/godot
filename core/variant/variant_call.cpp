@@ -1155,6 +1155,26 @@ struct _VariantCall {
 		return len;
 	}
 
+	template <typename T>
+	static T func_PackedNumericArray_sum(Vector<T> *p_instance) {
+		static_assert(std::is_arithmetic<T>(), "Cannot create sum() for non-arithmetic Vector<T>");
+
+		T sum = T(0);
+		uint64_t size = p_instance->size();
+
+		for (uint64_t i = 0; i < size; i++) {
+			sum += p_instance->ptr()[i];
+		}
+
+		return sum;
+	}
+
+	template <typename T>
+	static T func_PackedNumericArray_average(Vector<T> *p_instance) {
+		static_assert(std::is_arithmetic<T>(), "Cannot create average() for non-arithmetic Vector<T>");
+		return func_PackedNumericArray_sum(p_instance) / T(p_instance->size());
+	}
+
 	static PackedByteArray func_PackedStringArray_to_byte_array(PackedStringArray *p_instance) {
 		PackedByteArray ret;
 		uint64_t size = p_instance->size();
@@ -2855,6 +2875,8 @@ static void _register_variant_builtin_methods_array() {
 	bind_method(PackedInt32Array, rfind, sarray("value", "from"), varray(-1));
 	bind_method(PackedInt32Array, count, sarray("value"), varray());
 	bind_method(PackedInt32Array, erase, sarray("value"), varray());
+	bind_function(PackedInt32Array, average, _VariantCall::func_PackedNumericArray_average<PackedInt32Array::Type>, sarray(), varray());
+	bind_function(PackedInt32Array, sum, _VariantCall::func_PackedNumericArray_sum<PackedInt32Array::Type>, sarray(), varray());
 
 	/* Int64 Array */
 
@@ -2883,6 +2905,8 @@ static void _register_variant_builtin_methods_array() {
 	bind_method(PackedInt64Array, rfind, sarray("value", "from"), varray(-1));
 	bind_method(PackedInt64Array, count, sarray("value"), varray());
 	bind_method(PackedInt64Array, erase, sarray("value"), varray());
+	bind_function(PackedInt64Array, average, _VariantCall::func_PackedNumericArray_average<PackedInt64Array::Type>, sarray(), varray());
+	bind_function(PackedInt64Array, sum, _VariantCall::func_PackedNumericArray_sum<PackedInt64Array::Type>, sarray(), varray());
 
 	/* Float32 Array */
 
@@ -2911,6 +2935,8 @@ static void _register_variant_builtin_methods_array() {
 	bind_method(PackedFloat32Array, rfind, sarray("value", "from"), varray(-1));
 	bind_method(PackedFloat32Array, count, sarray("value"), varray());
 	bind_method(PackedFloat32Array, erase, sarray("value"), varray());
+	bind_function(PackedFloat32Array, average, _VariantCall::func_PackedNumericArray_average<PackedFloat32Array::Type>, sarray(), varray());
+	bind_function(PackedFloat32Array, sum, _VariantCall::func_PackedNumericArray_sum<PackedFloat32Array::Type>, sarray(), varray());
 
 	/* Float64 Array */
 
@@ -2939,6 +2965,8 @@ static void _register_variant_builtin_methods_array() {
 	bind_method(PackedFloat64Array, rfind, sarray("value", "from"), varray(-1));
 	bind_method(PackedFloat64Array, count, sarray("value"), varray());
 	bind_method(PackedFloat64Array, erase, sarray("value"), varray());
+	bind_function(PackedFloat64Array, average, _VariantCall::func_PackedNumericArray_average<PackedFloat64Array::Type>, sarray(), varray());
+	bind_function(PackedFloat64Array, sum, _VariantCall::func_PackedNumericArray_sum<PackedFloat64Array::Type>, sarray(), varray());
 
 	/* String Array */
 

@@ -134,14 +134,25 @@ Mat44 VehicleConstraint::GetWheelLocalTransform(uint inWheelIndex, Vec3Arg inWhe
 	// Use the two vectors provided to calculate a matrix that takes us from wheel model space to X = right, Y = up, Z = forward (the space where we will rotate the wheel)
 	Mat44 wheel_to_rotational = Mat44(Vec4(inWheelRight, 0), Vec4(inWheelUp, 0), Vec4(inWheelUp.Cross(inWheelRight), 0), Vec4(0, 0, 0, 1)).Transposed();
 
+	const Vec3 local_steer_pos = settings->mPosition + settings->mSuspensionDirection * wheel->mSuspensionLength;
+	const Quat steer_rotation = Quat::sRotation(settings->mSteeringAxis, wheel->mSteerAngle);
+	const Mat44 local_steer = Mat44::sRotationTranslation(steer_rotation, local_steer_pos);
+
 	// Calculate the matrix that takes us from the rotational space to vehicle local space
-	Vec3 local_forward, local_up, local_right;
-	GetWheelLocalBasis(wheel, local_forward, local_up, local_right);
-	Vec3 local_wheel_pos = settings->mPosition + settings->mSuspensionDirection * wheel->mSuspensionLength;
+	const Vec3 local_up = settings->mWheelUp;
+	const Vec3 local_right = settings->mWheelForward.Cross(local_up).Normalized();
+	const Vec3 local_forward = local_up.Cross(local_right).Normalized();
+
+	Vec3 local_wheel_pos;
+	if (abs(settings->mPosition.GetX()) >= 1e-3)
+		local_wheel_pos.Set(Sign(settings->mPosition.GetX()) * settings->mKnuckleLength, 0.0f, 0.0f);
+	else
+		local_wheel_pos.Set(0.0f, 0.0f, 0.0f);
+
 	Mat44 rotational_to_local(Vec4(local_right, 0), Vec4(local_up, 0), Vec4(local_forward, 0), Vec4(local_wheel_pos, 1));
 
 	// Calculate transform of rotated wheel
-	return rotational_to_local * Mat44::sRotationX(wheel->mAngle) * wheel_to_rotational;
+	return local_steer * rotational_to_local * Mat44::sRotationX(wheel->mAngle) * wheel_to_rotational;
 }
 
 RMat44 VehicleConstraint::GetWheelWorldTransform(uint inWheelIndex, Vec3Arg inWheelRight, Vec3Arg inWheelUp) const
@@ -198,7 +209,10 @@ void VehicleConstraint::OnStep(const PhysicsStepListenerContext &inContext)
 		const WheelSettings *settings = w->mSettings;
 
 		// Calculate suspension origin and direction
-		RVec3 ws_origin = body_transform * settings->mPosition;
+		RVec3 ws_origin = RVec3(settings->mPosition);
+		if (abs(ws_origin.GetX()) >= 1e-3)
+			ws_origin.SetX(ws_origin.GetX() + Sign(ws_origin.GetX()) * settings->mKnuckleLength);
+		ws_origin = body_transform * ws_origin;
 		Vec3 ws_direction = body_transform.Multiply3x3(settings->mSuspensionDirection);
 
 		// Test if we need to update this wheel
@@ -244,6 +258,7 @@ void VehicleConstraint::OnStep(const PhysicsStepListenerContext &inContext)
 		{
 			// Store contact velocity, cache this as the contact body may be removed
 			w->mContactPointVelocity = w->mContactBody->GetPointVelocity(w->mContactPosition);
+			w->mContactAngularVelocity = w->mContactBody->GetAngularVelocity();
 
 			// Determine plane constant for axle contact plane
 			w->mAxlePlaneConstant = RVec3(w->mContactNormal).Dot(ws_origin + w->mSuspensionLength * ws_direction);

@@ -58,6 +58,12 @@ public:
 	float get_toe() const { return toe; }
 	void set_toe(float p_toe);
 
+	float get_initial_steer() const { return initial_steer; }
+	void set_initial_steer(float p_steer_angle) {
+		initial_steer = p_steer_angle;
+		emit_changed();
+	}
+
 	float get_suspension_max_length() const { return get_settings()->mSuspensionMaxLength; }
 	void set_suspension_max_length(float p_max_length) {
 		get_settings()->mSuspensionMaxLength = p_max_length;
@@ -94,6 +100,12 @@ public:
 	float get_width() const { return get_settings()->mWidth; }
 	void set_width(float p_width) { get_settings()->mWidth = p_width; }
 
+	float get_knuckle_length() const { return get_settings()->mKnuckleLength; }
+	void set_knuckle_length(float p_knuckle_length) {
+		get_settings()->mKnuckleLength = p_knuckle_length;
+		emit_changed();
+	}
+
 	bool get_enable_suspension_force_point() const { return get_settings()->mEnableSuspensionForcePoint; }
 	void set_enable_suspension_force_point(bool p_enable) {
 		get_settings()->mEnableSuspensionForcePoint = p_enable;
@@ -113,6 +125,8 @@ protected:
 	float caster_angle = 0.0;
 	float camber = 0.0;
 	float toe = 0.0;
+
+	float initial_steer = 0.0;
 
 	// Suspension angle parameters
 	float suspension_forward_angle = 0.0;

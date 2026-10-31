@@ -24,6 +24,8 @@ public:
 	virtual float get_speed_kmh() const { return 0.0f; }
 	float get_speed_mph() const { return get_speed_kmh() / 1.609344; }
 
+	virtual float get_suspension_length(int p_wheel_index) const = 0;
+
 protected:
 	static void _bind_methods();
 };
@@ -39,10 +41,31 @@ protected:
 public:
 	virtual void set_controller(JPH::VehicleController *controller) override {
 		jolt_controller = (JPH::WheeledVehicleController *)controller;
+		notify_property_list_changed();
+	}
+
+	virtual float get_suspension_length(int p_wheel_index) const override {
+		return jolt_controller->GetConstraint().GetWheel(p_wheel_index)->GetSuspensionLength();
 	}
 
 	void set_driver_input(float p_forward, float p_right, float p_brake, float p_hand_brake) {
 		jolt_controller->SetDriverInput(p_forward, p_right, p_brake, p_hand_brake);
+	}
+
+	float get_forward_input() const {
+		return jolt_controller->GetForwardInput();
+	}
+
+	float get_right_input() const {
+		return jolt_controller->GetRightInput();
+	}
+
+	float get_brake_input() const {
+		return jolt_controller->GetBrakeInput();
+	}
+
+	float get_handbrake_input() const {
+		return jolt_controller->GetHandBrakeInput();
 	}
 
 	int get_current_gear() const {
@@ -54,6 +77,78 @@ public:
 	}
 
 	TypedArray<Dictionary> get_wheel_info() const;
+
+	bool is_virtual_steer_enabled() const {
+		if (jolt_controller != nullptr) {
+			return jolt_controller->IsVirtualSteerEnabled();
+		}
+		return false;
+	}
+	void set_virtual_steer_enabled(float p_enabled) {
+		if (jolt_controller) {
+			jolt_controller->SetVirtualSteerEnabled(p_enabled);
+		}
+	}
+
+	float get_virtual_steer() const {
+		if (jolt_controller != nullptr) {
+			return jolt_controller->GetVirtualSteer();
+		}
+		return 0.0f;
+	}
+	void set_virtual_steer(float p_virtual_steer) {
+		if (jolt_controller != nullptr) {
+			jolt_controller->SetVirtualSteer(p_virtual_steer);
+		}
+	}
+
+	float get_virtual_steer_velocity() const {
+		if (jolt_controller != nullptr) {
+			return jolt_controller->GetVirtualSteerVelocity();
+		}
+		return 0.0f;
+	}
+	void set_virtual_steer_velocity(float p_virtual_steer_velocity) {
+		if (jolt_controller != nullptr) {
+			jolt_controller->SetVirtualSteerVelocity(p_virtual_steer_velocity);
+		}
+	}
+
+	float get_virtual_steer_feedback() const {
+		if (jolt_controller != nullptr) {
+			return jolt_controller->GetVirtualSteerFeedback();
+		}
+		return 0.0f;
+	}
+	void set_virtual_steer_feedback(float p_feedback) {
+		if (jolt_controller != nullptr) {
+			jolt_controller->SetVirtualSteerFeedback(p_feedback);
+		}
+	}
+
+	float get_virtual_steer_acceleration() const {
+		if (jolt_controller != nullptr) {
+			return jolt_controller->GetVirtualSteerAcceleration();
+		}
+		return 0.0f;
+	}
+	void set_virtual_steer_acceleration(float p_acceleration) {
+		if (jolt_controller != nullptr) {
+			jolt_controller->SetVirtualSteerAcceleration(p_acceleration);
+		}
+	}
+
+	float get_virtual_steer_max_speed() const {
+		if (jolt_controller != nullptr) {
+			return jolt_controller->GetVirtualSteerMaxSpeed();
+		}
+		return 0.0f;
+	}
+	void set_virtual_steer_max_speed(float p_max_speed) {
+		if (jolt_controller != nullptr) {
+			jolt_controller->SetVirtualSteerMaxSpeed(p_max_speed);
+		}
+	}
 
 	bool is_any_driven_wheel_slipping() const {
 		return jolt_controller->IsAnyDrivenWheelSlipping();
@@ -107,6 +202,18 @@ public:
 
 	float get_differential_slip_ratio() const;
 	void set_differential_slip_ratio(float p_differential_slip_ratio);
+
+	bool is_virtual_steer_enabled() const { return settings.mEnableVirtualSteer; }
+	void set_virtual_steer_enabled(float p_enabled) { settings.mEnableVirtualSteer = p_enabled; }
+
+	float get_virtual_steer_feedback() const { return settings.mVirtualSteerFeedback; }
+	void set_virtual_steer_feedback(float p_steer_feedback) { settings.mVirtualSteerFeedback = p_steer_feedback; }
+
+	float get_virtual_steer_acceleration() const { return settings.mVirtualSteerAcceleration; }
+	void set_virtual_steer_acceleration(float p_acceleration) { settings.mVirtualSteerAcceleration = p_acceleration; }
+
+	float get_virtual_steer_max_speed() const { return settings.mVirtualSteerMaxSpeed; }
+	void set_virtual_steer_max_speed(float p_max_speed) { settings.mVirtualSteerMaxSpeed = p_max_speed; }
 
 protected:
 	static void _bind_methods();

@@ -38,6 +38,9 @@ void WheelBaseSettings::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_toe"), &WheelBaseSettings::get_toe);
 	ClassDB::bind_method(D_METHOD("set_toe", "toe"), &WheelBaseSettings::set_toe);
 
+	ClassDB::bind_method(D_METHOD("get_initial_steer"), &WheelBaseSettings::get_initial_steer);
+	ClassDB::bind_method(D_METHOD("set_initial_steer", "steer_angle"), &WheelBaseSettings::set_initial_steer);
+
 	ClassDB::bind_method(D_METHOD("get_suspension_max_length"), &WheelBaseSettings::get_suspension_max_length);
 	ClassDB::bind_method(D_METHOD("set_suspension_max_length", "max_length"), &WheelBaseSettings::set_suspension_max_length);
 
@@ -65,6 +68,9 @@ void WheelBaseSettings::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_width"), &WheelBaseSettings::get_width);
 	ClassDB::bind_method(D_METHOD("set_width", "width"), &WheelBaseSettings::set_width);
 
+	ClassDB::bind_method(D_METHOD("get_knuckle_length"), &WheelBaseSettings::get_knuckle_length);
+	ClassDB::bind_method(D_METHOD("set_knuckle_length", "knuckle_length"), &WheelBaseSettings::set_knuckle_length);
+
 	ClassDB::bind_method(D_METHOD("get_enable_suspension_force_point"), &WheelBaseSettings::get_enable_suspension_force_point);
 	ClassDB::bind_method(D_METHOD("set_enable_suspension_force_point", "enable"), &WheelBaseSettings::set_enable_suspension_force_point);
 
@@ -73,10 +79,12 @@ void WheelBaseSettings::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "width", PROPERTY_HINT_RANGE, "0.001,10,0.001,or_greater,suffix:m"), "set_width", "get_width");
 
 	ADD_GROUP("Steering", "");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "knuckle_length", PROPERTY_HINT_RANGE, "0,1,0.001,or_greater,suffix:m"), "set_knuckle_length", "get_knuckle_length");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "kingpin_angle", PROPERTY_HINT_RANGE, "-89.99,89.99,0.01,radians_as_degrees"), "set_kingpin_angle", "get_kingpin_angle");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "caster_angle", PROPERTY_HINT_RANGE, "-89.99,89.99,0.01,radians_as_degrees"), "set_caster_angle", "get_caster_angle");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "toe", PROPERTY_HINT_RANGE, "-5,5,0.01,radians_as_degrees,or_greater,or_less"), "set_toe", "get_toe");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "camber", PROPERTY_HINT_RANGE, "-5,5,0.01,radians_as_degrees,or_greater,or_less"), "set_camber", "get_camber");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "initial_steer", PROPERTY_HINT_RANGE, "-90,90,0.1,radians_as_degrees"), "set_initial_steer", "get_initial_steer");
 
 	ADD_GROUP("Suspension", "suspension");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "suspension_max_length", PROPERTY_HINT_RANGE, "0,10,0.001,or_greater,suffix:m"), "set_suspension_max_length", "get_suspension_max_length");
@@ -236,6 +244,7 @@ void WheelBaseSettings::set_spring_frequency(float p_frequency) {
 	if (get_spring_mode() == SpringMode::SPRING_MODE_FREQUENCY) {
 		get_settings()->mSuspensionSpring.mFrequency = frequency;
 	}
+	emit_changed();
 }
 
 float WheelBaseSettings::get_spring_stiffness() const {
@@ -251,6 +260,7 @@ void WheelBaseSettings::set_spring_stiffness(float p_stiffness) {
 	if (get_spring_mode() == SpringMode::SPRING_MODE_STIFFNESS) {
 		get_settings()->mSuspensionSpring.mStiffness = stiffness * 1000.0;
 	}
+	emit_changed();
 }
 
 void WheelSettings::set_lateral_friction(const Ref<Curve> &p_lateral_friction) {

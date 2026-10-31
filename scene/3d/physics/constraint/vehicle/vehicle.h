@@ -30,7 +30,7 @@ class Vehicle : public RigidBody3D {
 	void _update_wheel_transforms();
 
 	// Duplicated from Jolt because these should honestly be static methods but they aren't
-	static Transform3D GetWheelLocalTransform(const JPH::WheelSettings *inWheelSettings);
+	static Transform3D GetWheelLocalTransform(const JPH::WheelSettings *inWheelSettings, float inSteerAngle);
 
 public:
 	enum WheelCollisionMode {

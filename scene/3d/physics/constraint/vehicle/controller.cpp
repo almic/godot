@@ -3,20 +3,56 @@
 #include "core/object/callable_mp.h"
 #include "core/object/class_db.h"
 
+#include "modules/jolt_physics/misc/jolt_type_conversions.h"
+
 #include <cmath>
 #include <limits>
 
 void VehicleController::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_speed_kmh"), &VehicleController::get_speed_kmh);
 	ClassDB::bind_method(D_METHOD("get_speed_mph"), &VehicleController::get_speed_mph);
+	ClassDB::bind_method(D_METHOD("get_suspension_length"), &VehicleController::get_suspension_length);
 }
 
 void WheeledVehicleController::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_driver_input", "forward", "right", "brake", "handbrake"), &WheeledVehicleController::set_driver_input);
+
+	ClassDB::bind_method(D_METHOD("get_forward_input"), &WheeledVehicleController::get_forward_input);
+	ClassDB::bind_method(D_METHOD("get_right_input"), &WheeledVehicleController::get_right_input);
+	ClassDB::bind_method(D_METHOD("get_brake_input"), &WheeledVehicleController::get_brake_input);
+	ClassDB::bind_method(D_METHOD("get_handbrake_input"), &WheeledVehicleController::get_handbrake_input);
+
 	ClassDB::bind_method(D_METHOD("get_current_gear"), &WheeledVehicleController::get_current_gear);
 	ClassDB::bind_method(D_METHOD("get_current_rpm"), &WheeledVehicleController::get_current_rpm);
+
+	ClassDB::bind_method(D_METHOD("is_virtual_steer_enabled"), &WheeledVehicleController::is_virtual_steer_enabled);
+	ClassDB::bind_method(D_METHOD("set_virtual_steer_enabled", "enabled"), &WheeledVehicleController::set_virtual_steer_enabled);
+
+	ClassDB::bind_method(D_METHOD("get_virtual_steer"), &WheeledVehicleController::get_virtual_steer);
+	ClassDB::bind_method(D_METHOD("set_virtual_steer", "steer"), &WheeledVehicleController::set_virtual_steer);
+
+	ClassDB::bind_method(D_METHOD("get_virtual_steer_velocity"), &WheeledVehicleController::get_virtual_steer_velocity);
+	ClassDB::bind_method(D_METHOD("set_virtual_steer_velocity", "steer_velocity"), &WheeledVehicleController::set_virtual_steer_velocity);
+
+	ClassDB::bind_method(D_METHOD("get_virtual_steer_feedback"), &WheeledVehicleController::get_virtual_steer_feedback);
+	ClassDB::bind_method(D_METHOD("set_virtual_steer_feedback", "steer_feedback"), &WheeledVehicleController::set_virtual_steer_feedback);
+
+	ClassDB::bind_method(D_METHOD("get_virtual_steer_acceleration"), &WheeledVehicleController::get_virtual_steer_acceleration);
+	ClassDB::bind_method(D_METHOD("set_virtual_steer_acceleration", "acceleration"), &WheeledVehicleController::set_virtual_steer_acceleration);
+
+	ClassDB::bind_method(D_METHOD("get_virtual_steer_max_speed"), &WheeledVehicleController::get_virtual_steer_max_speed);
+	ClassDB::bind_method(D_METHOD("set_virtual_steer_max_speed", "max_speed"), &WheeledVehicleController::set_virtual_steer_max_speed);
+
 	ClassDB::bind_method(D_METHOD("get_wheel_info"), &WheeledVehicleController::get_wheel_info);
 	ClassDB::bind_method(D_METHOD("is_any_driven_wheel_slipping"), &WheeledVehicleController::is_any_driven_wheel_slipping);
+
+	ADD_GROUP("Virtual Steer", "virtual_steer");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "virtual_steer_enabled", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_EDITOR), "set_virtual_steer_enabled", "is_virtual_steer_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "virtual_steer", PROPERTY_HINT_RANGE, "-1,1,0.001", PROPERTY_USAGE_EDITOR), "set_virtual_steer", "get_virtual_steer");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "virtual_steer_velocity", PROPERTY_HINT_RANGE, "0,0,0.01,or_less,or_greater,hide_control,suffix:/s", PROPERTY_USAGE_EDITOR), "set_virtual_steer_velocity", "get_virtual_steer_velocity");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "virtual_steer_feedback", PROPERTY_HINT_RANGE, "0,1,0.001,or_greater", PROPERTY_USAGE_EDITOR), "set_virtual_steer_feedback", "get_virtual_steer_feedback");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "virtual_steer_acceleration", PROPERTY_HINT_RANGE, U"0,25,0.001,or_greater,suffix:/s\u00B2", PROPERTY_USAGE_EDITOR), "set_virtual_steer_acceleration", "get_virtual_steer_acceleration");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "virtual_steer_max_speed", PROPERTY_HINT_RANGE, "0,5,0.001,or_greater,suffix:/s", PROPERTY_USAGE_EDITOR), "set_virtual_steer_max_speed", "get_virtual_steer_max_speed");
 }
 
 void WheeledVehicleControllerSettings::_bind_methods() {
@@ -35,11 +71,29 @@ void WheeledVehicleControllerSettings::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_differential_slip_ratio"), &WheeledVehicleControllerSettings::get_differential_slip_ratio);
 	ClassDB::bind_method(D_METHOD("set_differential_slip_ratio", "differential_slip_ratio"), &WheeledVehicleControllerSettings::set_differential_slip_ratio);
 
+	ClassDB::bind_method(D_METHOD("is_virtual_steer_enabled"), &WheeledVehicleControllerSettings::is_virtual_steer_enabled);
+	ClassDB::bind_method(D_METHOD("set_virtual_steer_enabled", "enabled"), &WheeledVehicleControllerSettings::set_virtual_steer_enabled);
+
+	ClassDB::bind_method(D_METHOD("get_virtual_steer_feedback"), &WheeledVehicleControllerSettings::get_virtual_steer_feedback);
+	ClassDB::bind_method(D_METHOD("set_virtual_steer_feedback", "steer_feedback"), &WheeledVehicleControllerSettings::set_virtual_steer_feedback);
+
+	ClassDB::bind_method(D_METHOD("get_virtual_steer_acceleration"), &WheeledVehicleControllerSettings::get_virtual_steer_acceleration);
+	ClassDB::bind_method(D_METHOD("set_virtual_steer_acceleration", "acceleration"), &WheeledVehicleControllerSettings::set_virtual_steer_acceleration);
+
+	ClassDB::bind_method(D_METHOD("get_virtual_steer_max_speed"), &WheeledVehicleControllerSettings::get_virtual_steer_max_speed);
+	ClassDB::bind_method(D_METHOD("set_virtual_steer_max_speed", "max_speed"), &WheeledVehicleControllerSettings::set_virtual_steer_max_speed);
+
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "engine", PROPERTY_HINT_RESOURCE_TYPE, "VehicleEngineSettings", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_EDITOR_INSTANTIATE_OBJECT), "set_engine_settings", "get_engine_settings");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "transmission", PROPERTY_HINT_RESOURCE_TYPE, "VehicleTransmissionSettings", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_EDITOR_INSTANTIATE_OBJECT), "set_transmission_settings", "get_transmission_settings");
 	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "differentials", PROPERTY_HINT_ARRAY_TYPE, MAKE_RESOURCE_TYPE_HINT("VehicleDifferentialSettings")), "set_differentials", "get_differentials");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "open_differential"), "set_open_differential", "is_open_differential");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "differential_slip_ratio", PROPERTY_HINT_RANGE, "1,10,0.001,or_less,or_greater"), "set_differential_slip_ratio", "get_differential_slip_ratio");
+
+	ADD_GROUP("Virtual Steer", "virtual_steer");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "virtual_steer_enabled"), "set_virtual_steer_enabled", "is_virtual_steer_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "virtual_steer_feedback", PROPERTY_HINT_RANGE, "0,1,0.001,or_greater"), "set_virtual_steer_feedback", "get_virtual_steer_feedback");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "virtual_steer_acceleration", PROPERTY_HINT_RANGE, U"0,25,0.001,or_greater,suffix:/s\u00B2"), "set_virtual_steer_acceleration", "get_virtual_steer_acceleration");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "virtual_steer_max_speed", PROPERTY_HINT_RANGE, "0,5,0.001,or_greater,suffix:/s"), "set_virtual_steer_max_speed", "get_virtual_steer_max_speed");
 }
 
 void WheeledVehicleControllerSettings::_validate_property(PropertyInfo &p_property) const {
@@ -57,7 +111,12 @@ TypedArray<Dictionary> WheeledVehicleController::get_wheel_info() const {
 		JPH::WheelWV *wheel = static_cast<JPH::WheelWV *>(wheel_base);
 		Dictionary d;
 
-		d["has_contact"] = wheel->HasContact();
+		const bool has_contact = wheel->HasContact();
+		d["has_contact"] = has_contact;
+		if (has_contact) {
+			d["contact_position"] = to_godot(wheel->GetContactPosition());
+		}
+
 		d["slip_long"] = wheel->mLongitudinalSlip;
 		d["slip_lat"] = wheel->mLateralSlip;
 		d["steer_angle"] = wheel->GetSteerAngle();

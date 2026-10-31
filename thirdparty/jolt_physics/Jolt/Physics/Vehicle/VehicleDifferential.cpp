@@ -17,6 +17,7 @@ JPH_IMPLEMENT_SERIALIZABLE_NON_VIRTUAL(VehicleDifferentialSettings)
 	JPH_ADD_ATTRIBUTE(VehicleDifferentialSettings, mLeftRightSplit)
 	JPH_ADD_ATTRIBUTE(VehicleDifferentialSettings, mLimitedSlipRatio)
 	JPH_ADD_ATTRIBUTE(VehicleDifferentialSettings, mEngineTorqueRatio)
+	JPH_ADD_ATTRIBUTE(VehicleDifferentialSettings, mSteeringInertia)
 }
 
 void VehicleDifferentialSettings::SaveBinaryState(StreamOut &inStream) const
@@ -27,6 +28,7 @@ void VehicleDifferentialSettings::SaveBinaryState(StreamOut &inStream) const
 	inStream.Write(mLeftRightSplit);
 	inStream.Write(mLimitedSlipRatio);
 	inStream.Write(mEngineTorqueRatio);
+	inStream.Write(mSteeringInertia);
 }
 
 void VehicleDifferentialSettings::RestoreBinaryState(StreamIn &inStream)
@@ -37,6 +39,7 @@ void VehicleDifferentialSettings::RestoreBinaryState(StreamIn &inStream)
 	inStream.Read(mLeftRightSplit);
 	inStream.Read(mLimitedSlipRatio);
 	inStream.Read(mEngineTorqueRatio);
+	inStream.Read(mSteeringInertia);
 }
 
 void VehicleDifferentialSettings::CalculateTorqueRatio(float inLeftAngularVelocity, float inRightAngularVelocity, float &outLeftTorqueFraction, float &outRightTorqueFraction) const

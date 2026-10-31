@@ -38,6 +38,9 @@ public:
 	float get_torque_ratio() const { return settings.mEngineTorqueRatio; }
 	void set_torque_ratio(float p_torque_ratio) { settings.mEngineTorqueRatio = p_torque_ratio; }
 
+	float get_steering_inertia() const { return settings.mSteeringInertia; }
+	void set_steering_inertia(float p_steering_inertia) { settings.mSteeringInertia = p_steering_inertia; }
+
 protected:
 	float slip_ratio = settings.mLimitedSlipRatio;
 

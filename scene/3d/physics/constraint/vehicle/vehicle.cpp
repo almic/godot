@@ -136,14 +136,14 @@ void Vehicle::_update_wheel_transforms() {
 
 			Ref<WheelBaseSettings> w_settings = wheel_settings[i];
 			if (w_settings.is_valid()) {
-				wheel->set_transform(GetWheelLocalTransform(w_settings->get_settings()));
+				wheel->set_transform(GetWheelLocalTransform(w_settings->get_settings(), -w_settings->get_initial_steer()));
 			}
 		}
 	}
 }
 
 // Duplicated from Jolt because these should honestly be static methods but they aren't
-Transform3D Vehicle::GetWheelLocalTransform(const JPH::WheelSettings *inWheelSettings) {
+Transform3D Vehicle::GetWheelLocalTransform(const JPH::WheelSettings *inWheelSettings, float inSteerAngle) {
 	// Use the two vectors provided to calculate a matrix that takes us from wheel model space to X = right, Y = up, Z = forward (the space where we will rotate the wheel)
 	static const JPH::Vec3 wheel_right = JPH::Vec3(0, -1, 0);
 	static const JPH::Vec3 wheel_up = JPH::Vec3(1, 0, 0);
@@ -156,17 +156,24 @@ Transform3D Vehicle::GetWheelLocalTransform(const JPH::WheelSettings *inWheelSet
 					.Transposed();
 
 	// Calculate the matrix that takes us from the rotational space to vehicle local space
-	JPH::Quat steer_rotation = JPH::Quat::sRotation(inWheelSettings->mSteeringAxis, 0.0f);
-	JPH::Vec3 local_up = steer_rotation * inWheelSettings->mWheelUp;
-	JPH::Vec3 local_forward = steer_rotation * inWheelSettings->mWheelForward;
-	JPH::Vec3 local_right = local_forward.Cross(local_up).Normalized();
-	local_forward = local_up.Cross(local_right).Normalized();
+	const JPH::Vec3 local_steer_pos = inWheelSettings->mPosition + inWheelSettings->mSuspensionDirection * inWheelSettings->mSuspensionMinLength;
+	const JPH::Quat steer_rotation = JPH::Quat::sRotation(inWheelSettings->mSteeringAxis, inSteerAngle);
+	const JPH::Mat44 local_steer = JPH::Mat44::sRotationTranslation(steer_rotation, local_steer_pos);
 
-	JPH::Vec3 local_wheel_pos = inWheelSettings->mPosition + inWheelSettings->mSuspensionDirection * inWheelSettings->mSuspensionMinLength;
-	JPH::Mat44 rotational_to_local(JPH::Vec4(local_right, 0), JPH::Vec4(local_up, 0), JPH::Vec4(local_forward, 0), JPH::Vec4(local_wheel_pos, 1));
+	const JPH::Vec3 local_up = inWheelSettings->mWheelUp;
+	const JPH::Vec3 local_right = inWheelSettings->mWheelForward.Cross(local_up).Normalized();
+	const JPH::Vec3 local_forward = local_up.Cross(local_right).Normalized();
+
+	JPH::Vec3 local_wheel_pos;
+	if (abs(inWheelSettings->mPosition.GetX()) >= 1e-3) {
+		local_wheel_pos.Set(JPH::Sign(inWheelSettings->mPosition.GetX()) * inWheelSettings->mKnuckleLength, 0.0f, 0.0f);
+	} else {
+		local_wheel_pos.Set(0.0f, 0.0f, 0.0f);
+	}
+	const JPH::Mat44 rotational_to_local(JPH::Vec4(local_right, 0), JPH::Vec4(local_up, 0), JPH::Vec4(local_forward, 0), JPH::Vec4(local_wheel_pos, 1));
 
 	// Calculate transform of rotated wheel
-	return to_godot(rotational_to_local * JPH::Mat44::sRotationX(0.0f) * wheel_to_rotational);
+	return to_godot(local_steer * rotational_to_local * JPH::Mat44::sRotationX(0.0f) * wheel_to_rotational);
 }
 
 TypedArray<NodePath> Vehicle::get_wheel_node_paths() const {
@@ -299,6 +306,15 @@ void Vehicle::init_vehicle(Vehicle &vehicle, PhysicsDirectBodyState3D *state) {
 		ERR_PRINT("Vehicle has an unknown or empty VehicleControllerSettings! Please check this!");
 	} else {
 		vehicle.controller->set_controller(jolt_controller);
+
+		// Set initial steering angle
+		if (vehicle.settings.is_valid()) {
+			JPH::Wheels &wheels = vehicle.vehicle->GetWheels();
+			for (uint wheel_index = 0, num_wheels = (uint)wheels.size(); wheel_index < num_wheels; ++wheel_index) {
+				JPH::WheelWV *w = static_cast<JPH::WheelWV *>(wheels[wheel_index]);
+				w->SetSteerAngle(-vehicle.settings->wheels[wheel_index]->initial_steer);
+			}
+		}
 
 		physics_system.AddConstraint(vehicle.vehicle);
 		physics_system.AddStepListener(vehicle.vehicle);

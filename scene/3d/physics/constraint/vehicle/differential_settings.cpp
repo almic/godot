@@ -27,6 +27,9 @@ void VehicleDifferentialSettings::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_torque_ratio"), &VehicleDifferentialSettings::get_torque_ratio);
 	ClassDB::bind_method(D_METHOD("set_torque_ratio", "torque_ratio"), &VehicleDifferentialSettings::set_torque_ratio);
 
+	ClassDB::bind_method(D_METHOD("get_steering_inertia"), &VehicleDifferentialSettings::get_steering_inertia);
+	ClassDB::bind_method(D_METHOD("set_steering_inertia", "steering_inertia"), &VehicleDifferentialSettings::set_steering_inertia);
+
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "left_wheel_index", PROPERTY_HINT_RANGE, "-1,10,1,or_greater"), "set_left_wheel_index", "get_left_wheel_index");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "right_wheel_index", PROPERTY_HINT_RANGE, "-1,10,1,or_greater"), "set_right_wheel_index", "get_right_wheel_index");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "split", PROPERTY_HINT_RANGE, "0,1,0.001"), "set_split", "get_split");
@@ -34,6 +37,7 @@ void VehicleDifferentialSettings::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "torque_ratio", PROPERTY_HINT_RANGE, "0,1,0.001"), "set_torque_ratio", "get_torque_ratio");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "open"), "set_open", "is_open");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "slip_ratio", PROPERTY_HINT_RANGE, "1,10,0.001,or_less,or_greater"), "set_slip_ratio", "get_slip_ratio");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "steering_inertia", PROPERTY_HINT_RANGE, U"0,15,0.01,or_greater,suffix:kg\u22C5m\u00B2"), "set_steering_inertia", "get_steering_inertia");
 }
 
 void VehicleDifferentialSettings::_validate_property(PropertyInfo &p_property) const {

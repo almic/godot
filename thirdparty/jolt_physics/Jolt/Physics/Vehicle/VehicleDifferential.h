@@ -34,6 +34,7 @@ public:
 	float					mLeftRightSplit = 0.5f;						///< Defines how the engine torque is split across the left and right wheel (0 = left, 0.5 = center, 1 = right)
 	float					mLimitedSlipRatio = 1.4f;					///< Ratio max / min wheel speed. When this ratio is exceeded, all torque gets distributed to the slowest moving wheel. This allows implementing a limited slip differential. Set to FLT_MAX for an open differential. Value should be > 1.
 	float					mEngineTorqueRatio = 1.0f;					///< How much of the engines torque is applied to this differential (0 = none, 1 = full), make sure the sum of all differentials is 1.
+	float					mSteeringInertia = 10.0f;					///< Lumped inertia of the wheels and steering mechanism. Only used by WheeledVehicleController when virtual steering and feedback are enabled.
 };
 
 JPH_NAMESPACE_END

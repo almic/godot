@@ -27,6 +27,10 @@ JPH_IMPLEMENT_SERIALIZABLE_VIRTUAL(WheeledVehicleControllerSettings)
 	JPH_ADD_ATTRIBUTE(WheeledVehicleControllerSettings, mTransmission)
 	JPH_ADD_ATTRIBUTE(WheeledVehicleControllerSettings, mDifferentials)
 	JPH_ADD_ATTRIBUTE(WheeledVehicleControllerSettings, mDifferentialLimitedSlipRatio)
+	JPH_ADD_ATTRIBUTE(WheeledVehicleControllerSettings, mEnableVirtualSteer);
+	JPH_ADD_ATTRIBUTE(WheeledVehicleControllerSettings, mVirtualSteerFeedback);
+	JPH_ADD_ATTRIBUTE(WheeledVehicleControllerSettings, mVirtualSteerAcceleration);
+	JPH_ADD_ATTRIBUTE(WheeledVehicleControllerSettings, mVirtualSteerMaxSpeed);
 }
 
 JPH_IMPLEMENT_SERIALIZABLE_VIRTUAL(WheelSettingsWV)
@@ -158,6 +162,10 @@ void WheeledVehicleControllerSettings::SaveBinaryState(StreamOut &inStream) cons
 		d.SaveBinaryState(inStream);
 
 	inStream.Write(mDifferentialLimitedSlipRatio);
+	inStream.Write(mEnableVirtualSteer);
+	inStream.Write(mVirtualSteerFeedback);
+	inStream.Write(mVirtualSteerAcceleration);
+	inStream.Write(mVirtualSteerMaxSpeed);
 }
 
 void WheeledVehicleControllerSettings::RestoreBinaryState(StreamIn &inStream)
@@ -173,6 +181,10 @@ void WheeledVehicleControllerSettings::RestoreBinaryState(StreamIn &inStream)
 		d.RestoreBinaryState(inStream);
 
 	inStream.Read(mDifferentialLimitedSlipRatio);
+	inStream.Read(mEnableVirtualSteer);
+	inStream.Read(mVirtualSteerFeedback);
+	inStream.Read(mVirtualSteerAcceleration);
+	inStream.Read(mVirtualSteerMaxSpeed);
 }
 
 WheeledVehicleController::WheeledVehicleController(const WheeledVehicleControllerSettings &inSettings, VehicleConstraint &inConstraint) :
@@ -212,6 +224,11 @@ WheeledVehicleController::WheeledVehicleController(const WheeledVehicleControlle
 
 	mDifferentialLimitedSlipRatio = inSettings.mDifferentialLimitedSlipRatio;
 	JPH_ASSERT(mDifferentialLimitedSlipRatio > 1.0f);
+
+	mEnableVirtualSteer = inSettings.mEnableVirtualSteer;
+	mVirtualSteerFeedback = inSettings.mVirtualSteerFeedback;
+	mVirtualSteerAcceleration = inSettings.mVirtualSteerAcceleration;
+	mVirtualSteerMaxSpeed = inSettings.mVirtualSteerMaxSpeed;
 }
 
 float WheeledVehicleController::GetWheelSpeedAtClutch() const
@@ -229,6 +246,38 @@ float WheeledVehicleController::GetWheelSpeedAtClutch() const
 			}
 	}
 	return wheel_speed_at_clutch / float(num_driven_wheels) * VehicleEngine::cAngularVelocityToRPM * mTransmission.GetCurrentRatio();
+}
+
+Vec3 WheeledVehicleController::GetWheelGyroscopicTorque(uint inWheelIndex, float inDeltaTime) const
+{
+	// Calculate local space inertia
+	WheelWV *w = static_cast<WheelWV *>(mConstraint.GetWheels()[inWheelIndex]);
+	const WheelSettingsWV* settings = w->GetSettings();
+
+	const float radius = settings->mRadius;
+	const float height = settings->mWidth;
+
+	const float inertia_z = settings->mInertia;
+	const float mass = inertia_z / (0.5 * radius * radius);
+	const float inertia_xy = (1.0f / 12.f) * mass * (3.0f * radius * radius + height * height);
+	const Vec3 local_inertia = Vec3(inertia_xy, inertia_z, inertia_xy);
+
+	// Calculate local angular velocity, which is the wheel angular velocity on the Y axis, plus the body's
+	// wheel-space angular velocity on the X and Z axis.
+	const Body* vehicle_body = mConstraint.GetVehicleBody();
+	const MotionProperties* mp = vehicle_body->GetMotionProperties();
+	const Quat wheel_rotation = mConstraint.GetWheelWorldTransform(inWheelIndex, Vec3::sAxisY(), Vec3::sAxisX()).GetQuaternion();
+	const Vec3 body_angular_velocity = wheel_rotation.InverseRotate(mp->GetAngularVelocity());
+
+	const Vec3 local_angular_velocity = Vec3(body_angular_velocity.GetX(), w->GetAngularVelocity(), body_angular_velocity.GetZ());
+	const Vec3 local_momentum = local_inertia * local_angular_velocity;
+
+	Vec3 new_local_momentum = local_momentum - inDeltaTime * local_angular_velocity.Cross(local_momentum);
+	float new_local_momentum_len_sq = new_local_momentum.LengthSq();
+	new_local_momentum = new_local_momentum_len_sq > 0.0f? new_local_momentum * Sqrt(local_momentum.LengthSq() / new_local_momentum_len_sq) : Vec3::sZero();
+
+	// Return the change in momentum
+	return new_local_momentum - local_momentum;
 }
 
 bool WheeledVehicleController::AllowSleep() const
@@ -254,12 +303,63 @@ void WheeledVehicleController::PreCollide(float inDeltaTime, PhysicsSystem &inPh
 	Trace("%.3f, %.1f, %d, %.1f, %.1f, %.1f, %.1f", sTime, mForwardInput, mTransmission.GetCurrentGear(), mTransmission.GetClutchFriction(), mEngine.GetCurrentRPM(), GetWheelSpeedAtClutch(), mConstraint.GetVehicleBody()->GetLinearVelocity().Length() * 3.6f);
 #endif // JPH_TRACE_VEHICLE_STATS
 
+	float steer_input;
+	if (mEnableVirtualSteer)
+	{
+		if (mVirtualSteer == mRightInput)
+		{
+			if (mVirtualSteerVelocity != 0.0f)
+			{
+				mVirtualSteerVelocity = Sign(mVirtualSteerVelocity) * max(0.0f, abs(mVirtualSteerVelocity) - (mVirtualSteerAcceleration * inDeltaTime));
+			}
+		}
+		else
+		{
+			// When input is zero and feedback is enabled, favor relying on feedback to reset tires
+			// Update if:
+			// - feedback is zero
+			// - right input is non-zero
+			// - right input is zero and virtual steer is near zero
+			if (mRightInput != 0.0f || (mRightInput == 0.0f && abs(mVirtualSteer) < 1e-2) || mVirtualSteerFeedback == 0.0f)
+			{
+				const float steer_dir = Sign(mRightInput - mVirtualSteer);
+				if (steer_dir != Sign(mVirtualSteerVelocity))
+				{
+					mVirtualSteerVelocity = 0.0f;
+				}
+
+				mVirtualSteerVelocity = Clamp(mVirtualSteerVelocity + steer_dir * mVirtualSteerAcceleration * inDeltaTime, -mVirtualSteerMaxSpeed, mVirtualSteerMaxSpeed);
+			}
+
+			float min_steer, max_steer;
+			if (mVirtualSteer < mRightInput)
+			{
+				min_steer = -1.0f;
+				max_steer = mRightInput;
+			}
+			else
+			{
+				min_steer = mRightInput;
+				max_steer = 1.0f;
+			}
+
+			mVirtualSteer = Clamp(mVirtualSteer + mVirtualSteerVelocity * inDeltaTime, min_steer, max_steer);
+		}
+
+		steer_input = mVirtualSteer;
+	}
+	else
+	{
+		steer_input = mRightInput;
+	}
+
 	for (Wheel *w_base : mConstraint.GetWheels())
 	{
 		WheelWV *w = static_cast<WheelWV *>(w_base);
 
 		// Set steering angle
-		w->SetSteerAngle(-mRightInput * w->GetSettings()->mMaxSteerAngle);
+		// TODO: make this use a more accurate steer mechanism, search 'Ackermann steering geometry'
+		w->SetSteerAngle(-steer_input * w->GetSettings()->mMaxSteerAngle);
 	}
 }
 
@@ -272,10 +372,73 @@ void WheeledVehicleController::PostCollide(float inDeltaTime, PhysicsSystem &inP
 
 	Wheels &wheels = mConstraint.GetWheels();
 
+	// Pre-calculate gyroscopic torques
+	Array<Vec3> wheel_gyroscopic_torque;
+	wheel_gyroscopic_torque.reserve(wheels.size());
+	for (uint wheel_index = 0, num_wheels = (uint)wheels.size(); wheel_index < num_wheels; ++wheel_index)
+		wheel_gyroscopic_torque.push_back(GetWheelGyroscopicTorque(wheel_index, inDeltaTime));
+
+	// Calculate scale factor for impulses based on previous delta time
+	float impulse_scale = mPreviousDeltaTime > 0.0f? inDeltaTime / mPreviousDeltaTime : 0.0f;
+
+	// Apply steering feedback from the wheels prior to other forces
+	if (mEnableVirtualSteer && mVirtualSteerFeedback > 0.0f)
+	{
+		float steering_feedback = 0.0f;
+		for (const VehicleDifferentialSettings &d : mDifferentials)
+		{
+			if (d.mSteeringInertia < 1e-6)
+				continue;
+
+			int indices[] = { d.mLeftWheel, d.mRightWheel };
+			float diff_torque = 0.0f;
+			float avg_max_steer = 0.0f;
+			int wheels_in_contact = 0;
+			for (int wheel_index : indices)
+			{
+				const WheelWV *w = static_cast<WheelWV *>(wheels[wheel_index]);
+				if (!w->HasContact())
+					continue;
+
+				const WheelSettingsWV* settings = w->GetSettings();
+				const float max_steer_angle = settings->mMaxSteerAngle;
+				if (max_steer_angle == 0.0f)
+					break;
+
+				const RMat44 wheel_xform = mConstraint.GetWheelWorldTransform(wheel_index, Vec3::sAxisY(), Vec3::sAxisX());
+				const Vec3 gyroscopic_torque = wheel_xform.Multiply3x3(wheel_gyroscopic_torque[wheel_index]);
+
+				const RMat44 body_xform = mConstraint.GetVehicleBody()->GetCenterOfMassTransform();
+				const RVec3 steer_axis_pos = body_xform * (settings->mPosition + settings->mSuspensionDirection * w->GetSuspensionLength());
+				const RVec3 steer_axis = body_xform.Multiply3x3(RVec3(w->GetSettings()->mSteeringAxis));
+
+				const RVec3 friction_force = RVec3(w->GetContactLateral() * w->GetLateralLambda() + w->GetContactLongitudinal() * w->GetLongitudinalLambda());
+				const RVec3 r_point = w->GetContactPosition() - steer_axis_pos;
+				const RVec3 torque = r_point.Cross(friction_force);
+
+				const float steer_torque = steer_axis.Dot(torque + gyroscopic_torque);
+
+				diff_torque += steer_torque;
+				avg_max_steer += max_steer_angle;
+				wheels_in_contact++;
+			}
+
+			if (diff_torque != 0.0f && avg_max_steer > 0.0f) {
+				avg_max_steer *= (1.0 / wheels_in_contact);
+				steering_feedback += (diff_torque / d.mSteeringInertia) / avg_max_steer;
+			}
+		}
+
+		//mVirtualSteerVelocity = Clamp(mVirtualSteerVelocity - steering_feedback * mVirtualSteerFeedback * impulse_scale * inDeltaTime, -mVirtualSteerMaxSpeed, mVirtualSteerMaxSpeed);
+		mVirtualSteer = Clamp(mVirtualSteer - (0.5 * steering_feedback * impulse_scale * Square(inDeltaTime)), -1.0, 1.0);
+	}
+
 	// Update wheel angle, do this before applying torque to the wheels (as friction will slow them down again)
 	for (uint wheel_index = 0, num_wheels = (uint)wheels.size(); wheel_index < num_wheels; ++wheel_index)
 	{
 		WheelWV *w = static_cast<WheelWV *>(wheels[wheel_index]);
+		// In wheel local space, the Y axis is the rotating axis of the wheel
+		w->ApplyTorque(wheel_gyroscopic_torque[wheel_index].GetY() * impulse_scale, inDeltaTime);
 		w->Update(wheel_index, inDeltaTime, mConstraint);
 	}
 
@@ -498,9 +661,6 @@ void WheeledVehicleController::PostCollide(float inDeltaTime, PhysicsSystem &inP
 
 		// dt / Ie
 		float dt_div_ie = inDeltaTime / mEngine.mInertia;
-
-		// Calculate scale factor for impulses based on previous delta time
-		float impulse_scale = mPreviousDeltaTime > 0.0f? inDeltaTime / mPreviousDeltaTime : 0.0f;
 
 		// Iterate the rows for the wheels
 		for (int i = 0; i < (int)driven_wheels.size(); ++i)
@@ -785,7 +945,11 @@ void WheeledVehicleController::Draw(DebugRenderer *inRenderer) const
 		inRenderer->DrawLine(min_suspension_pos, max_suspension_pos, Color::sGreen);
 
 		// Draw current length
-		RVec3 wheel_pos = ws_position + ws_direction * w->GetSuspensionLength();
+		RVec3 ws_wheel_position = RVec3(settings->mPosition);
+		if (abs(ws_wheel_position.GetX()) > 1e-3)
+			ws_wheel_position.SetX(ws_wheel_position.GetX() + Sign(ws_wheel_position.GetX()) * settings->mKnuckleLength);
+		ws_wheel_position = body_transform * ws_wheel_position;
+		RVec3 wheel_pos = ws_wheel_position + ws_direction * w->GetSuspensionLength();
 		inRenderer->DrawMarker(wheel_pos, w->GetSuspensionLength() < settings->mSuspensionMinLength? Color::sRed : Color::sGreen, constraint_size);
 
 		// Draw wheel basis
@@ -795,10 +959,11 @@ void WheeledVehicleController::Draw(DebugRenderer *inRenderer) const
 		wheel_up = body_transform.Multiply3x3(wheel_up);
 		wheel_right = body_transform.Multiply3x3(wheel_right);
 		Vec3 steering_axis = body_transform.Multiply3x3(settings->mSteeringAxis);
+		RVec3 steer_axis_pos = ws_position + ws_direction * w->GetSuspensionLength();
 		inRenderer->DrawLine(wheel_pos, wheel_pos + wheel_forward, Color::sRed);
 		inRenderer->DrawLine(wheel_pos, wheel_pos + wheel_up, Color::sGreen);
 		inRenderer->DrawLine(wheel_pos, wheel_pos + wheel_right, Color::sBlue);
-		inRenderer->DrawLine(wheel_pos, wheel_pos + steering_axis, Color::sYellow);
+		inRenderer->DrawLine(steer_axis_pos, steer_axis_pos + steering_axis, Color::sYellow);
 
 		// Draw wheel
 		RMat44 wheel_transform(Vec4(wheel_up, 0.0f), Vec4(wheel_right, 0.0f), Vec4(wheel_forward, 0.0f), wheel_pos);
@@ -831,6 +996,12 @@ void WheeledVehicleController::SaveState(StateRecorder &inStream) const
 	inStream.Write(mBrakeInput);
 	inStream.Write(mHandBrakeInput);
 	inStream.Write(mPreviousDeltaTime);
+	inStream.Write(mEnableVirtualSteer);
+	inStream.Write(mVirtualSteer);
+	inStream.Write(mVirtualSteerVelocity);
+	inStream.Write(mVirtualSteerFeedback);
+	inStream.Write(mVirtualSteerAcceleration);
+	inStream.Write(mVirtualSteerMaxSpeed);
 
 	mEngine.SaveState(inStream);
 	mTransmission.SaveState(inStream);
@@ -843,6 +1014,12 @@ void WheeledVehicleController::RestoreState(StateRecorder &inStream)
 	inStream.Read(mBrakeInput);
 	inStream.Read(mHandBrakeInput);
 	inStream.Read(mPreviousDeltaTime);
+	inStream.Read(mEnableVirtualSteer);
+	inStream.Read(mVirtualSteer);
+	inStream.Read(mVirtualSteerVelocity);
+	inStream.Read(mVirtualSteerFeedback);
+	inStream.Read(mVirtualSteerAcceleration);
+	inStream.Read(mVirtualSteerMaxSpeed);
 
 	mEngine.RestoreState(inStream);
 	mTransmission.RestoreState(inStream);
@@ -854,6 +1031,10 @@ void WheeledVehicleController::ToSettings(WheeledVehicleControllerSettings &outS
 	outSettings.mTransmission = static_cast<const VehicleTransmissionSettings &>(mTransmission);
 	outSettings.mDifferentials = mDifferentials;
 	outSettings.mDifferentialLimitedSlipRatio = mDifferentialLimitedSlipRatio;
+	outSettings.mEnableVirtualSteer = mEnableVirtualSteer;
+	outSettings.mVirtualSteerFeedback = mVirtualSteerFeedback;
+	outSettings.mVirtualSteerAcceleration = mVirtualSteerAcceleration;
+	outSettings.mVirtualSteerMaxSpeed = mVirtualSteerMaxSpeed;
 }
 
 Ref<VehicleControllerSettings> WheeledVehicleController::GetSettings() const

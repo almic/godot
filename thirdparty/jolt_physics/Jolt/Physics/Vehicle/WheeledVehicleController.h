@@ -83,6 +83,10 @@ public:
 	VehicleTransmissionSettings	mTransmission;								///< The properties of the transmission (aka gear box)
 	Array<VehicleDifferentialSettings> mDifferentials;						///< List of differentials and their properties
 	float						mDifferentialLimitedSlipRatio = 1.4f;		///< Ratio max / min average wheel speed of each differential (measured at the clutch). When the ratio is exceeded all torque gets distributed to the differential with the minimal average velocity. This allows implementing a limited slip differential between differentials. Set to FLT_MAX for an open differential. Value should be > 1.
+	float						mEnableVirtualSteer = false;				///< If steering uses a virtual steering wheel, which makes input smoother
+	float						mVirtualSteerFeedback = 1.0f;				///< How much feedback wheel friction has to the virtual steering input
+	float						mVirtualSteerAcceleration = 10.0f;			///< Virtual steering acceleration, how quickly the virtual steering reaches the target input
+	float						mVirtualSteerMaxSpeed = 2.0f;				///< Virtual steering max speed
 };
 
 /// Runtime controller class
@@ -142,8 +146,35 @@ public:
 	float						GetDifferentialLimitedSlipRatio() const		{ return mDifferentialLimitedSlipRatio; }
 	void						SetDifferentialLimitedSlipRatio(float inV)	{ mDifferentialLimitedSlipRatio = inV; }
 
+	/// If virtual steering input is enabled
+	bool						IsVirtualSteerEnabled() const				{ return mEnableVirtualSteer; }
+	void						SetVirtualSteerEnabled(bool inEnabled)		{ mEnableVirtualSteer = inEnabled; }
+
+	/// Current virtual steering input
+	bool						GetVirtualSteer() const						{ return mVirtualSteer; }
+	void						SetVirtualSteer(float inSteer)				{ mVirtualSteer = Clamp(inSteer, -1.0f, 1.0f); }
+
+	/// Velocity of the steer input, requires virtual steering to be enabled.
+	float						GetVirtualSteerVelocity() const				{ return mVirtualSteerVelocity; }
+	void						SetVirtualSteerVelocity(float inVelocity)	{ mVirtualSteerVelocity = Clamp(inVelocity, -mVirtualSteerMaxSpeed, mVirtualSteerMaxSpeed); }
+
+	/// Percentage of virtual steering feedback to apply from steered wheel friction.
+	float						GetVirtualSteerFeedback() const				{ return mVirtualSteerFeedback; }
+	void						SetVirtualSteerFeedback(float inV)			{ mVirtualSteerFeedback = inV; }
+
+	/// Virtual steering acceleration, how quickly the virtual steering reaches the target input
+	float						GetVirtualSteerAcceleration() const			{ return mVirtualSteerAcceleration; }
+	void						SetVirtualSteerAcceleration(float inV)		{ mVirtualSteerAcceleration = max(0.0f, inV); }
+
+	/// Virtual steering max speed
+	float						GetVirtualSteerMaxSpeed() const				{ return mVirtualSteerMaxSpeed; }
+	void						SetVirtualSteerMaxSpeed(float inMaxSpeed)	{ mVirtualSteerMaxSpeed = max(0.0f, inMaxSpeed); }
+
 	/// Get the average wheel speed of all driven wheels (measured at the clutch)
 	float						GetWheelSpeedAtClutch() const;
+
+	/// Calculates a wheel's current gyroscopic torque from its angular velocity in wheel-space, where the Y axis is the axis of the wheel's angular velocity
+	Vec3						GetWheelGyroscopicTorque(uint inWheelIndex, float inDeltaTime) const;
 
 	/// Returns if any wheels are slipping
 	bool						IsAnyDrivenWheelSlipping() const			{ return mAnyDrivenWheelSlipping; }
@@ -189,6 +220,12 @@ protected:
 	Differentials				mDifferentials;								///< Differential states of the vehicle
 	float						mDifferentialLimitedSlipRatio;				///< Ratio max / min average wheel speed of each differential (measured at the clutch).
 	float						mPreviousDeltaTime = 0.0f;					///< Delta time of the last step
+	float						mEnableVirtualSteer;						///< If steering uses a virtual steering wheel, which makes input smoother
+	float						mVirtualSteer = 0.0f;						///< Current virtual steering input
+	float						mVirtualSteerVelocity = 0.0f;				///< Velocity for virtual steering input, requires mEnableVirtualSteer to be true
+	float						mVirtualSteerFeedback;						///< How much feedback lateral friction on the wheels has to the virtual steering input
+	float						mVirtualSteerAcceleration;					///< Virtual steering acceleration, how quickly the virtual steering reaches the target input
+	float						mVirtualSteerMaxSpeed;						///< Virtual steering max speed
 	bool						mAnyDrivenWheelSlipping;					///< True when any driven wheels are slipping, preventing automatic shifting up
 
 	// Callback that calculates the max impulse that the tire can apply to the ground

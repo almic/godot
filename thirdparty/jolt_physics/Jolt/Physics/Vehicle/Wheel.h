@@ -38,6 +38,7 @@ public:
 	SpringSettings			mSuspensionSpring { ESpringMode::FrequencyAndDamping, 1.5f, 0.5f }; ///< Settings for the suspension spring
 	float					mRadius = 0.3f;								///< Radius of the wheel (m)
 	float					mWidth = 0.1f;								///< Width of the wheel (m)
+	float					mKnuckleLength = 0.06f;						///< Distance from the steering knuckle to the wheel center (m). The wheel's mPosition must be at least 0.1cm from the vehicle centerline, otherwise this is not factored into the final location of the wheel.
 	bool					mEnableSuspensionForcePoint = false;		///< Enables mSuspensionForcePoint, if disabled, the forces are applied at the collision contact point. This leads to a more accurate simulation when interacting with dynamic objects but makes the vehicle less stable. When setting this to true, all forces will be applied to a fixed point on the vehicle body.
 };
 
@@ -87,6 +88,9 @@ public:
 	/// Velocity of the contact point (m / s, not relative to the wheel but in world space)
 	Vec3					GetContactPointVelocity() const				{ JPH_ASSERT(HasContact()); return mContactPointVelocity; }
 
+	/// Angular velocity of the contact point in world space
+	Vec3					GetContactAngularVelocity() const			{ JPH_ASSERT(HasContact()); return mContactAngularVelocity; }
+
 	/// Returns the current contact normal in world space (note by the time you call this the vehicle has moved)
 	Vec3					GetContactNormal() const					{ JPH_ASSERT(HasContact()); return mContactNormal; }
 
@@ -127,6 +131,7 @@ protected:
 	float					mSuspensionLength;							///< Current length of the suspension
 	RVec3					mContactPosition;							///< Position of the contact point between wheel and ground
 	Vec3					mContactPointVelocity;						///< Velocity of the contact point (m / s, not relative to the wheel but in world space)
+	Vec3					mContactAngularVelocity;					///< Angular velocity of the contact point in world space
 	Vec3					mContactNormal;								///< Normal of the contact point between wheel and ground
 	Vec3					mContactLongitudinal;						///< Vector perpendicular to normal in the forward direction
 	Vec3					mContactLateral;							///< Vector perpendicular to normal and longitudinal direction in the right direction

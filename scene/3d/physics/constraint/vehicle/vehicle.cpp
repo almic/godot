@@ -18,6 +18,8 @@ Vehicle::~Vehicle() {
 }
 
 void Vehicle::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("get_acceleration"), &Vehicle::get_acceleration);
+
 	ClassDB::bind_method(D_METHOD("get_wheel_node_paths"), &Vehicle::get_wheel_node_paths);
 	ClassDB::bind_method(D_METHOD("set_wheel_node_paths", "wheel_node_paths"), &Vehicle::set_wheel_node_paths);
 
@@ -174,6 +176,13 @@ Transform3D Vehicle::GetWheelLocalTransform(const JPH::WheelSettings *inWheelSet
 
 	// Calculate transform of rotated wheel
 	return to_godot(local_steer * rotational_to_local * JPH::Mat44::sRotationX(0.0f) * wheel_to_rotational);
+}
+
+Vector3 Vehicle::get_acceleration() const {
+	if (vehicle.GetPtr() != nullptr) {
+		return to_godot(vehicle->GetAcceleration());
+	}
+	return Vector3();
 }
 
 TypedArray<NodePath> Vehicle::get_wheel_node_paths() const {

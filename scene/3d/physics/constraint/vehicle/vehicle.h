@@ -41,6 +41,8 @@ public:
 
 	~Vehicle();
 
+	Vector3 get_acceleration() const;
+
 	TypedArray<NodePath> get_wheel_node_paths() const;
 	void set_wheel_node_paths(const TypedArray<NodePath> &p_paths);
 

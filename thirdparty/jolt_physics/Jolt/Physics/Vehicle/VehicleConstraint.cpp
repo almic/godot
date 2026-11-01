@@ -168,6 +168,10 @@ void VehicleConstraint::OnStep(const PhysicsStepListenerContext &inContext)
 	if (!mBody->IsInBroadPhase())
 		return;
 
+	const Vec3 current_velocity = mBody->GetLinearVelocity();
+	mAcceleration = (current_velocity - mLastVelocity) / inContext.mDeltaTime;
+	mLastVelocity = current_velocity;
+
 	// Callback to higher-level systems. We do it before PreCollide, in case steering changes.
 	if (mPreStepCallback != nullptr)
 		mPreStepCallback(*this, inContext);
@@ -683,6 +687,8 @@ void VehicleConstraint::SaveState(StateRecorder &inStream) const
 	inStream.Write(mPitchRollRotationAxis); // When rotation is too small we use last frame so we need to store it
 	mPitchRollPart.SaveState(inStream);
 	inStream.Write(mCurrentStep);
+	inStream.Write(mLastVelocity);
+	inStream.Write(mAcceleration);
 }
 
 void VehicleConstraint::RestoreState(StateRecorder &inStream)
@@ -711,6 +717,8 @@ void VehicleConstraint::RestoreState(StateRecorder &inStream)
 	inStream.Read(mPitchRollRotationAxis);
 	mPitchRollPart.RestoreState(inStream);
 	inStream.Read(mCurrentStep);
+	inStream.Read(mLastVelocity);
+	inStream.Read(mAcceleration);
 }
 
 Ref<ConstraintSettings> VehicleConstraint::GetConstraintSettings() const

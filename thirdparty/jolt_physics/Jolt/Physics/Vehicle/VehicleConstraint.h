@@ -125,6 +125,9 @@ public:
 	/// Vector indicating the world space up direction (used to limit vehicle pitch/roll), calculated every frame by inverting gravity
 	Vec3						GetWorldUp() const							{ return mWorldUp; }
 
+	/// Get the acceleration of the previous step
+	Vec3						GetAcceleration() const						{ return mAcceleration; }
+
 	/// Access to the vehicle body
 	Body *						GetVehicleBody() const						{ return mBody; }
 
@@ -219,6 +222,8 @@ private:
 	Vec3						mForward;									///< Local space forward vector for the vehicle
 	Vec3						mUp;										///< Local space up vector for the vehicle
 	Vec3						mWorldUp;									///< Vector indicating the world space up direction (used to limit vehicle pitch/roll)
+	Vec3						mLastVelocity = Vec3::sZero();				///< Previous velocity, used for measuring acceleration
+	Vec3						mAcceleration = Vec3::sZero();				///< Measured acceleration
 	Wheels						mWheels;									///< Wheel states of the vehicle
 	VehicleAntiRollBars			mAntiRollBars;								///< Anti rollbars of the vehicle
 	VehicleController *			mController;								///< Controls the acceleration / deceleration of the vehicle

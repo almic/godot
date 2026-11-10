@@ -119,6 +119,26 @@ protected:
 	static bool _is_valid_angular_target_rotation(const Quaternion &p_target_rotation);
 
 public:
+	void set_param(uint p_axis, Param p_param, real_t p_value) {
+		if (p_axis == 0) {
+			set_param_x(p_param, p_value);
+		} else if (p_axis == 1) {
+			set_param_y(p_param, p_value);
+		} else if (p_axis == 2) {
+			set_param_z(p_param, p_value);
+		}
+	}
+	real_t get_param(uint p_axis, Param p_param) const {
+		if (p_axis == 0) {
+			return get_param_x(p_param);
+		} else if (p_axis == 1) {
+			return get_param_y(p_param);
+		} else if (p_axis == 2) {
+			return get_param_z(p_param);
+		}
+		return 0.0;
+	}
+
 	void set_param_x(Param p_param, real_t p_value);
 	real_t get_param_x(Param p_param) const;
 
@@ -127,6 +147,26 @@ public:
 
 	void set_param_z(Param p_param, real_t p_value);
 	real_t get_param_z(Param p_param) const;
+
+	void set_flag(uint p_axis, Flag p_flag, bool p_enabled) {
+		if (p_axis == 0) {
+			set_flag_x(p_flag, p_enabled);
+		} else if (p_axis == 1) {
+			set_flag_y(p_flag, p_enabled);
+		} else if (p_axis == 2) {
+			set_flag_z(p_flag, p_enabled);
+		}
+	}
+	bool get_flag(uint p_axis, Flag p_flag) const {
+		if (p_axis == 0) {
+			return get_flag_x(p_flag);
+		} else if (p_axis == 1) {
+			return get_flag_y(p_flag);
+		} else if (p_axis == 2) {
+			return get_flag_z(p_flag);
+		}
+		return false;
+	}
 
 	void set_flag_x(Flag p_flag, bool p_enabled);
 	bool get_flag_x(Flag p_flag) const;
@@ -153,6 +193,12 @@ public:
 
 	void set_linear_limit(const Vector3 &p_lower, const Vector3 &p_upper);
 	PackedVector3Array get_linear_limit() const;
+
+	void set_angular_limit(const Vector3 &p_lower, const Vector3 &p_upper);
+	PackedVector3Array get_angular_limit() const;
+
+	void set_angular_spring_target(const Vector3 &p_equilibrium);
+	Vector3 get_angular_spring_target() const;
 
 	float get_applied_force() const;
 	float get_applied_torque() const;

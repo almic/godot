@@ -34,20 +34,16 @@
 #include "jolt_physics_server_3d.h"
 #include "jolt_project_settings.h"
 
-#include "core/config/project_settings.h"
 #include "core/object/callable_mp.h"
+#include "core/object/class_db.h"
 #include "servers/physics_3d/physics_server_3d_wrap_mt.h"
 
+JoltPhysicsServer3D *_jolt_server = nullptr;
+
 PhysicsServer3D *create_jolt_physics_server() {
-#ifdef THREADS_ENABLED
-	bool run_on_separate_thread = GLOBAL_GET("physics/3d/run_on_separate_thread");
-#else
-	bool run_on_separate_thread = false;
-#endif
-
-	JoltPhysicsServer3D *physics_server = memnew(JoltPhysicsServer3D(run_on_separate_thread));
-
-	return memnew(PhysicsServer3DWrapMT(physics_server, run_on_separate_thread));
+	JoltPhysicsServer3D *js = JoltPhysicsServer3D::get_singleton();
+	js->load_on_separate_thread();
+	return memnew(PhysicsServer3DWrapMT(js, js->is_on_separate_thread()));
 }
 
 void initialize_jolt_physics_module(ModuleInitializationLevel p_level) {
@@ -56,7 +52,10 @@ void initialize_jolt_physics_module(ModuleInitializationLevel p_level) {
 	}
 
 	jolt_initialize();
+	_jolt_server = memnew(JoltPhysicsServer3D);
+	GDREGISTER_CLASS(JoltPhysicsServer3D);
 	PhysicsServer3DManager::get_singleton()->register_server("Jolt Physics", callable_mp_static(&create_jolt_physics_server));
+	Engine::get_singleton()->add_singleton(Engine::Singleton("JoltPhysicsServer3D", JoltPhysicsServer3D::get_singleton(), "JoltPhysicsServer3D"));
 	JoltProjectSettings::register_settings();
 }
 

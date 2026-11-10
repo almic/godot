@@ -116,11 +116,11 @@ public:
 		G6DOF_JOINT_FLAG_ENABLE_ANGULAR_SPRING_FREQUENCY,
 	};
 
-private:
-	static void _bind_methods() {}
+protected:
+	static void _bind_methods();
 
 public:
-	explicit JoltPhysicsServer3D(bool p_on_separate_thread);
+	JoltPhysicsServer3D();
 	~JoltPhysicsServer3D();
 
 	static JoltPhysicsServer3D *get_singleton() { return singleton; }
@@ -459,6 +459,7 @@ public:
 	virtual int get_process_info(PhysicsServer3D::ProcessInfo p_process_info) override;
 
 	bool is_on_separate_thread() const { return on_separate_thread; }
+	void load_on_separate_thread();
 	bool is_active() const { return active; }
 
 	void free_space(JoltSpace3D *p_space);

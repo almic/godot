@@ -464,7 +464,7 @@ void SixDOFConstraint::SetupVelocityConstraint(float inDeltaTime)
 		if (mRotationMotorActive)
 		{
 			// Calculate rotation motor axis
-			Mat44 ws_axis = Mat44::sRotation(constraint_body1_to_world);
+			Mat44 ws_axis = Mat44::sRotation(constraint_body2_to_world);
 			for (int i = 0; i < 3; ++i)
 				mRotationAxis[i] = ws_axis.GetColumn3(i);
 

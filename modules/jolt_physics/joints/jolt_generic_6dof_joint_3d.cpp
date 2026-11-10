@@ -237,7 +237,7 @@ void JoltGeneric6DOFJoint3D::_update_angular_target_rotation() {
 	}
 
 	const JPH::Quat target_orientation = to_jolt(angular_target_rotation);
-	constraint->SetTargetOrientationCS(target_orientation);
+	constraint->SetTargetOrientationBS(target_orientation);
 }
 
 void JoltGeneric6DOFJoint3D::_update_motor_pid(int p_axis) {

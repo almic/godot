@@ -31,10 +31,16 @@
 #include "generic_6dof_joint_3d.h"
 
 #include "core/object/class_db.h"
+#include "servers/physics_3d/physics_server_3d.h"
+
+#include "modules/jolt_physics/jolt_physics_server_3d.h"
 
 #include <cfloat> // FLT_MAX
 
 void Generic6DOFJoint3D::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("get_constraint_body_a"), &Generic6DOFJoint3D::get_constraint_body_a);
+	ClassDB::bind_method(D_METHOD("get_constraint_body_b"), &Generic6DOFJoint3D::get_constraint_body_b);
+
 	ClassDB::bind_method(D_METHOD("set_param", "axis", "param", "value"), &Generic6DOFJoint3D::set_param);
 	ClassDB::bind_method(D_METHOD("get_param", "axis", "param"), &Generic6DOFJoint3D::get_param);
 
@@ -260,6 +266,22 @@ void Generic6DOFJoint3D::_bind_methods() {
 	BIND_ENUM_CONSTANT(MOTOR_AXIS_ANGULAR_Y);
 	BIND_ENUM_CONSTANT(MOTOR_AXIS_ANGULAR_Z);
 	BIND_ENUM_CONSTANT(MOTOR_AXIS_MAX);
+}
+
+Transform3D Generic6DOFJoint3D::get_constraint_body_a() const {
+	if (!is_configured()) {
+		return Transform3D();
+	}
+
+	return JoltPhysicsServer3D::get_singleton()->generic_6dof_joint_get_constraint_to_body_1(get_rid());
+}
+
+Transform3D Generic6DOFJoint3D::get_constraint_body_b() const {
+	if (!is_configured()) {
+		return Transform3D();
+	}
+
+	return JoltPhysicsServer3D::get_singleton()->generic_6dof_joint_get_constraint_to_body_2(get_rid());
 }
 
 void Generic6DOFJoint3D::set_param_x(Param p_param, real_t p_value) {
@@ -597,22 +619,42 @@ Vector3 Generic6DOFJoint3D::get_angular_spring_target() const {
 }
 
 float Generic6DOFJoint3D::get_applied_force() const {
+	if (!is_configured()) {
+		return 0.0f;
+	}
+
 	return PhysicsServer3D::get_singleton()->generic_6dof_joint_get_applied_force(get_rid());
 }
 
 float Generic6DOFJoint3D::get_applied_torque() const {
+	if (!is_configured()) {
+		return 0.0f;
+	}
+
 	return PhysicsServer3D::get_singleton()->generic_6dof_joint_get_applied_torque(get_rid());
 }
 
 Vector3 Generic6DOFJoint3D::get_angular_lambda() const {
+	if (!is_configured()) {
+		return Vector3();
+	}
+
 	return PhysicsServer3D::get_singleton()->generic_6dof_joint_get_angular_lambda(get_rid());
 }
 
 Vector3 Generic6DOFJoint3D::get_linear_lambda() const {
+	if (!is_configured()) {
+		return Vector3();
+	}
+
 	return PhysicsServer3D::get_singleton()->generic_6dof_joint_get_linear_lambda(get_rid());
 }
 
 Vector3 Generic6DOFJoint3D::get_motor_angular_lambda() const {
+	if (!is_configured()) {
+		return Vector3();
+	}
+
 	return PhysicsServer3D::get_singleton()->generic_6dof_joint_get_motor_angular_lambda(get_rid());
 }
 

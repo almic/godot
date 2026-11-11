@@ -119,6 +119,9 @@ protected:
 	static bool _is_valid_angular_target_rotation(const Quaternion &p_target_rotation);
 
 public:
+	Transform3D get_constraint_body_a() const;
+	Transform3D get_constraint_body_b() const;
+
 	void set_param(uint p_axis, Param p_param, real_t p_value) {
 		if (p_axis == 0) {
 			set_param_x(p_param, p_value);

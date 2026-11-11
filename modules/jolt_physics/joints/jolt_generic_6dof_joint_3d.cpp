@@ -314,6 +314,20 @@ JoltGeneric6DOFJoint3D::JoltGeneric6DOFJoint3D(const JoltJoint3D &p_old_joint, J
 	rebuild();
 }
 
+Transform3D JoltGeneric6DOFJoint3D::get_constraint_to_body_1() const {
+	JPH::SixDOFConstraint *constraint = static_cast<JPH::SixDOFConstraint *>(jolt_ref.GetPtr());
+	ERR_FAIL_NULL_V(constraint, Transform3D());
+
+	return to_godot(constraint->GetConstraintToBody1Matrix());
+}
+
+Transform3D JoltGeneric6DOFJoint3D::get_constraint_to_body_2() const {
+	JPH::SixDOFConstraint *constraint = static_cast<JPH::SixDOFConstraint *>(jolt_ref.GetPtr());
+	ERR_FAIL_NULL_V(constraint, Transform3D());
+
+	return to_godot(constraint->GetConstraintToBody2Matrix());
+}
+
 double JoltGeneric6DOFJoint3D::get_param(Axis p_axis, Param p_param) const {
 	const int axis_lin = AXES_LINEAR + (int)p_axis;
 	const int axis_ang = AXES_ANGULAR + (int)p_axis;

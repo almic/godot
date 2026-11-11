@@ -101,6 +101,9 @@ void JoltPhysicsServer3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("cone_twist_joint_get_jolt_flag", "joint", "flag"), &JoltPhysicsServer3D::cone_twist_joint_get_jolt_flag);
 	ClassDB::bind_method(D_METHOD("cone_twist_joint_set_jolt_flag", "joint", "flag", "enabled"), &JoltPhysicsServer3D::cone_twist_joint_set_jolt_flag);
 
+	ClassDB::bind_method(D_METHOD("generic_6dof_joint_get_constraint_to_body_1"), &JoltPhysicsServer3D::generic_6dof_joint_get_constraint_to_body_1);
+	ClassDB::bind_method(D_METHOD("generic_6dof_joint_get_constraint_to_body_2"), &JoltPhysicsServer3D::generic_6dof_joint_get_constraint_to_body_2);
+
 	ClassDB::bind_method(D_METHOD("generic_6dof_joint_get_jolt_param", "joint", "axis", "param"), &JoltPhysicsServer3D::generic_6dof_joint_get_jolt_param);
 	ClassDB::bind_method(D_METHOD("generic_6dof_joint_set_jolt_param", "joint", "axis", "param", "value"), &JoltPhysicsServer3D::generic_6dof_joint_set_jolt_param);
 
@@ -2127,6 +2130,26 @@ float JoltPhysicsServer3D::cone_twist_joint_get_applied_torque(RID p_joint) cons
 	JoltConeTwistJoint3D *cone_twist_joint = static_cast<JoltConeTwistJoint3D *>(joint);
 
 	return cone_twist_joint->get_applied_torque();
+}
+
+Transform3D JoltPhysicsServer3D::generic_6dof_joint_get_constraint_to_body_1(RID p_joint) const {
+	JoltJoint3D *joint = joint_owner.get_or_null(p_joint);
+	ERR_FAIL_NULL_V(joint, Transform3D());
+
+	ERR_FAIL_COND_V(joint->get_type() != JOINT_TYPE_6DOF, Transform3D());
+	JoltGeneric6DOFJoint3D *g6dof_joint = static_cast<JoltGeneric6DOFJoint3D *>(joint);
+
+	return g6dof_joint->get_constraint_to_body_1();
+}
+
+Transform3D JoltPhysicsServer3D::generic_6dof_joint_get_constraint_to_body_2(RID p_joint) const {
+	JoltJoint3D *joint = joint_owner.get_or_null(p_joint);
+	ERR_FAIL_NULL_V(joint, Transform3D());
+
+	ERR_FAIL_COND_V(joint->get_type() != JOINT_TYPE_6DOF, Transform3D());
+	JoltGeneric6DOFJoint3D *g6dof_joint = static_cast<JoltGeneric6DOFJoint3D *>(joint);
+
+	return g6dof_joint->get_constraint_to_body_2();
 }
 
 double JoltPhysicsServer3D::generic_6dof_joint_get_jolt_param(RID p_joint, Vector3::Axis p_axis, G6DOFJointAxisParamJolt p_param) const {

@@ -508,6 +508,9 @@ public:
 	bool cone_twist_joint_get_jolt_flag(RID p_joint, ConeTwistJointFlagJolt p_flag) const;
 	void cone_twist_joint_set_jolt_flag(RID p_joint, ConeTwistJointFlagJolt p_flag, bool p_enabled);
 
+	Transform3D generic_6dof_joint_get_constraint_to_body_1(RID p_joint) const;
+	Transform3D generic_6dof_joint_get_constraint_to_body_2(RID p_joint) const;
+
 	double generic_6dof_joint_get_jolt_param(RID p_joint, Vector3::Axis p_axis, G6DOFJointAxisParamJolt p_param) const;
 	void generic_6dof_joint_set_jolt_param(RID p_joint, Vector3::Axis p_axis, G6DOFJointAxisParamJolt p_param, double p_value);
 

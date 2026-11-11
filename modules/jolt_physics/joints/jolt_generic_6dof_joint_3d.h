@@ -122,6 +122,9 @@ public:
 
 	virtual PhysicsServer3D::JointType get_type() const override { return PhysicsServer3D::JOINT_TYPE_6DOF; }
 
+	Transform3D get_constraint_to_body_1() const;
+	Transform3D get_constraint_to_body_2() const;
+
 	double get_param(Axis p_axis, Param p_param) const;
 	void set_param(Axis p_axis, Param p_param, double p_value);
 
